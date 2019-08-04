@@ -60,7 +60,8 @@ export function activate(context: vscode.ExtensionContext) {
 function runNode(name : string, port : string, logPort : string) {
 	var shellArgs = [] as any;
 	//~TODO add jokila port to cmd string / function params
-	var cmd = 'cd ' + projectCwd + '/workflows-java/build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar ; exit';
+	//bash -c 'cd "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB" ; "/Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/jre/bin/java" "-Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5008 -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=7008,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter" "-Dname=PartyB" "-jar" "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB/corda.jar" && exit'
+	var cmd = 'cd ' + projectCwd + '/workflows-java/build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
 	let terminal = vscode.window.createTerminal(name, 'bash', shellArgs);
 	terminal.show(true);
 	terminal.sendText(cmd);
@@ -89,10 +90,10 @@ function runNodes() {
 		partyCTerminal.dispose();
 		partyCTerminal = null;
 	}
-	notaryTerminal = runNode('Notary', '10000', '7005');
-	partyATerminal = runNode('PartyA', '10004', '7006');
-	partyBTerminal = runNode('PartyB', '10008', '7007');
-	partyCTerminal = runNode('PartyC', '10012', '7008');
+	notaryTerminal = runNode('Notary', '5005', '7005');
+	partyATerminal = runNode('PartyA', '5006', '7006');
+	partyBTerminal = runNode('PartyB', '5007', '7007');
+	partyCTerminal = runNode('PartyC', '5008', '7008');
 }
 
 
