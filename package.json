@@ -1,0 +1,66 @@
+{
+	"name": "vscode-corda",
+	"displayName": "vscode-corda",
+	"description": "Corda Tools",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.36.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"workspaceContains:build.gradle"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.cordaClean",
+				"title": "Corda Clean project"
+			},
+			{
+				"command": "extension.cordaBuild",
+				"title": "Corda Build project"
+			},
+			{
+				"command": "extension.cordaTest",
+				"title": "Corda Run Tests"
+			},
+			{
+				"command": "extension.cordaDeployNodes",
+				"title": "Corda Deploy Nodes"
+			},
+			{
+				"command": "extension.cordaRunNodes",
+				"title": "Corda Run Nodes"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/find": "^0.2.1",
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.6",
+		"@types/node": "^10.12.21",
+		"@types/vscode": "^1.36.0",
+		"glob": "^7.1.4",
+		"mocha": "^6.1.4",
+		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
+		"vscode-test": "^1.0.0-next.0"
+	},
+	"dependencies": {
+		"find": "^0.3.0",
+		"fs": "0.0.1-security",
+		"gradle-to-js": "^2.0.0",
+		"lodash.merge": "^4.6.2",
+		"stream": "0.0.2"
+	}
+}
