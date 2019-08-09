@@ -1,8 +1,3 @@
-# bootcamp-corda dir
-
-sample app used for development/test of Springboot/Okhttp3 and RPC queries
-
-
 # vscode-corda README
 
 This is the README for your extension "vscode-corda". After writing up a brief description, we recommend including the following sections.
