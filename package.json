@@ -34,15 +34,22 @@
 			{
 				"command": "extension.cordaRunNodes",
 				"title": "Corda Run Nodes"
+			},
+			{
+				"command": "extension.cordaShowView",
+				"title": "Corda Show View"
 			}
 		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
+		"compile": "npm-run-all compile:*",
+		"compile:extension": "tsc -p ./",
+		"compile:views": "webpack --mode development",
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"watch:views": "webpack --watch --mode development"
 	},
 	"devDependencies": {
 		"@types/find": "^0.2.1",
@@ -54,13 +61,46 @@
 		"mocha": "^6.1.4",
 		"tslint": "^5.12.1",
 		"typescript": "^3.3.1",
-		"vscode-test": "^1.0.0-next.0"
+		"vscode-test": "^1.0.0-next.0",
+		"npm-run-all": "^4.1.3",
+		"ts-import-plugin": "^1.5.4",
+		"ts-loader": "^4.4.2",
+		"vsce": "^1.47.0",
+		"webpack": "^4.15.1",
+		"webpack-cli": "^3.0.8",
+		"@babel/core": "^7.1.2",
+		"@babel/preset-env": "^7.1.0",
+		"@babel/preset-react": "^7.0.0",
+		"babel-loader": "^8.0.4"
 	},
 	"dependencies": {
+		"@babel/core": "^7.5.5",
+		"@babel/preset-env": "^7.5.5",
+		"@babel/preset-react": "^7.0.0",
+		"babel-loader": "^8.0.6",
 		"find": "^0.3.0",
 		"fs": "0.0.1-security",
 		"gradle-to-js": "^2.0.0",
 		"lodash.merge": "^4.6.2",
+		"react": "^16.9.0",
+		"react-dom": "^16.9.0",
+		"react-scripts": "3.0.1",
+		"react-svg-loader": "^3.0.3",
 		"stream": "0.0.2"
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	},
+	"eslintConfig": {
+		"extends": "react-app"
 	}
 }

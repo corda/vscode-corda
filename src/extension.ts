@@ -3,8 +3,9 @@ import { execSync } from 'child_process';
 import { fileSync } from 'find';
 import { cwd } from 'process';
 import { makeRe } from 'minimatch';
+import * as path from 'path';
 
-var gjs = require('/Users/chrischabot/Projects/vscode-corda/src/parser');
+var gjs = require('../src/parser');
 
 var nodeConfig = [] as cordaNodeConfig;
 var gradleTerminal = null as any;
@@ -14,6 +15,9 @@ var partyBTerminal = null as any;
 var partyCTerminal = null as any;
 var projectCwd = '';
 
+function loadScript(context: vscode.ExtensionContext, path: string) {
+    return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource'}).toString()}"></script>`;
+}
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('vscode-corda" is now active');
@@ -54,6 +58,32 @@ export function activate(context: vscode.ExtensionContext) {
 		runNodes();
 	});
 	context.subscriptions.push(cordaRunNodes);
+
+	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowView', () => {
+		vscode.window.setStatusBarMessage('Displaying Corda Vault View', 4000);
+
+		const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
+			enableScripts: true,
+			retainContextWhenHidden: true,
+			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
+		});
+
+		panel.webview.html = `
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="utf-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+			</head>
+			<body>
+				<div id="root"></div>
+				${loadScript(context, 'out/vaultview.js')}
+			</body>
+			</html>
+		`;
+	});
+	context.subscriptions.push(cordaShowView);
+
 }
 
 

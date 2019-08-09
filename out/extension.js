@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const find_1 = require("find");
-var gjs = require('/Users/chrischabot/Projects/vscode-corda/src/parser');
+const path = require("path");
+var gjs = require('../src/parser');
 var nodeConfig = [];
 var gradleTerminal = null;
 var notaryTerminal = null;
@@ -10,6 +11,9 @@ var partyATerminal = null;
 var partyBTerminal = null;
 var partyCTerminal = null;
 var projectCwd = '';
+function loadScript(context, path) {
+    return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource' }).toString()}"></script>`;
+}
 function activate(context) {
     console.log('vscode-corda" is now active');
     // monitor workspace folder changes so we can parse the corda gradle config
@@ -42,12 +46,35 @@ function activate(context) {
         runNodes();
     });
     context.subscriptions.push(cordaRunNodes);
+    let cordaShowView = vscode.commands.registerCommand('extension.cordaShowView', () => {
+        vscode.window.setStatusBarMessage('Displaying Corda Vault View', 4000);
+        const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+            localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))]
+        });
+        panel.webview.html = `
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="utf-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+			</head>
+			<body>
+				<div id="root"></div>
+				${loadScript(context, 'out/vaultview.js')}
+			</body>
+			</html>
+		`;
+    });
+    context.subscriptions.push(cordaShowView);
 }
 exports.activate = activate;
 function runNode(name, port, logPort) {
     var shellArgs = [];
     //~TODO add jokila port to cmd string / function params
-    var cmd = 'cd ' + projectCwd + '/workflows-java/build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar ; exit';
+    //bash -c 'cd "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB" ; "/Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/jre/bin/java" "-Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5008 -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=7008,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter" "-Dname=PartyB" "-jar" "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB/corda.jar" && exit'
+    var cmd = 'cd ' + projectCwd + '/workflows-java/build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
     let terminal = vscode.window.createTerminal(name, 'bash', shellArgs);
     terminal.show(true);
     terminal.sendText(cmd);
@@ -74,10 +101,10 @@ function runNodes() {
         partyCTerminal.dispose();
         partyCTerminal = null;
     }
-    notaryTerminal = runNode('Notary', '10000', '7005');
-    partyATerminal = runNode('PartyA', '10004', '7006');
-    partyBTerminal = runNode('PartyB', '10008', '7007');
-    partyCTerminal = runNode('PartyC', '10012', '7008');
+    notaryTerminal = runNode('Notary', '5005', '7005');
+    partyATerminal = runNode('PartyA', '5006', '7006');
+    partyBTerminal = runNode('PartyB', '5007', '7007');
+    partyCTerminal = runNode('PartyC', '5008', '7008');
 }
 function gradleRun(param) {
     if (gradleTerminal === null) {
