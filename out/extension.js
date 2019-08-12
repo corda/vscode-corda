@@ -3,7 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const find_1 = require("find");
 const path = require("path");
-var gjs = require('../src/parser');
+var gjs = [];
+if (process.platform.includes("win32") || process.platform.includes("win64")) {
+    gjs = require('..\\src\\parser');
+}
+else {
+    gjs = require('../src/parser');
+}
 var nodeConfig = [];
 var gradleTerminal = null;
 var notaryTerminal = null;
@@ -11,7 +17,9 @@ var partyATerminal = null;
 var partyBTerminal = null;
 var partyCTerminal = null;
 var projectCwd = '';
+var terminals = vscode.workspace.getConfiguration().get('terminal');
 function loadScript(context, path) {
+    console.log("hey");
     return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource' }).toString()}"></script>`;
 }
 function activate(context) {
@@ -72,10 +80,24 @@ function activate(context) {
 exports.activate = activate;
 function runNode(name, port, logPort) {
     var shellArgs = [];
+    var cmd;
+    var path;
     //~TODO add jokila port to cmd string / function params
     //bash -c 'cd "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB" ; "/Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/jre/bin/java" "-Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5008 -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=7008,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter" "-Dname=PartyB" "-jar" "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB/corda.jar" && exit'
-    var cmd = 'cd ' + projectCwd + '/workflows-java/build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
-    let terminal = vscode.window.createTerminal(name, 'bash', shellArgs);
+    if (terminals.integrated.shell.windows !== null) {
+        path = terminals.integrated.shell.windows;
+        if (path.includes("powershell")) {
+            cmd = "cd \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+        }
+        else {
+            cmd = "cd " + projectCwd + "\\workflows-java\\build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+        }
+    }
+    else {
+        path = 'bash';
+        cmd = 'cd ' + projectCwd + '/workflows-java/build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
+    }
+    let terminal = vscode.window.createTerminal(name, path, shellArgs);
     terminal.show(true);
     terminal.sendText(cmd);
     return terminal;
@@ -104,15 +126,31 @@ function runNodes() {
     notaryTerminal = runNode('Notary', '5005', '7005');
     partyATerminal = runNode('PartyA', '5006', '7006');
     partyBTerminal = runNode('PartyB', '5007', '7007');
-    partyCTerminal = runNode('PartyC', '5008', '7008');
+    //partyCTerminal = runNode('PartyC', '5008', '7008');
 }
 function gradleRun(param) {
+    var path;
+    var cmd;
+    if (terminals.integrated.shell.windows !== null) {
+        path = terminals.integrated.shell.windows;
+        if (path.includes("powershell")) {
+            cmd = "cd \"" + projectCwd + "\" ; ./gradlew " + param;
+        }
+        else {
+            cmd = "cd " + projectCwd + " && gradlew " + param;
+        }
+    }
+    else {
+        path = 'bash';
+        cmd = 'cd ' + projectCwd + ' && ./gradlew ' + param;
+    }
     if (gradleTerminal === null) {
         var shellArgs = [];
-        gradleTerminal = vscode.window.createTerminal('Gradle', 'bash', shellArgs);
+        vscode.workspace.getConfiguration().get('terminal');
+        gradleTerminal = vscode.window.createTerminal('Gradle', path, shellArgs);
     }
     gradleTerminal.show(true);
-    gradleTerminal.sendText('cd ' + projectCwd + ' && ./gradlew ' + param);
+    gradleTerminal.sendText(cmd);
 }
 function scanGradleFile(fileName) {
     gjs.parseFile(fileName).then(function (representation) {
@@ -129,6 +167,9 @@ function updateWorkspaceFolders() {
     }
     //TODO Only supports one workspace folder for now, add support for multiple (named targets)
     projectCwd = vscode.workspace.workspaceFolders[0].uri.path;
+    if (process.platform.includes("win32") || process.platform.includes("win64")) {
+        projectCwd = projectCwd.replace(/\//g, "\\").slice(1);
+    }
     // Search for build.gradle files & scan them for node config's
     let files = find_1.fileSync(/build.gradle$/, projectCwd);
     files.forEach(element => {
