@@ -14,14 +14,6 @@ module.exports = {
               {
                 test: /\.(js|jsx)?$/,
                     exclude: [/node_modules/, /MSSQL/],
-                    /*
-                    use: {
-                      loader: "babel-loader"
-                      query: {
-                        presets: ['react', 'es2015', 'stage-0'],
-                      }
-                    }*/
-    
                     use: {
                       loader: "babel-loader",
                       query: {
@@ -35,7 +27,7 @@ module.exports = {
               },
               {
                 test: /\.svg$/,
-                    use: ["react-svg-loader"]
+                loader: "svg-inline-loader"
               }
             ]
     }
