@@ -38,6 +38,10 @@
 			{
 				"command": "extension.cordaShowView",
 				"title": "Corda Show View"
+			},
+			{		
+				"command" : "extension.launchServer",
+				"title": "Launch the server"
 			}
 		]
 	},

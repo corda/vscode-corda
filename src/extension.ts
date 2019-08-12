@@ -23,7 +23,6 @@ var projectCwd = '';
 var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
 function loadScript(context: vscode.ExtensionContext, path: string) {
-	console.log("hey");
     return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource'}).toString()}"></script>`;
 }
 
@@ -92,6 +91,22 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(cordaShowView);
 
+	let launchServer = vscode.commands.registerCommand('extension.launchServer' , () =>{
+		launchSpringServer();
+	});
+	context.subscriptions.push(launchServer);
+}
+
+function launchSpringServer(){
+	var path = terminals.integrated.shell.windows;
+	var shellArgs = [] as any;
+	var temppath = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda";
+
+	var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar build\\libs\\gs-spring-boot-0.1.0.jar";
+	let terminal = vscode.window.createTerminal("Server", path, shellArgs);
+	terminal.show(true);
+	terminal.sendText(cmd);
+	return terminal;
 }
 
 

@@ -19,7 +19,6 @@ var partyCTerminal = null;
 var projectCwd = '';
 var terminals = vscode.workspace.getConfiguration().get('terminal');
 function loadScript(context, path) {
-    console.log("hey");
     return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource' }).toString()}"></script>`;
 }
 function activate(context) {
@@ -76,8 +75,22 @@ function activate(context) {
 		`;
     });
     context.subscriptions.push(cordaShowView);
+    let launchServer = vscode.commands.registerCommand('extension.launchServer', () => {
+        launchSpringServer();
+    });
+    context.subscriptions.push(launchServer);
 }
 exports.activate = activate;
+function launchSpringServer() {
+    var path = terminals.integrated.shell.windows;
+    var shellArgs = [];
+    var temppath = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda";
+    var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar build\\libs\\gs-spring-boot-0.1.0.jar";
+    let terminal = vscode.window.createTerminal("Server", path, shellArgs);
+    terminal.show(true);
+    terminal.sendText(cmd);
+    return terminal;
+}
 function runNode(name, port, logPort) {
     var shellArgs = [];
     var cmd;
@@ -126,7 +139,7 @@ function runNodes() {
     notaryTerminal = runNode('Notary', '5005', '7005');
     partyATerminal = runNode('PartyA', '5006', '7006');
     partyBTerminal = runNode('PartyB', '5007', '7007');
-    //partyCTerminal = runNode('PartyC', '5008', '7008');
+    partyCTerminal = runNode('PartyC', '5008', '7008');
 }
 function gradleRun(param) {
     var path;

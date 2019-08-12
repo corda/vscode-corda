@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="hello.HelloControllerTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2019-08-12T10:22:45" hostname="19LDN-DEL38" time="0.014">
+  <properties/>
+  <testcase name="getHello" classname="hello.HelloControllerTest" time="0.014"/>
+  <system-out><![CDATA[2019-08-12 11:22:44.903  INFO 9236 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Neither @ContextConfiguration nor @ContextHierarchy found for test class [hello.HelloControllerTest], using SpringBootContextLoader
+2019-08-12 11:22:44.903  INFO 9236 --- [    Test worker] o.s.t.c.support.AbstractContextLoader    : Could not detect default resource locations for test class [hello.HelloControllerTest]: no resource found for suffixes {-context.xml, Context.groovy}.
+2019-08-12 11:22:44.904  INFO 9236 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [hello.HelloControllerTest]: HelloControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2019-08-12 11:22:44.911  INFO 9236 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration hello.Application for test class hello.HelloControllerTest
+2019-08-12 11:22:44.912  INFO 9236 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener]
+2019-08-12 11:22:44.913  INFO 9236 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@52ec45b4, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@5a8a6fcd, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@4807e5d7, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@25391910, org.springframework.test.context.support.DirtiesContextTestExecutionListener@15c839e6, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@1cb5c895, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@6bebaf89, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@6f7da7d, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@52a4d44c, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@60674fed]
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v2.1.6.RELEASE)
+
+2019-08-12 11:22:44.935  INFO 9236 --- [    Test worker] hello.HelloControllerTest                : Starting HelloControllerTest on 19LDN-DEL38 with PID 9236 (started by Freya Sheer Hardwick in C:\Users\Freya Sheer Hardwick\Documents\Developer\IDE\dev\vscode-corda\server)
+2019-08-12 11:22:44.935  INFO 9236 --- [    Test worker] hello.HelloControllerTest                : No active profile set, falling back to default profiles: default
+2019-08-12 11:22:45.364  INFO 9236 --- [    Test worker] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
+2019-08-12 11:22:45.684  INFO 9236 --- [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2019-08-12 11:22:45.684  INFO 9236 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2019-08-12 11:22:45.691  INFO 9236 --- [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoint(s) beneath base path '/actuator'
+2019-08-12 11:22:45.708  INFO 9236 --- [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 24 ms
+2019-08-12 11:22:45.733  INFO 9236 --- [    Test worker] hello.HelloControllerTest                : Started HelloControllerTest in 0.814 seconds (JVM running for 4.642)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
