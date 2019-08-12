@@ -19,6 +19,9 @@ var partyCTerminal = null;
 var projectCwd = '';
 var terminals = vscode.workspace.getConfiguration().get('terminal');
 function loadScript(context, path) {
+    if (process.platform.includes("win32") || process.platform.includes("win64")) {
+        path = path.replace(/\//g, "\\");
+    }
     return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource' }).toString()}"></script>`;
 }
 function activate(context) {

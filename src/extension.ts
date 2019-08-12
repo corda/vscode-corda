@@ -23,6 +23,9 @@ var projectCwd = '';
 var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
 function loadScript(context: vscode.ExtensionContext, path: string) {
+	if(process.platform.includes("win32") || process.platform.includes("win64")){
+		path = path.replace(/\//g, "\\");
+	}
     return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource'}).toString()}"></script>`;
 }
 
