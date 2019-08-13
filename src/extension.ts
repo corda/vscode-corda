@@ -97,15 +97,16 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(cordaShowView);
 
-	let launchServer = vscode.commands.registerCommand('extension.launchServer' , () =>{
-		launchSpringServer();
-	});
-	context.subscriptions.push(launchServer);
+	// WINDOWS TEST
+	// let launchServer = vscode.commands.registerCommand('extension.launchServer' , () =>{
+	// 	launchSpringServer();
+	// });
+	// context.subscriptions.push(launchServer);
 
-	let launchClient = vscode.commands.registerCommand('extension.launchClient' , () =>{
-		launchSpringClient();
-	});
-	context.subscriptions.push(launchClient);
+	// let launchClient = vscode.commands.registerCommand('extension.launchClient' , () =>{
+	// 	launchSpringClient();
+	// });
+	// context.subscriptions.push(launchClient);
 }
 
 // WINDOWS TEST
@@ -142,7 +143,7 @@ function launchViewBackend() {
 function launchServer() {
 	// TODO - take off hardcoding of Jar path
 	var shellArgs = [] as any;
-	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/testJars/Server && java -jar Server.jar';
+	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/server/build/libs && java -jar server-0.1.0.jar';
 	let terminal = vscode.window.createTerminal("Server Launcher", 'bash', shellArgs);
 	terminal.show(true);
 	terminal.sendText(cmd);
@@ -161,7 +162,7 @@ function launchServer() {
 function launchClient() {
 	// TODO - take off hardcoding of Jar path
 	var shellArgs = [] as any;
-	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/testJars/Client && java -jar Client.jar';
+	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/client/build/libs && java -jar client-0.1.0.jar localhost:10006 "user1" "test"';
 	let terminal = vscode.window.createTerminal("Client Launcher", 'bash', shellArgs);
 	terminal.show(true);
 	terminal.sendText(cmd);
