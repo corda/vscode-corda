@@ -72,6 +72,9 @@ export function activate(context: vscode.ExtensionContext) {
 	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowView', () => {
 		vscode.window.setStatusBarMessage('Displaying Corda Vault View', 4000);
 
+		// LAUNCH BACKEND
+		launchViewBackend();
+
 		const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
 			enableScripts: true,
 			retainContextWhenHidden: true,
@@ -115,6 +118,7 @@ function launchInvestigateNode(){
 	console.log(nodeConfig[1].rpcSettings);
 }
 
+<<<<<<< HEAD
 function launchSpringServer(){
 	var path = terminals.integrated.shell.windows;
 	var shellArgs = [] as any;
@@ -122,11 +126,41 @@ function launchSpringServer(){
 
 	var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar server\\build\\libs\\server-0.1.0.jar";
 	let terminal = vscode.window.createTerminal("Server", path, shellArgs);
+=======
+function launchViewBackend() {
+
+	if (vscode.window.terminals.find((value) => {
+		return value.name === "Client Launcher";
+	}) === undefined) {
+		launchClient();
+		console.log("Client Launch successful");
+	} else {
+		console.log("Client already up");
+	}
+
+	if (vscode.window.terminals.find((value) => {
+		return value.name === "Server Launcher";
+	}) === undefined) {
+		launchServer();
+		console.log("Server Launch successful");
+	} else {
+		console.log("Server already up");
+	}
+
+}
+
+function launchServer() {
+	// TODO - take off hardcoding of Jar path
+	var shellArgs = [] as any;
+	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/testJars/Server && java -jar Server.jar';
+	let terminal = vscode.window.createTerminal("Server Launcher", 'bash', shellArgs);
+>>>>>>> fixed logical condition on client/server check
 	terminal.show(true);
 	terminal.sendText(cmd);
 	return terminal;
 }
 
+<<<<<<< HEAD
 function launchSpringClient(){
 	var path = terminals.integrated.shell.windows;
 	var shellArgs = [] as any;
@@ -134,10 +168,21 @@ function launchSpringClient(){
 
 	var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar client\\build\\libs\\client-0.1.0.jar localhost:10006 user1 test";
 	let terminal = vscode.window.createTerminal("Client", path, shellArgs);
+=======
+function launchClient() {
+	// TODO - take off hardcoding of Jar path
+	var shellArgs = [] as any;
+	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/testJars/Client && java -jar Client.jar';
+	let terminal = vscode.window.createTerminal("Client Launcher", 'bash', shellArgs);
+>>>>>>> fixed logical condition on client/server check
 	terminal.show(true);
 	terminal.sendText(cmd);
 	return terminal;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> fixed logical condition on client/server check
 
 function runNode(name : string, port : string, logPort : string) {
 	var shellArgs = [] as any;
