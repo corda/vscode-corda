@@ -17,6 +17,8 @@ var CHAR_ARRAY_START = 91;
 var CHAR_ARRAY_END = 93;
 var CHAR_BLOCK_START = 123;
 var CHAR_BLOCK_END = 125;
+var CHAR_COLON = 58;
+var CHAR_COMMA = 44;
 
 var KEYWORD_DEF = 'def';
 var KEYWORD_IF = 'if';
@@ -153,6 +155,9 @@ function deepParse(chunk, state, keepFunctionCalls, skipEmptyValues) {
 
         // Only parse as an array if the first *real* char is a [
         if (!parsingKey && !tempString && character === CHAR_ARRAY_START) {
+            console.log("an array")
+            console.log(currentKey)
+           
             out[currentKey] = parseArray(chunk, state);
             currentKey = '';
             tempString = '';
@@ -527,9 +532,20 @@ function fetchDefinedNameOrSkipFunctionDefinition(chunk, state) {
 function parseArray(chunk, state) {
     var character = 0;
     var temp = '';
+    var innerOut = {}
+    var innerKey = ''
     for (var max = chunk.length; state.index < max; state.index++) {
         character = chunk[state.index];
-        if (character === CHAR_ARRAY_START) {
+        if(character === CHAR_COLON){
+            innerKey = trimWrappingQuotes(temp.trim());
+            temp = '';
+            continue;
+        }else if(innerKey && character === CHAR_COMMA){
+            innerOut[innerKey] = trimWrappingQuotes(temp.trim());
+            temp = '';
+            continue;
+        }
+        else if (character === CHAR_ARRAY_START) {
             continue;
         } else if (character === CHAR_ARRAY_END) {
             break;
@@ -537,9 +553,10 @@ function parseArray(chunk, state) {
         temp += String.fromCharCode(character);
     }
 
-    return temp.split(',').map(function (item) {
+    return innerOut;
+   /* return temp.split(',').map(function (item) {
         return trimWrappingQuotes(item.trim());
-    });
+    }); */
 }
 
 

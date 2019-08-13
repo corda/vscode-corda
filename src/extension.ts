@@ -278,7 +278,7 @@ function updateWorkspaceFolders(): void {
 
 // tslint:disable-next-line: class-name
 interface cordaNodeConfig {
-	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : Object, rpcUsers : []};
+	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : any, rpcUsers : any};
 }
 
 // tslint:disable-next-line: class-name
