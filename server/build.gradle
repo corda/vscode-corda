@@ -1,33 +1,37 @@
 buildscript {
+    ext.corda_release_group = 'net.corda'
+    ext.corda_release_version = '4.0'
+    ext.corda_gradle_plugins_version = '4.0.42'
     repositories {
         mavenCentral()
+        jcenter()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-releases' }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:2.1.6.RELEASE")
+        classpath "net.corda.plugins:cordapp:$corda_gradle_plugins_version"
+        classpath "net.corda.plugins:cordformation:$corda_gradle_plugins_version"
+        classpath "net.corda.plugins:quasar-utils:$corda_gradle_plugins_version"
     }
 }
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
+allprojects {
+    apply plugin: 'java'
 
-bootJar {
-    baseName = 'gs-spring-boot'
-    version =  '0.1.0'
+    /*
+    configurations {
+        compile {
+            // We want to use SLF4J's version of these bindings: jcl-over-slf4j
+            // Remove any transitive dependency on Apache's version.
+            exclude group: 'commons-logging', module: 'commons-logging'
+
+        }
+    }
+
+    jar {
+        // CorDapps do not configure a Node's logging.
+
+    }
+*/
 }
-
-repositories {
-    mavenCentral()
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-actuator")
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-}
-

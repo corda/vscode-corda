@@ -1,3 +1,9 @@
 node_modules
 out
-
+*.jar
+*bin*
+*.settings
+*.idea
+*.classpath
+*.project
+*~

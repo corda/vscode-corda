@@ -42,6 +42,10 @@
 			{		
 				"command" : "extension.launchServer",
 				"title": "Launch the server"
+			},
+			{		
+				"command" : "extension.launchClient",
+				"title": "Launch the client"
 			}
 		]
 	},

@@ -82,14 +82,28 @@ function activate(context) {
         launchSpringServer();
     });
     context.subscriptions.push(launchServer);
+    let launchClient = vscode.commands.registerCommand('extension.launchClient', () => {
+        launchSpringClient();
+    });
+    context.subscriptions.push(launchClient);
 }
 exports.activate = activate;
 function launchSpringServer() {
     var path = terminals.integrated.shell.windows;
     var shellArgs = [];
     var temppath = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda";
-    var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar build\\libs\\gs-spring-boot-0.1.0.jar";
+    var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar server\\build\\libs\\server-0.1.0.jar";
     let terminal = vscode.window.createTerminal("Server", path, shellArgs);
+    terminal.show(true);
+    terminal.sendText(cmd);
+    return terminal;
+}
+function launchSpringClient() {
+    var path = terminals.integrated.shell.windows;
+    var shellArgs = [];
+    var temppath = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda";
+    var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar client\\build\\libs\\client-0.1.0.jar localhost:10006 user1 test";
+    let terminal = vscode.window.createTerminal("Client", path, shellArgs);
     terminal.show(true);
     terminal.sendText(cmd);
     return terminal;
