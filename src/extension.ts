@@ -74,6 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// LAUNCH BACKEND
 		launchViewBackend();
+		
 
 		const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
 			enableScripts: true,

@@ -1,71 +1,73 @@
 package client;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.corda.client.rpc.CordaRPCClient;
-import net.corda.core.contracts.Contract;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
-import net.corda.core.contracts.TransactionState;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.core.node.services.Vault;
 import net.corda.core.utilities.NetworkHostAndPort;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
-
+import static org.apache.logging.log4j.message.MapMessage.MapFormat.JSON;
 
 
 public class Client{
 
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
-//    static String updateBackend(TokenState tokenState) {
-//        String json = getRequestJson(tokenState, "");
-//        String url = "http://localhost:8080/updateState";
-//
-//        MediaType JSON = okhttp3.MediaType.parse("application/json; charset=utf-8");
-//        OkHttpClient client = new OkHttpClient();
-//        RequestBody body = RequestBody.create(JSON, json); // reversed args for Java
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .post(body)
-//                .build();
-//        try {
-//            Response response = client.newCall(request).execute();
-//            if (!response.isSuccessful()) {
-//                // repeat call
-//            }
-//            System.out.println(response.body().toString());
-//            return response.body().string();
-//        } catch (IOException e) {
-//            String s = "ERROR";
-//            return s;
-//        }
-//    }
+    static String updateBackend(ContractState state) {
+        String json = getRequestJson(state, "");
+        String url = "http://localhost:8080/updateState";
 
-//    // Convert the pertinent State object fields into a json string
-//    static String getRequestJson(TokenState tokenState, String error) {
-//        Map<String, String> map = new HashMap<String, String>();
-//        map.put("issuer", tokenState.getIssuer().toString());
-//        map.put("owner", tokenState.getOwner().toString());
-//        map.put("amount", String.valueOf((tokenState.getAmount())));
-//        //map.put("linearId", iouState.getLinearId().toString());
-//        //map.put("error", error);
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        try {
-//            String json = objectMapper.writeValueAsString(map);
-//            System.out.println(json); // TESTING
-//            return json;
-//        } catch (JsonProcessingException e) {
-//            return "";
-//        }
-//    }
+        MediaType JSON = okhttp3.MediaType.parse("application/json; charset=utf-8");
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(JSON, json); // reversed args for Java
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            if (!response.isSuccessful()) {
+                // repeat call
+            }
+            System.out.println(response.body().toString());
+            return response.body().string();
+        } catch (IOException e) {
+            String s = "ERROR";
+            return s;
+        }
+    }
+
+    // Convert the pertinent State object fields into a json string
+    static String getRequestJson(ContractState state, String error) {
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("target", state.toString());
+
+        System.out.println("OUTPUT: " + map.toString());
+        //map.put("issuer", tokenState.getIssuer().toString());
+        //map.put("owner", tokenState.getOwner().toString());
+        //map.put("amount", String.valueOf((tokenState.getAmount())));
+        //map.put("linearId", iouState.getLinearId().toString());
+        //map.put("error", error);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String json = objectMapper.writeValueAsString(map);
+            System.out.println(json); // TESTING
+            return json;
+        } catch (JsonProcessingException e) {
+            return "";
+        }
+    }
 
     public static void main(String[] args) throws InterruptedException {
         // Create an RPC connection to the node.
@@ -108,9 +110,10 @@ public class Client{
         proxy.vaultTrack(contractState.getClass()).getUpdates().toBlocking().subscribe(update -> {
             // Fetch output states, in this case there's always only one output state so grab that directly
             List<ContractState> outputs = update.getProduced().stream().map(stateAndRef -> stateAndRef.getState().getData()).collect(Collectors.toList());
-            ContractState token = outputs.get(0);
+            ContractState state = outputs.get(0);
             System.out.println("hey!");
 
+            updateBackend(state);
         });
     }
 
