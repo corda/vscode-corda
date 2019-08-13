@@ -155,8 +155,6 @@ function deepParse(chunk, state, keepFunctionCalls, skipEmptyValues) {
 
         // Only parse as an array if the first *real* char is a [
         if (!parsingKey && !tempString && character === CHAR_ARRAY_START) {
-            console.log("an array")
-            console.log(currentKey)
            
             out[currentKey] = parseArray(chunk, state);
             currentKey = '';

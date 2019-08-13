@@ -161,8 +161,11 @@ function launchServer() {
 
 function launchClient() {
 	// TODO - take off hardcoding of Jar path
+	var nodePort = nodeConfig[1].rpcSettings["address"];
+	var user = nodeConfig[1].rpcUsers["user"];
+	var password = nodeConfig[1].rpcUsers["password"];
 	var shellArgs = [] as any;
-	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/client/build/libs && java -jar client-0.1.0.jar localhost:10006 "user1" "test"';
+	var cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/client/build/libs && java -jar client-0.1.0.jar ' + nodePort + ' ' + user + ' ' + password;
 	let terminal = vscode.window.createTerminal("Client Launcher", 'bash', shellArgs);
 	terminal.show(true);
 	terminal.sendText(cmd);
