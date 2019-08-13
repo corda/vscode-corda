@@ -46,6 +46,10 @@
 			{		
 				"command" : "extension.launchClient",
 				"title": "Launch the client"
+			},
+			{		
+				"command" : "extension.investigateNode",
+				"title": "Investigate the nodes"
 			}
 		]
 	},

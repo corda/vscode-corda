@@ -108,13 +108,22 @@ function deepParse(chunk, state, keepFunctionCalls, skipEmptyValues) {
             }
         }
 
+        
         if (parsingKey && !keepFunctionCalls && character === CHAR_LEFT_PARENTHESIS) {
-            skipFunctionCall(chunk, state);
-            currentKey = '';
-            tempString = '';
-            isBeginningOfLine = true;
-            continue;
-        }
+            if(tempString.trim() == 'address' || tempString.trim() == 'adminAddress'){
+                currentKey = tempString.trim();
+                tempString = ''
+            }else{
+                skipFunctionCall(chunk, state);
+                currentKey = '';
+                tempString = '';
+                isBeginningOfLine = true;
+                continue;
+            }
+            
+        } 
+
+
 
         if (isLineBreakCharacter(character)) {
             if (!currentKey && tempString) {
@@ -129,7 +138,7 @@ function deepParse(chunk, state, keepFunctionCalls, skipEmptyValues) {
             }
 
             if (tempString || (currentKey && !skipEmptyValues)) {
-                addValueToStructure(out, currentKey, trimWrappingQuotes(tempString));
+                addValueToStructure(out, currentKey, (trimWrappingQuotes(trimWrappingParenthesis(tempString))));
 
                 currentKey = '';
                 tempString = '';
@@ -533,6 +542,8 @@ function parseArray(chunk, state) {
     });
 }
 
+
+
 function skipFunctionCall(chunk, state) {
     var openParenthesisCount = 0;
     var character = '';
@@ -580,6 +591,14 @@ function trimWrappingQuotes(string) {
         return string.replace(/^"([^"]+)"$/g, '$1');
     } else if (firstCharacter === '\'') {
         return string.replace(/^'([^']+)'$/g, '$1');
+    }
+    return string;
+}
+
+function trimWrappingParenthesis(string){
+    var firstCharacter = string.slice(0, 1);
+    if (firstCharacter === '(') {
+        return string.replace(/^\(|\)$/g,"");
     }
     return string;
 }

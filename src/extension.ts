@@ -103,6 +103,16 @@ export function activate(context: vscode.ExtensionContext) {
 		launchSpringClient();
 	});
 	context.subscriptions.push(launchClient);
+
+	let investigateNode = vscode.commands.registerCommand('extension.investigateNode' , () =>{
+		launchInvestigateNode();
+	});
+	context.subscriptions.push(investigateNode);
+}
+
+function launchInvestigateNode(){
+	console.log(nodeConfig[1]);
+	console.log(nodeConfig[1].rpcSettings);
 }
 
 function launchSpringServer(){
