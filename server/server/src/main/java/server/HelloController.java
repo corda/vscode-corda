@@ -12,6 +12,13 @@ public class HelloController {
 
     private List<String> states = new LinkedList<>();
 
+    // heartbeat endpoint
+    @CrossOrigin(origins = "*")
+    @GetMapping(value = "/alive", produces = "text/plain")
+    private String alive() {
+        return "alive!";
+    }
+
     @CrossOrigin(origins = "*")
     @RequestMapping(value = "/updateState", method = RequestMethod.POST)
     public ResponseEntity<List<String>> update(@RequestBody String token) {

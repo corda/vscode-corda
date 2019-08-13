@@ -78,6 +78,19 @@ public class Client{
         final CordaRPCClient client = new CordaRPCClient(nodeAddress);
         final CordaRPCOps proxy = client.start(rpcUsername, rpcPassword).getProxy();
 
+        // TODO check for heartbeat alive response.
+        OkHttpClient okClient = new OkHttpClient();
+
+         //WAIT FOR SERVER to come up.
+        Request req = new Request.Builder().url("http://localhost:8080/alive").get().build();
+        Response res;
+        while (true) {
+            try {
+                res = okClient.newCall(req).execute();
+                if(res.isSuccessful()) break;
+            } catch (IOException e) { }
+        }
+
         // get node info
         NodeInfo nodeInfo = proxy.nodeInfo();
 
