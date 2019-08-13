@@ -6,6 +6,7 @@ import net.corda.client.rpc.CordaRPCClient;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.messaging.CordaRPCOps;
+import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import net.corda.core.utilities.NetworkHostAndPort;
 import okhttp3.*;
@@ -51,9 +52,7 @@ public class Client{
     // Convert the pertinent State object fields into a json string
     static String getRequestJson(ContractState state, String error) {
         Map<String, String> map = new HashMap<String, String>();
-        map.put("target", state.toString());
-
-        System.out.println("OUTPUT: " + map.toString());
+        map.put(state.getClass().getName(), state.toString());
         //map.put("issuer", tokenState.getIssuer().toString());
         //map.put("owner", tokenState.getOwner().toString());
         //map.put("amount", String.valueOf((tokenState.getAmount())));
@@ -79,6 +78,9 @@ public class Client{
         final CordaRPCClient client = new CordaRPCClient(nodeAddress);
         final CordaRPCOps proxy = client.start(rpcUsername, rpcPassword).getProxy();
 
+        // get node info
+        NodeInfo nodeInfo = proxy.nodeInfo();
+
         // get flow list
         List<String> flows = proxy.registeredFlows();
 
@@ -92,15 +94,34 @@ public class Client{
 
         // debugging prints
         System.out.println("\n\n\n =====================================");
-        System.out.println("\nFlow List: " + flows);
+        System.out.println("\nFlow Listing: " + flows);
+        System.out.println("NODE INFO ++++++ " + nodeInfo);
         System.out.println("State Names: " + stateNames);
         System.out.println("State Classes: " + stateClasses);
-
         System.out.println("\n");
-        setVaultTrack(proxy, stateClasses.iterator().next());
+
+        // Query what's already in the Vault
+        loadVaultHistory(proxy);
+        // Start Vault Tracking for ALL states on node
+        startVaultTrackingStates(proxy, stateClasses);
 
         System.out.println("\nClient ran successfully!");
 
+    }
+
+    private static void loadVaultHistory(CordaRPCOps proxy) {
+        Vault.Page<ContractState> query = proxy.vaultQuery(ContractState.class);
+        for (StateAndRef<ContractState> s : query.getStates()) {
+            updateBackend(s.getState().getData());
+        }
+    }
+
+    // Starts vault tracking for every state existing on the node
+    // params: proxy, Set of ContractStates
+    private static void startVaultTrackingStates(CordaRPCOps proxy, Set<ContractState> stateClasses) {
+        for (ContractState stateClass : stateClasses) {
+            setVaultTrack(proxy, stateClass);
+        }
     }
 
     // Sets a vault track for a particular state

@@ -19,7 +19,7 @@ export default class VaultView extends React.Component {
         window.setInterval(function() {
             console.log("here is the component mount");
             Axios.get("http://localhost:8080/latestState").then(function (response) {
-                console.log(response.data[0].target);
+                console.log(response.data[0]);
                 _this.setState({states: response.data})
                 //vaultContent = response;
             });
@@ -44,7 +44,7 @@ export default class VaultView extends React.Component {
                 </a>
                 {this.state.states.map((obj, index) => (
                     <div>
-                        {obj.target}
+                        {obj}
                     </div>
                 ))}
               </header>
