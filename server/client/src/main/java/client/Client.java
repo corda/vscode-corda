@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
@@ -88,6 +89,7 @@ public class Client{
             try {
                 res = okClient.newCall(req).execute();
                 if(res.isSuccessful()) break;
+                TimeUnit.SECONDS.sleep(2); // two second delay
             } catch (IOException e) { }
         }
 
