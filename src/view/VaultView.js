@@ -44,7 +44,8 @@ export default class VaultView extends React.Component {
                 </a>
                 {this.state.states.map((obj, index) => (
                     <div>
-                        {obj}
+
+                        {obj[obj.stateName]}
                     </div>
                 ))}
               </header>

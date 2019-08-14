@@ -53,7 +53,9 @@ public class Client{
     // Convert the pertinent State object fields into a json string
     static String getRequestJson(ContractState state, String error) {
         Map<String, String> map = new HashMap<String, String>();
+        map.put("stateName", state.getClass().getName());
         map.put(state.getClass().getName(), state.toString());
+
         //map.put("issuer", tokenState.getIssuer().toString());
         //map.put("owner", tokenState.getOwner().toString());
         //map.put("amount", String.valueOf((tokenState.getAmount())));
