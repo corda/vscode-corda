@@ -1,0 +1,11 @@
+body{
+    background-color: white;
+    
+}
+
+html, body {
+    overflow: hidden;
+}
+CardCarousel{
+    padding-top:75vh;
+}
