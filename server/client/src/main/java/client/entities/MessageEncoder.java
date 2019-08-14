@@ -1,4 +1,4 @@
-package client;
+package client.entities;
 
 import com.google.gson.Gson;
 

@@ -65,6 +65,13 @@ function activate(context) {
             retainContextWhenHidden: true,
             localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'out'))]
         });
+        var locationOfView;
+        if (process.platform.includes("win32") || process.platform.includes("win64")) {
+            locationOfView = 'out\\vaultview.js';
+        }
+        else {
+            locationOfView = 'out/vaultview.js';
+        }
         panel.webview.html = `
 			<!DOCTYPE html>
 			<html lang="en">
@@ -74,7 +81,7 @@ function activate(context) {
 			</head>
 			<body>
 				<div id="root"></div>
-				${loadScript(context, 'out/vaultview.js')}
+				${loadScript(context, locationOfView)}
 			</body>
 			</html>
 		`;
@@ -121,8 +128,23 @@ function launchViewBackend() {
 function launchServer() {
     // TODO - take off hardcoding of Jar path
     var shellArgs = [];
-    var cmd = 'cd ' + '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/server/build/libs && java -jar server-0.1.0.jar';
-    let terminal = vscode.window.createTerminal("Server Launcher", 'bash', shellArgs);
+    var cmd;
+    var path;
+    if (terminals.integrated.shell.windows !== null) {
+        path = terminals.integrated.shell.windows;
+        var tempLocation = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda\\server\\server\\build\\libs";
+        if (path.includes("powershell")) {
+            cmd = "cd \"" + tempLocation + "\" java -jar server-0.1.0.jar ";
+        }
+        else {
+            cmd = "cd " + tempLocation + "  && java -jar server-0.1.0.jar ";
+        }
+    }
+    else {
+        path = 'bash';
+        cmd = 'cd ' + '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/server/build/libs && java -jar server-0.1.0.jar';
+    }
+    let terminal = vscode.window.createTerminal("Server Launcher", path, shellArgs);
     terminal.show(true);
     terminal.sendText(cmd);
     return terminal;
@@ -136,9 +158,27 @@ function launchServer() {
 // 	let terminal = vscode.window.createTerminal("Client", path, shellArgs);
 function launchClient() {
     // TODO - take off hardcoding of Jar path
+    var nodePort = nodeConfig[1].rpcSettings["address"];
+    var user = nodeConfig[1].rpcUsers["user"];
+    var password = nodeConfig[1].rpcUsers["password"];
     var shellArgs = [];
-    var cmd = 'cd ' + '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/client/build/libs && java -jar client-0.1.0.jar localhost:10006 "user1" "test"';
-    let terminal = vscode.window.createTerminal("Client Launcher", 'bash', shellArgs);
+    var cmd;
+    var path;
+    if (terminals.integrated.shell.windows !== null) {
+        path = terminals.integrated.shell.windows;
+        var tempLocation = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda\\server\\client\\build\\libs";
+        if (path.includes("powershell")) {
+            cmd = "cd \"" + tempLocation + "\" java -jar client-0.1.0.jar " + nodePort + ' ' + user + ' ' + password;
+        }
+        else {
+            cmd = "cd " + tempLocation + "  && java -jar client-0.1.0.jar " + nodePort + " " + user + " " + password;
+        }
+    }
+    else {
+        path = 'bash';
+        cmd = 'cd ' + '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/client/build/libs && java -jar client-0.1.0.jar ' + nodePort + ' ' + user + ' ' + password;
+    }
+    let terminal = vscode.window.createTerminal("Client Launcher", path, shellArgs);
     terminal.show(true);
     terminal.sendText(cmd);
     return terminal;

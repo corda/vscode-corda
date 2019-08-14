@@ -19,10 +19,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
-import static org.apache.logging.log4j.message.MapMessage.MapFormat.JSON;
 
 
-public class Client{
+public class Client {
 
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
@@ -32,7 +31,7 @@ public class Client{
 
         MediaType JSON = okhttp3.MediaType.parse("application/json; charset=utf-8");
         OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(JSON, json); // reversed args for Java
+        RequestBody body = RequestBody.create(json, JSON); // reversed args for Java
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)

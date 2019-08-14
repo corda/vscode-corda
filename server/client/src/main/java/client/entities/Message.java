@@ -1,5 +1,8 @@
-package client;
+package client.entities;
 
+import javax.persistence.Entity;
+
+@Entity
 public class Message {
     private String from;
     private String to;
