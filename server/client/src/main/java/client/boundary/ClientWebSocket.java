@@ -28,7 +28,11 @@ public class ClientWebSocket {
      - grab basic information for nodes from webview session
      -- have the webview pass node details from gradle parse
      ---- setup client connections
-     */
+     - returns from NodeRPCClient need to be converted to JSON
+    */
+
+
+
     @OnOpen
     public void onOpen(Session session) throws IOException, EncodeException {
 
@@ -43,6 +47,8 @@ public class ClientWebSocket {
     public void onMessage(Session session, Message message) throws IOException, EncodeException {
         message.setFrom(session.getId());
         System.out.println(message.getFrom() + " " + message.getContent()); // test print of received
+
+
     }
 
     @OnClose
