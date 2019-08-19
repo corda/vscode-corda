@@ -1,5 +1,6 @@
 var ws;
 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
 function connect() {
     var sessionName = document.getElementById("session").value;
 

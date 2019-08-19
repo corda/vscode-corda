@@ -31,6 +31,7 @@ public class NodeRPCClient {
         this.proxy = this.client.start(rpcUsername, rpcPassword).getProxy(); // start the RPC Connection
         this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
         updateNodeData();
+        System.out.println("RPC Connection Established");
     }
 
     // Updates the basic node information
