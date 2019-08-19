@@ -73,6 +73,7 @@
 		"@types/node": "^10.12.21",
 		"@types/vscode": "^1.36.0",
 		"babel-loader": "^8.0.4",
+		"file-loader": "^4.2.0",
 		"glob": "^7.1.4",
 		"mocha": "^6.1.4",
 		"npm-run-all": "^4.1.3",
