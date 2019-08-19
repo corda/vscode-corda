@@ -1,86 +1,66 @@
 package client.boundary;
 
-
 import client.NodeRPCClient;
-import client.entities.Message;
-import client.entities.MessageDecoder;
-import client.entities.MessageEncoder;
+import client.entities.*;
+import com.google.gson.Gson;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-// WEBSOCKET server for client
-@ServerEndpoint(value = "/session", decoders = MessageDecoder.class, encoders = MessageEncoder.class)
+@ServerEndpoint(value = "/session", decoders = MessageDecoder.class,
+        encoders = { MessageEncoder.class, NodeInfoEncoder.class,
+                CollectionEncoder.class, StringEncoder.class })
 public class ClientWebSocket {
 
     private Session session;
     private static List<String> nodes = new ArrayList<>();
     //private static final Set<ClientWebSocket> CLIENT_END_POINTS = new CopyOnWriteArraySet<>();
 
-    /*
-    TODO:
-     - grab basic information for nodes from webview session
-     -- have the webview pass node details from gradle parse
-     ---- setup client connections
-     - returns from NodeRPCClient need to be converted to JSON
-    */
-
-
     @OnOpen
     public void onOpen(Session session) throws IOException, EncodeException {
         // store session
         this.session = session;
-
-        // send back result
-        Message message = new Message(session.getId(), " connected!");
-        this.session.getBasicRemote().sendObject(message); // send out
-
-        System.out.println(message);
+        System.out.println(this.session.getId() + " connected!");
     }
 
     /*
     TODO:
-        when node is down, need graceful exit from NodeRPCClient
+        1) when node is down, need graceful exit from NodeRPCClient
+        2) parties in Classes break valid Json - need to figure out how to handle
+            O=Party, L=London, C=GB WITHOUT making a custom encoder for each ContractState
+            * in the meantime we can just send as raw string and parse on View side.
      */
     // handle webview requests for node information
     @OnMessage
     public void onMessage(Session session, Message message) throws IOException, EncodeException {
         message.setFrom(session.getId());
-        System.out.println(message.getFrom() + " " + message.getContent()); // test print of received
+        System.out.println(message.getFrom() + " sent cmd: " + message.getContent()); // test print of received
 
+        // Todo: keep track of open client connections so connection
         // single instance for test
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
 
-        Message response = new Message();
-        response.setFrom("server");
-
         switch (message.getContent()) {
             case "getNodeInfo":
-                System.out.println("nodeInfo");
-                response.setContent(client.getNodeInfo().toString());
+                sendResponse(client.getNodeInfo());
                 break;
             case "getRegisteredFlows":
-                System.out.println("flows");
-                response.setContent(client.getRegisteredFlows().toString());
+                sendResponse(client.getRegisteredFlows());
                 break;
             case "getStateNames":
-                System.out.println("stateNames");
-                response.setContent(client.getStateNames().toString());
+                sendResponse(client.getStateNames());
                 break;
-            case "getStateClasses":
-                System.out.println("stateClasses");
-                response.setContent(client.getStateClasses().toString());
+            case "getStatesInVault":
+                sendResponse(client.getStatesInVault());
                 break;
             default:
-                System.out.println("default");
-                System.out.println(message.getContent());
-                response.setContent("No valid command was sent from webview");
+                sendResponse("No valid command sent: " + message.getContent());
         }
 
-        this.session.getBasicRemote().sendObject(response);
     }
 
     @OnClose
@@ -93,6 +73,11 @@ public class ClientWebSocket {
     @OnError
     public void onError(Session session, Throwable throwable) {
         // error handling
+    }
+
+    private void sendResponse(Object obj) throws IOException, EncodeException {
+        // Custom encoders are available for NodeInfo, String
+        session.getBasicRemote().sendObject(obj);
     }
 
 }

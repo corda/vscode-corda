@@ -23,7 +23,7 @@ public class NodeRPCClient {
     private final NodeInfo nodeInfo; // fixed
     private List<String> registeredFlows; // updates
     private Set<String> stateNames; // updates
-    private Set<ContractState> stateClasses; //updates
+    private Set<ContractState> statesInVault; //updates
 
 
     public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword) {
@@ -47,9 +47,9 @@ public class NodeRPCClient {
 
         // get state classes
         List<StateAndRef<ContractState>> vaultStates = proxy.vaultQuery(ContractState.class).getStates();
-        stateClasses = new HashSet<>();
+        statesInVault = new HashSet<>();
         vaultStates.iterator().forEachRemaining(x -> {
-            stateClasses.add(x.getState().getData());
+            statesInVault.add(x.getState().getData());
         });
     }
 
@@ -65,8 +65,8 @@ public class NodeRPCClient {
         return stateNames;
     }
 
-    public Set<ContractState> getStateClasses() {
-        return stateClasses;
+    public Set<ContractState> getStatesInVault() {
+        return statesInVault;
     }
 
     // main method for debugging
@@ -78,7 +78,7 @@ public class NodeRPCClient {
         System.out.println(client.getRegisteredFlows());
         System.out.println("\n =================");
         System.out.println(client.getStateNames());
-        System.out.println(client.getStateClasses());
+        System.out.println(client.getStatesInVault());
 
     }
 }

@@ -7,13 +7,14 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
-public class MessageEncoder implements Encoder.Text<Message> {
+public class StringEncoder implements Encoder.Text<String> {
 
-    private static Gson gson = new Gson();
+    // disable HtmlEscaping will allows '=' in the string to handle Party Class
+    private static Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
     @Override
-    public String encode(Message message) throws EncodeException {
-        String json = gson.toJson(message);
+    public String encode(String str) throws EncodeException {
+        String json = gson.toJson(str);
         return json;
     }
 

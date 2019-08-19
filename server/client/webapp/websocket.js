@@ -11,22 +11,17 @@ function connect() {
     ws.onmessage = function(event) {
     var log = document.getElementById("log");
         console.log(event.data);
-        var message = JSON.parse(event.data);
-        log.innerHTML += message.from + " : " + message.content + "\n";
+//        var message = JSON.parse(event.data);
+//        log.innerHTML += message.from + " : " + message.content + "\n";
     };
 }
 
 function send() {
-    var content = document.getElementById("msg").value;
+    var content = document.getElementById("cmd").value;
     var json = JSON.stringify({
         "content":content
     });
 
     ws.send(json);
 }
-
-//function close() {
-//    ws.close();
-//    console.log("closing it");
-//}
 
