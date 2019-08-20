@@ -4,16 +4,17 @@ import client.NodeRPCClient;
 import client.entities.Message;
 import client.entities.MessageDecoder;
 import client.entities.MessageEncoder;
-import io.netty.handler.codec.serialization.ObjectEncoder;
+import client.entities.ObjEncoder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.corda.core.node.NodeInfo;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import client.entities.ObjEncoder;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
@@ -42,12 +43,20 @@ public class ClientWebSocket {
     // handle webview requests for node information
     @OnMessage
     public void onMessage(Session session, Message message) throws IOException, EncodeException {
-        //message.setFrom(session.getId());
-        System.out.println(session.getId() + " sent cmd: " + message.getCmd()); // test print of received
+        // debug
+        System.out.println(session.getId() + " sent cmd: " + message.getCmd() + ", sent content: " + message.getContent());
 
+        NodeRPCClient client = null;
+
+        // initial connection will have node details in the content to set client connection
+        if (message.getContent() != null) {
+            HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
+
+            client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
+        }
         // Todo: keep track of open client connections so connection
         // single instance for test
-        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
+        //NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
 
         switch (message.getCmd()) {
             case "getNodeInfo":

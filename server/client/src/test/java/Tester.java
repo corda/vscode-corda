@@ -18,9 +18,10 @@ public class Tester {
 //        Class<?> objClass = contractState.getClass();
 //        System.out.println(objClass.getConstructors().toString());
 //        System.out.println(objClass.getDeclaredFields().toString());
-        String s = "{\"cmd\":\"getNodeInfo\",\"content\":\"{\\\"legalIdentities\\\":\\\"[O=PartyB, L=New York, C=US]\\\",\\\"addresses\\\":\\\"[localhost:10008]\\\",\\\"serial\\\":\\\"1566204244459\\\",\\\"platformVersion\\\":\\\"4\\\"}\"}";
-        System.out.println(s);
-        s = s.replace("\\","");
-        System.out.println(s);
+        //String s = "{\"cmd\":\"getNodeInfo\",\"content\":\"{\\\"legalIdentities\\\":\\\"[O=PartyB, L=New York, C=US]\\\",\\\"addresses\\\":\\\"[localhost:10008]\\\",\\\"serial\\\":\\\"1566204244459\\\",\\\"platformVersion\\\":\\\"4\\\"}\"}";
+//        System.out.println(s);
+//        s = s.replace("\\","");
+//        System.out.println(s);
+        //String s = {"host":"localhost:10009","username":"user1","password":"test"}
     }
 }

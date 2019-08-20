@@ -2,59 +2,54 @@ import React from 'react';
 //import WebSocket from 'react-websocket';
 import '../component-style/NodeCard.css';
 
-const client = new WebSocket("ws://localhost:8080/session");
-
 export default class NodeCard extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
             name: "PartyA",
-            host: "localhost",
-            port: "5000",
-            time: "00:02:11",
-            uptime: "5 hours",
-            numTransactions: "800"
+            hostport: "localhost",
+            serial: "XFXFSSFDF",
+            platform: "4"
         }
+        
+        this.client = new WebSocket("ws://localhost:8080/session");
+        this.messageHandler = this.messageHandler.bind(this);
 
-        // Setup websocket
-        client.onopen = () => {
-            client.send(JSON.stringify({"cmd":"getNodeInfo"}))
-            console.log('Websocket client connected');
-        }
-        client.onmessage = (event) => {
+        // set event handler for websocket
+        this.client.onmessage = (event) => {
             this.messageHandler(event);
         }
     }
 
     messageHandler(event) {
-        console.log(event.data);
-        //console.log(event.data[1])
+    
         var evt = JSON.parse(event.data);
-        console.log(evt.cmd);
-        console.log(evt.content);
-        // if (evt.cmd == "getNodeInfo") {
-        //     this.state.name = evt.legalIdentities;
-        //     console.log(this.state.name);
-        // }
-        // if (this.lastCmd == "getNodeInfo") {
-        //     this.name = evt.legalIdentities;
-        //     console.log("legal identity set")
-        // } else {
-        //     console.log("command was: " + this.lastCmd);
-        // }
-    }
+        var content = JSON.parse(evt.content);
 
-    getNodeData() {
-        // if (client.readyState) {
-        //     client.send(JSON.stringify({
-        //         "content":"this is a test"
-        //     }))
-        // }
+        console.log("command received: " + evt.cmd);
+        console.log("returned content: " + evt.content);
+
+        if (evt.cmd == "getNodeInfo") {
+           console.log("State BEFORE setState: " + JSON.stringify(this.state))
+            this.setState({
+                name: content.legalIdentities,
+                hostport: content.addresses,
+                serial: content.serial,
+                platform: content.platformVersion
+            });
+
+            console.log("State after setState: " + JSON.stringify(this.state));
+        }
     }
 
     componentDidMount() {
- 
+        // propagate initial node info
+        this.client.onopen = () => {
+            this.client.send(JSON.stringify({"cmd":"getNodeInfo","content":JSON.stringify(this.props)}));
+            this.client.send(JSON.stringify({"cmd":"garbage command"}));
+        }
+        console.log("State in componentDidMount: " + JSON.stringify(this.state))
     }
 
     render() {
@@ -62,11 +57,9 @@ export default class NodeCard extends React.Component {
             <div className="node-card">
                 <div className="party-name">{this.state.name}</div>
                 <div className="divider"></div>
-                <div className="node-host">{this.state.host}</div>
-                <div className="node-port">{this.state.port}</div>
-                <div className="node-time">{this.state.time}</div>
-                <div className="node-uptime">{this.state.uptime}</div>
-                <div className="node-num-transactions">{this.state.numTransactions}</div>
+                <div className="node-host-port">host: {this.state.hostport}</div>
+                <div className="node-time">serial: {this.state.serial}</div>
+                <div className="node-uptime">platform: {this.state.platform}</div>
             </div>
         );
     }
