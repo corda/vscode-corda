@@ -29,7 +29,14 @@ export default class NodeCard extends React.Component {
 
     messageHandler(event) {
         console.log(event.data);
-        // var evt = JSON.parse(event.data)
+        //console.log(event.data[1])
+        var evt = JSON.parse(event.data);
+        console.log(evt.cmd);
+        console.log(evt.content);
+        // if (evt.cmd == "getNodeInfo") {
+        //     this.state.name = evt.legalIdentities;
+        //     console.log(this.state.name);
+        // }
         // if (this.lastCmd == "getNodeInfo") {
         //     this.name = evt.legalIdentities;
         //     console.log("legal identity set")

@@ -16,7 +16,6 @@ public class MessageEncoder implements Encoder.Text<Message> {
     @Override
     public String encode(Message message) throws EncodeException {
         String json = gson.toJson(message);
-        json = json.replace("\\",""); // handles escape characters in nested json
         return json;
     }
 
