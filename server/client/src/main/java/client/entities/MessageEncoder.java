@@ -9,11 +9,14 @@ import javax.websocket.EndpointConfig;
 
 public class MessageEncoder implements Encoder.Text<Message> {
 
-    private static Gson gson = new Gson();
+    //private static Gson gson = new Gson();
+    private static Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+
 
     @Override
     public String encode(Message message) throws EncodeException {
         String json = gson.toJson(message);
+        json = json.replace("\\",""); // handles escape characters in nested json
         return json;
     }
 

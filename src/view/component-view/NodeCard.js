@@ -1,5 +1,8 @@
 import React from 'react';
+//import WebSocket from 'react-websocket';
 import '../component-style/NodeCard.css';
+
+const client = new WebSocket("ws://localhost:8080/session");
 
 export default class NodeCard extends React.Component {
 
@@ -13,10 +16,38 @@ export default class NodeCard extends React.Component {
             uptime: "5 hours",
             numTransactions: "800"
         }
+
+        // Setup websocket
+        client.onopen = () => {
+            client.send(JSON.stringify({"cmd":"getNodeInfo"}))
+            console.log('Websocket client connected');
+        }
+        client.onmessage = (event) => {
+            this.messageHandler(event);
+        }
+    }
+
+    messageHandler(event) {
+        console.log(event.data);
+        // var evt = JSON.parse(event.data)
+        // if (this.lastCmd == "getNodeInfo") {
+        //     this.name = evt.legalIdentities;
+        //     console.log("legal identity set")
+        // } else {
+        //     console.log("command was: " + this.lastCmd);
+        // }
+    }
+
+    getNodeData() {
+        // if (client.readyState) {
+        //     client.send(JSON.stringify({
+        //         "content":"this is a test"
+        //     }))
+        // }
     }
 
     componentDidMount() {
-        
+ 
     }
 
     render() {

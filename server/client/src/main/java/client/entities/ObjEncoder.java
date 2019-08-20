@@ -3,21 +3,33 @@ package client.entities;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.corda.core.contracts.ContractState;
+import net.corda.core.node.NodeInfo;
 
 import javax.websocket.EncodeException;
-import javax.websocket.Encoder;
-import javax.websocket.EndpointConfig;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-public class CollectionEncoder implements Encoder.Text<Collection<?>> {
+public class ObjEncoder {
 
-    // disable HtmlEscaping will allows '=' in the string to handle Party Class
     private static Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
-    @Override
-    public String encode(Collection<?> lst) throws EncodeException {
+
+    public static String encode(String str) throws EncodeException {
+        String json = gson.toJson(str);
+        return json;
+    }
+
+    public static String encode(NodeInfo nodeInfo) throws EncodeException {
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("addresses", nodeInfo.getAddresses().toString());
+        map.put("legalIdentities", nodeInfo.getLegalIdentities().toString());
+        map.put("platformVersion", Integer.toString(nodeInfo.getPlatformVersion()));
+        map.put("serial", Long.toString(nodeInfo.getSerial()));
+
+        String json = gson.toJson(map);
+        return json;
+    }
+
+    public static String encode(Collection<?> lst) throws EncodeException {
         String json = "";
 
         if (lst != null && !lst.isEmpty()) {
@@ -35,15 +47,5 @@ public class CollectionEncoder implements Encoder.Text<Collection<?>> {
             }
         }
         return json;
-    }
-
-    @Override
-    public void init(EndpointConfig endpointConfig) {
-        // Custom initialization logic
-    }
-
-    @Override
-    public void destroy() {
-        // Close resources
     }
 }

@@ -59,7 +59,7 @@ function activate(context) {
     let cordaShowView = vscode.commands.registerCommand('extension.cordaShowView', () => {
         vscode.window.setStatusBarMessage('Displaying Corda Vault View', 4000);
         // LAUNCH BACKEND
-        launchViewBackend();
+        //launchViewBackend();
         const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
             enableScripts: true,
             retainContextWhenHidden: true,

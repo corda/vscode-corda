@@ -4,13 +4,12 @@ import javax.persistence.Entity;
 
 @Entity
 public class Message {
-    private String from;
-    private String to;
+    private String cmd;
     private String content;
 
     public Message() {}
-    public Message(String from, String content) {
-        this.from = from;
+    public Message(String cmd, String content) {
+        this.cmd = cmd;
         this.content = content;
     }
 
@@ -19,20 +18,12 @@ public class Message {
         return super.toString();
     }
 
-    public String getFrom() {
-        return from;
+    public String getCmd() {
+        return cmd;
     }
 
-    public void setFrom(String from) {
-        this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
+    public void setCmd(String cmd) {
+        this.cmd = cmd;
     }
 
     public String getContent() {

@@ -1,8 +1,13 @@
 package client.boundary;
 
 import client.NodeRPCClient;
-import client.entities.*;
-import com.google.gson.Gson;
+import client.entities.Message;
+import client.entities.MessageDecoder;
+import client.entities.MessageEncoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
+import net.corda.core.node.NodeInfo;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import client.entities.ObjEncoder;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -11,9 +16,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @ServerEndpoint(value = "/session", decoders = MessageDecoder.class,
-        encoders = { MessageEncoder.class, NodeInfoEncoder.class,
-                CollectionEncoder.class, StringEncoder.class })
+        encoders = { MessageEncoder.class })
 public class ClientWebSocket {
 
     private Session session;
@@ -37,28 +42,28 @@ public class ClientWebSocket {
     // handle webview requests for node information
     @OnMessage
     public void onMessage(Session session, Message message) throws IOException, EncodeException {
-        message.setFrom(session.getId());
-        System.out.println(message.getFrom() + " sent cmd: " + message.getContent()); // test print of received
+        //message.setFrom(session.getId());
+        System.out.println(session.getId() + " sent cmd: " + message.getCmd()); // test print of received
 
         // Todo: keep track of open client connections so connection
         // single instance for test
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
 
-        switch (message.getContent()) {
+        switch (message.getCmd()) {
             case "getNodeInfo":
-                sendResponse(client.getNodeInfo());
+                sendResponse(message, client.getNodeInfo());
                 break;
             case "getRegisteredFlows":
-                sendResponse(client.getRegisteredFlows());
+                sendResponse(message, client.getRegisteredFlows());
                 break;
             case "getStateNames":
-                sendResponse(client.getStateNames());
+                sendResponse(message, client.getStateNames());
                 break;
             case "getStatesInVault":
-                sendResponse(client.getStatesInVault());
+                sendResponse(message, client.getStatesInVault());
                 break;
             default:
-                sendResponse("No valid command sent: " + message.getContent());
+                sendResponse(message, "No valid command sent: " + message.getContent());
         }
 
     }
@@ -75,9 +80,15 @@ public class ClientWebSocket {
         // error handling
     }
 
-    private void sendResponse(Object obj) throws IOException, EncodeException {
-        // Custom encoders are available for NodeInfo, String
-        session.getBasicRemote().sendObject(obj);
+    private void sendResponse(Message message, Object obj) throws IOException, EncodeException {
+        // Cast for custom encoding
+        String content = "";
+        if (obj instanceof Collection) content = ObjEncoder.encode((Collection) obj);
+        else if (obj instanceof String) content = ObjEncoder.encode((String) obj);
+        else if (obj instanceof NodeInfo) content = ObjEncoder.encode((NodeInfo) obj);
+        message.setContent(content);
+
+        session.getBasicRemote().sendObject(message);
     }
 
 }

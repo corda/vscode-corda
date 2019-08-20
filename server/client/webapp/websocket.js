@@ -19,7 +19,7 @@ function connect() {
 function send() {
     var content = document.getElementById("cmd").value;
     var json = JSON.stringify({
-        "content":content
+        "cmd":content
     });
 
     ws.send(json);

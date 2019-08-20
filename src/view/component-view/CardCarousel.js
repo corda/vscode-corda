@@ -19,7 +19,7 @@ export default class CardCarousel extends React.Component {
         return (
             <div className="node-tray">
                 {this.state.nodes.map((node,index)=>(
-                            <NodeCard />
+                            <NodeCard host={"localhost:10009"} username={"user1"} password={"test"}></NodeCard>
                 ))}
             </div>
         );
