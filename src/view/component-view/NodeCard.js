@@ -31,15 +31,12 @@ export default class NodeCard extends React.Component {
         console.log("returned content: " + evt.content);
 
         if (evt.cmd == "getNodeInfo") {
-           console.log("State BEFORE setState: " + JSON.stringify(this.state))
             this.setState({
                 name: content.legalIdentities,
                 hostport: content.addresses,
                 serial: content.serial,
                 platform: content.platformVersion
             });
-
-            console.log("State after setState: " + JSON.stringify(this.state));
         }
     }
 
@@ -47,9 +44,7 @@ export default class NodeCard extends React.Component {
         // propagate initial node info
         this.client.onopen = () => {
             this.client.send(JSON.stringify({"cmd":"getNodeInfo","content":JSON.stringify(this.props)}));
-            this.client.send(JSON.stringify({"cmd":"garbage command"}));
         }
-        console.log("State in componentDidMount: " + JSON.stringify(this.state))
     }
 
     render() {

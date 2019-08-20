@@ -34,7 +34,7 @@ public class NodeRPCClient {
         System.out.println("RPC Connection Established");
     }
 
-    // Updates the basic node information
+    // Updates the basic node data (flows, states names, and states in vault
     private void updateNodeData() {
         registeredFlows = proxy.registeredFlows(); // get registered flows
 
@@ -45,7 +45,7 @@ public class NodeRPCClient {
             stateNames.add(x.getContractStateClassName());
         });
 
-        // get state classes
+        // get states
         List<StateAndRef<ContractState>> vaultStates = proxy.vaultQuery(ContractState.class).getStates();
         statesInVault = new HashSet<>();
         vaultStates.iterator().forEachRemaining(x -> {
