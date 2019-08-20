@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @CrossOrigin(origins = "*")
 @ServerEndpoint(value = "/session", decoders = MessageDecoder.class,
@@ -24,7 +21,7 @@ public class ClientWebSocket {
 
     private Session session;
     private static List<String> nodes = new ArrayList<>();
-    //private static final Set<ClientWebSocket> CLIENT_END_POINTS = new CopyOnWriteArraySet<>();
+    private NodeRPCClient client;
 
     @OnOpen
     public void onOpen(Session session) throws IOException, EncodeException {
@@ -42,11 +39,9 @@ public class ClientWebSocket {
      */
     // handle webview requests for node information
     @OnMessage
-    public void onMessage(Session session, Message message) throws IOException, EncodeException {
+    public void onMessage(Session session, Message message) throws Exception {
         // debug
         System.out.println(session.getId() + " sent cmd: " + message.getCmd() + ", sent content: " + message.getContent());
-
-        NodeRPCClient client = null;
 
         // initial connection will have node details in the content to set client connection
         if (message.getContent() != null) {
@@ -54,27 +49,8 @@ public class ClientWebSocket {
 
             client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
         }
-        // Todo: keep track of open client connections so connection
-        // single instance for test
-        //NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
 
-        switch (message.getCmd()) {
-            case "getNodeInfo":
-                sendResponse(message, client.getNodeInfo());
-                break;
-            case "getRegisteredFlows":
-                sendResponse(message, client.getRegisteredFlows());
-                break;
-            case "getStateNames":
-                sendResponse(message, client.getStateNames());
-                break;
-            case "getStatesInVault":
-                sendResponse(message, client.getStatesInVault());
-                break;
-            default:
-                sendResponse(message, "No valid command sent: " + message.getContent());
-        }
-
+        sendResponse(message, client.run(message.getCmd()));
     }
 
     @OnClose

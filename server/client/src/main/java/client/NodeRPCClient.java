@@ -9,9 +9,8 @@ import net.corda.core.node.services.Vault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Callable;
 
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
 
@@ -25,11 +24,22 @@ public class NodeRPCClient {
     private Set<String> stateNames; // updates
     private Set<ContractState> statesInVault; //updates
 
+    private Map<String, Callable> cmd;
+
+    private void buildCommandMap(NodeRPCClient node) {
+        cmd = new HashMap<>();
+        cmd.put("getNodeInfo", node::getNodeInfo);
+        cmd.put("getRegisteredFlows", node::getRegisteredFlows);
+        cmd.put("getStateNames", node::getStateNames);
+        cmd.put("getStatesInVault", node::getStatesInVault);
+    }
 
     public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword) {
         this.client = new CordaRPCClient(parse(nodeAddress));
         this.proxy = this.client.start(rpcUsername, rpcPassword).getProxy(); // start the RPC Connection
         this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
+
+        buildCommandMap(this);
         updateNodeData();
         System.out.println("RPC Connection Established");
     }
@@ -53,6 +63,10 @@ public class NodeRPCClient {
         });
     }
 
+    public Object run(String cmd) throws Exception {
+        return this.cmd.get(cmd).call();
+    }
+
     public NodeInfo getNodeInfo() {
         return nodeInfo;
     }
@@ -70,7 +84,7 @@ public class NodeRPCClient {
     }
 
     // main method for debugging
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
 
         System.out.println("\n\n DEBUG PRINTS ========");
@@ -79,6 +93,12 @@ public class NodeRPCClient {
         System.out.println("\n =================");
         System.out.println(client.getStateNames());
         System.out.println(client.getStatesInVault());
+        System.out.println("\n =================");
+        System.out.println("I'm using the new callable " + client.run("getNodeInfo"));
+        System.out.println("I'm using the new callable " + client.run("getRegisteredFlows"));
+        //System.out.println("I'm using the new callable " + client.run("Nothing"));
+
+
 
     }
 }
