@@ -3,7 +3,7 @@ import Konva from "konva";
 import { Stage, Layer, Circle, Text, Group } from "react-konva";
 import '../component-style/NodeViewer.css';
 import IndividualNode from "./IndividualNode";
-import ToolTip from './ToolTip';
+import DetailCard from "./DetailCard";
 
 export default class NodeViewer extends React.Component {
 
@@ -13,44 +13,61 @@ export default class NodeViewer extends React.Component {
             nodes: [{name: "PartyA",
             hostport: "localhost",
             serial: "XFXFSSFDF",
-            platform: "4"},
+            platform: "4",
+            connection: {
+              
+                host: "localhost:10009",
+                username: "user1",
+                password: "test"
+            
+            }},
             {name: "PartyA",
             hostport: "localhost",
             serial: "XFXFSSFDF",
-            platform: "4"},
+            platform: "4",
+            connection: {
+              
+              host: "localhost:10006",
+              username: "user1",
+              password: "test"
+          
+          }},
             {name: "PartyA",
             hostport: "localhost",
             serial: "XFXFSSFDF",
-            platform: "4"}],
-            tooltip: null
+            platform: "4",
+            connection: {
+              
+              host: "localhost:10003",
+              username: "user1",
+              password: "test"
+          
+          }}],
+            nodeDetail: null
 
         }
         this.showToolTip = this.showToolTip.bind(this);
         this.hideToolTip = this.hideToolTip.bind(this);
     }
 
-  showToolTip(x, y){
-    this.setState({tooltip: x});
-    console.log("tool tip should be displayed")
-    console.log(this.state.tooltip);
+  showToolTip(nodeDetail){
+    this.setState({nodeDetail: nodeDetail});
   }
 
   hideToolTip(){
-    this.setState({tooltip:null});
-    console.log(this.state.tooltip);
+    this.setState({nodeDetail:null});
   }
  
   render() {
     var x;
     var y;
-    var toolDisplay = null;
-    if(this.state.tooltip){
-      var toolDisplay = <ToolTip contents = {this.state.tooltip} />;
-      console.log("display set")
+    var detailDisplay = null;
+    if(this.state.nodeDetail){
+      var detailDisplay = <DetailCard contents = {this.state.nodeDetail}/>;
     } 
     return (
       <div>
-        {toolDisplay}
+        {detailDisplay}
         <Stage width={window.innerWidth} height={window.innerHeight}>
           <Layer>
               {this.state.nodes.map((node,index) => {

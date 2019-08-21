@@ -13,15 +13,57 @@ export default class IndividualNode extends React.Component {
             name: props.node.name,
             hostport: props.node.hostport,
             serial:props.node.serial,
-            platform:props.node.platform
+            platform:props.node.platform,
+            connection:props.node.connection
 
         }
         this.showToolTip = this.showToolTip.bind(this);
         this.hideToolTip = this.hideToolTip.bind(this);
-        console.log(props);
+        
+        
+        this.client = new WebSocket("ws://localhost:8080/session");
+       
+        this.messageHandler = this.messageHandler.bind(this);
+        // set event handler for websocket
+        this.client.onmessage = (event) => {
+            this.messageHandler(event);
+        }
+
         
         
     }
+
+    messageHandler(event) {
+    
+        var evt = JSON.parse(event.data);
+        var content = JSON.parse(evt.content);
+
+        console.log("command received: " + evt.cmd);
+        console.log("returned content: " + evt.content);
+
+        if (evt.cmd == "getNodeInfo") {
+            this.setState({
+                name: content.legalIdentities,
+                hostport: content.addresses,
+                serial: content.serial,
+                platform: content.platformVersion
+            });
+        }
+    }
+
+
+    componentDidMount() {
+        // propagate initial node info
+    
+        this.client.onopen = () => {
+            this.client.send(JSON.stringify({"cmd":"getNodeInfo","content":JSON.stringify(
+                
+                this.state.connection
+                
+            )}));
+        }
+    }
+
 
     handleDragStart(e){
         var circles = e.target.getChildren(function(node){
@@ -52,9 +94,14 @@ export default class IndividualNode extends React.Component {
       };
 
       showToolTip(e){
-        console.log(e.target.absolutePosition().x);
         const { showToolTip } = this.props;
-        showToolTip(e.target.absolutePosition().x, e.target.absolutePosition().y);
+        showToolTip({
+            name: this.state.name,
+            legalIdentities: this.state.legalIdentities,
+            hostport: this.state.hostport,
+            serial:this.state.serial,
+            platform:this.state.platform,
+        })
       }
 
       hideToolTip(){
