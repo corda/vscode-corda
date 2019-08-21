@@ -43,16 +43,21 @@ public class ClientWebSocket {
         // debug
         System.out.println(session.getId() + " sent cmd: " + message.getCmd() + ", sent content: " + message.getContent());
 
+        // Todo: switch initial connection to OWN cmd 'connect'
         // initial connection will have node details in the content to set client connection
-        if (message.getContent() != null) {
+        if (message.getCmd().equals("connect")) {
             HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
 
             client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
+        } else if (message.getCmd().equals("startFlow")) {
+            // message.content contains the flow and args
+            client.run(message.getCmd(), message.getContent(), new String[] {""});
         }
 
         sendResponse(message, client.run(message.getCmd()));
     }
 
+    // TODO: Add notifyServerAndClose send to client and have RPCClient close the connection
     @OnClose
     public void onClose(Session session) throws IOException, EncodeException {
         Message message = new Message(session.getId(), session.getId() + "disconnect!");
