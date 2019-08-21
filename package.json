@@ -97,10 +97,13 @@
 		"find": "^0.3.0",
 		"fs": "0.0.1-security",
 		"gradle-to-js": "^2.0.0",
+		"konva": "^4.0.5",
 		"lodash.merge": "^4.6.2",
 		"react": "^16.9.0",
 		"react-dom": "^16.9.0",
+		"react-konva": "^16.9.0-0",
 		"react-scripts": "3.0.1",
+		"react-tooltip": "^3.10.0",
 		"stream": "0.0.2"
 	},
 	"browserslist": {

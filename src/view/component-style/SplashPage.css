@@ -9,3 +9,12 @@ html, body {
 CardCarousel{
     padding-top:75vh;
 }
+
+NodeViewer{
+    min-height: 100%;
+    min-width: 100%;
+    position: fixed;
+    top: 0;
+    left:0;
+    color: black;
+}
