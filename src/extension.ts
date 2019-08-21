@@ -73,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.setStatusBarMessage('Displaying Corda Vault View', 4000);
 
 		// LAUNCH BACKEND
-		//launchViewBackend();
+		launchViewBackend();
 
 		const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
 			enableScripts: true,
@@ -136,6 +136,7 @@ function launchViewBackend() {
 		console.log("Client already up");
 	}
 
+	/*
 	if (vscode.window.terminals.find((value) => {
 		return value.name === "Server Launcher";
 	}) === undefined) {
@@ -143,7 +144,7 @@ function launchViewBackend() {
 		console.log("Server Launch successful");
 	} else {
 		console.log("Server already up");
-	}
+	}*/
 
 }
 
