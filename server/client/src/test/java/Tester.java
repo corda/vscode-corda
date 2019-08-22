@@ -11,8 +11,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -25,19 +23,6 @@ import static net.corda.core.utilities.NetworkHostAndPort.parse;
 public class Tester {
 
     public static void main(String[] args) throws MalformedURLException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, ClassNotFoundException, InstantiationException {
-//        Gson gson = new Gson();
-//        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
-//        Set<ContractState> contracts = client.getStateClasses();
-//        ContractState contractState = contracts.iterator().next();
-//
-//        Class<?> objClass = contractState.getClass();
-//        System.out.println(objClass.getConstructors().toString());
-//        System.out.println(objClass.getDeclaredFields().toString());
-        //String s = "{\"cmd\":\"getNodeInfo\",\"content\":\"{\\\"legalIdentities\\\":\\\"[O=PartyB, L=New York, C=US]\\\",\\\"addresses\\\":\\\"[localhost:10008]\\\",\\\"serial\\\":\\\"1566204244459\\\",\\\"platformVersion\\\":\\\"4\\\"}\"}";
-//        System.out.println(s);
-//        s = s.replace("\\","");
-//        System.out.println(s);
-//        String s = {"host":"localhost:10009","username":"user1","password":"test"}
 
         CordaRPCClient client = new CordaRPCClient(parse("localhost:10009"));
         CordaRPCOps proxy = client.start("user1", "test").getProxy();
@@ -53,9 +38,7 @@ public class Tester {
 
         Class classToLoad = Class.forName("bootcamp.flows.TokenIssueFlowInitiator", true, child);
         //Object instance = classToLoad.newInstance();
-
         System.out.println(classToLoad);
-
 
 
         System.out.println("\n\n");
@@ -69,20 +52,11 @@ public class Tester {
             }
         }
 
-
         //System.out.println(classToLoad.getConstructors()[0].getParameterTypes()[0]);
 
-//        Party a = proxy.partiesFromName("PartyA", true).iterator().next();
-//        System.out.println(a);
-
-
-
-        //proxy.startFlowDynamic(classToLoad, a, 555);
-
+        Party a = proxy.partiesFromName("PartyA", true).iterator().next();
+        //proxy.startFlowDynamic(classToLoad, lob.toArray());
         // IllegalFlowLogicException
-
-
-
     }
 
     public static List getClassNames(String jarName) {

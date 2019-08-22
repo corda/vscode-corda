@@ -1,9 +1,11 @@
 package client;
 
 import com.google.common.collect.ImmutableList;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
+import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
@@ -28,7 +30,7 @@ public class NodeRPCClient {
     private List<String> registeredFlows; // updates
 
     private Map<String, Class> registeredFlowClasses; // maps FQN to class
-    private Map<String, String> registeredFlowParams; // maps FQN to required params
+    private Map<String, List<Class>> registeredFlowParams; // maps FQN to required params
 
     private Set<String> stateNames; // updates
     private Set<ContractState> statesInVault; //updates
@@ -83,7 +85,7 @@ public class NodeRPCClient {
             // debug
             System.out.println("\n\n");
             System.out.println(registeredFlowClasses);
-            System.out.println(registeredFlowParams);
+            System.out.println(registeredFlowParams.toString());
             System.out.println("\n\n");
         }
     }
@@ -109,7 +111,7 @@ public class NodeRPCClient {
                 flowClass = Class.forName(flow, true, classLoader);
 
                 registeredFlowClasses.put(flow, flowClass);
-                registeredFlowParams.put(flow, setFlowParams(flowClass).toString());
+                registeredFlowParams.put(flow, setFlowParams(flowClass));
             }
 
         } catch (MalformedURLException | ClassNotFoundException e) {
@@ -140,10 +142,33 @@ public class NodeRPCClient {
     //  - Need to check WHAT are the param types, and search for
     public void run(String cmd, String flow, String[] args) {
         Class flowClass = registeredFlowClasses.get(flow);
-        proxy.startFlowDynamic(flowClass, args);
+        List<Class> paramTypes = registeredFlowParams.get(flow);
+        String currArg;
+        Class currParam;
+
+        List<Object> finalParams = new ArrayList<>();
+
+        if (args.length == paramTypes.size()) {
+            for (int i = 0; i < args.length; i++) {
+                   currArg = args[i];
+                   currParam = paramTypes.get(i);
+
+                   if (currParam == Party.class) {
+                       Party p = proxy.partiesFromName(currArg, true).iterator().next();
+                       finalParams.add(p);
+                   } else if (currArg.equals("true") | currArg.equals("false")) {
+                       finalParams.add(Boolean.parseBoolean(currArg));
+                   } else {
+                       finalParams.add(Integer.valueOf(currArg));
+                   }
+            }
+        }
+
+        proxy.startFlowDynamic(flowClass, finalParams.toArray());
+        //proxy.startFlowDynamic(flowClass, obj, int999);
     }
 
-    public Map<String, String> getRegisteredFlowParams() {
+    public Map<String, List<Class>> getRegisteredFlowParams() {
         return registeredFlowParams;
     }
 
@@ -166,23 +191,9 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
-
-
-        System.out.println(client.run("getRegisteredFlowParams"));
-
-        //client.run("", "TokenIssueFlowInititator", "");
-//        System.out.println("\n\n DEBUG PRINTS ========");
-//        System.out.println(client.getNodeInfo());
-//        System.out.println(client.getRegisteredFlows());
-//        System.out.println("\n =================");
-//        System.out.println(client.getStateNames());
-//        System.out.println(client.getStatesInVault());
-//        System.out.println("\n =================");
-//        System.out.println("I'm using the new callable " + client.run("getNodeInfo"));
-//        System.out.println("I'm using the new callable " + client.run("getRegisteredFlows"));
-//        //System.out.println("I'm using the new callable " + client.run("Nothing"));
-//
-
-
+        //System.out.println(client.run("getRegisteredFlowParams"));
+        //System.out.println(client.getRegisteredFlowParams().get("bootcamp.flows.TokenIssueFlowInitiator").get(1).getClass());
+        client.run("", "bootcamp.flows.TokenIssueFlowInitiator", new String[]{"PartyA","99999"});
+        
     }
 }
