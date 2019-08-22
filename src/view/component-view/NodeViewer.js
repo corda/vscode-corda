@@ -48,6 +48,7 @@ export default class NodeViewer extends React.Component {
         }
         this.showToolTip = this.showToolTip.bind(this);
         this.hideToolTip = this.hideToolTip.bind(this);
+        this.switchNodeView = this.switchNodeView.bind(this);
     }
 
   showToolTip(nodeDetail){
@@ -58,6 +59,10 @@ export default class NodeViewer extends React.Component {
     this.setState({nodeDetail:null});
   }
  
+  switchNodeView(){
+    const { toggleNodeView } = this.props;
+    toggleNodeView();
+  }
   render() {
     var x;
     var y;
@@ -74,7 +79,7 @@ export default class NodeViewer extends React.Component {
                   x=Math.random() * window.innerWidth
                   y=Math.random() * window.innerHeight
                 
-                  return(<IndividualNode x={x} y={y} node={node} showToolTip={this.showToolTip} hideToolTip={this.hideToolTip} />);
+                  return(<IndividualNode x={x} y={y} node={node} showToolTip={this.showToolTip} hideToolTip={this.hideToolTip} switchNodeView={this.switchNodeView} />);
             })}
           </Layer>
         </Stage>
