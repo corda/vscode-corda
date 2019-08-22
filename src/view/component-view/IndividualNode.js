@@ -1,7 +1,7 @@
 import React from 'react';
 
 import Konva from "konva";
-import { Stage, Layer, Circle, Text, Group, Label, Tag } from "react-konva";
+import { Stage, Layer, Circle, Text, Group, Label, Tag, Tween } from "react-konva";
 
 export default class IndividualNode extends React.Component {
 
@@ -19,7 +19,7 @@ export default class IndividualNode extends React.Component {
         }
         this.showToolTip = this.showToolTip.bind(this);
         this.hideToolTip = this.hideToolTip.bind(this);
-        
+        this.expandNode = this.expandNode.bind(this);
         
         this.client = new WebSocket("ws://localhost:8080/session");
        
@@ -66,9 +66,11 @@ export default class IndividualNode extends React.Component {
 
 
     handleDragStart(e){
+      console.log(JSON.stringify(e.target))
         var circles = e.target.getChildren(function(node){
           return node.getClassName() === 'Circle';
         });
+        console.log(circles[0])
         circles[0].setAttrs({
           shadowOffset: {
             x: 15,
@@ -109,6 +111,27 @@ export default class IndividualNode extends React.Component {
           hideToolTip();
       }
 
+      expandNode(e){
+        console.log(JSON.stringify(e.target))
+        console.log(JSON.stringify(e.target.getParent()))
+        var _this = this;
+        e.target.moveToTop();
+        e.target.getParent().moveToTop();
+        e.target.to({
+          duration: 1.5,
+          easing: Konva.Easings.Linear,
+          scaleX: 20,
+          scaleY: 20,
+          onFinish: function() {
+            const { switchNodeView } = _this.props;
+            switchNodeView();
+          }
+        });
+        
+
+        console.log("Tried")
+      }
+
     render() {
         return (
             <Group
@@ -117,6 +140,8 @@ export default class IndividualNode extends React.Component {
                       onDragEnd={this.handleDragEnd}
                       onMouseEnter={this.showToolTip}
                       onMouseLeave={this.hideToolTip}
+                      
+                      
                   >
                       <Circle 
                         class="nodeCircle" 
@@ -128,6 +153,7 @@ export default class IndividualNode extends React.Component {
                         shadowColor="black"
                         shadowBlur={10}
                         shadowOpacity={0.6}
+                        onClick={this.expandNode}
                       
                         />
                         <Label
@@ -150,5 +176,4 @@ export default class IndividualNode extends React.Component {
                   </Group>
         )
     }
-    //<Text text={this.state.name} x={this.state.x} y={thisExpression.state.y}  />
 }
