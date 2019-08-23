@@ -143,8 +143,6 @@ export default class IndividualNode extends React.Component {
                       onDragEnd={this.handleDragEnd}
                       onMouseEnter={this.showToolTip}
                       onMouseLeave={this.hideToolTip}
-                      
-                      
                   >
                       <Circle 
                         class="nodeCircle" 

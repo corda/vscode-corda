@@ -11,7 +11,6 @@ export default class NodeInfoDisplay extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log(JSON.stringify(props.content))
         this.state = {
             name: null,
             hostport: null,
@@ -20,21 +19,22 @@ export default class NodeInfoDisplay extends React.Component {
         }
     }
 
-    componentWillReceiveProps(props){
-        this.setState({
-            name: props.content.name,
-            hostport: props.content.hostport,
-            serial: props.content.serial,
-            platform: props.content.platform
-        });
+    static getDerivedStateFromProps(props){
+        return {
+            name : props.content.name,
+            hostport : props.content.hostport,
+            serial : props.content.serial,
+            platform :  props.content.platform 
+        }
     }
    
 
     render() {
         return(
             <Card className="node-info-display-card">
+                <span className="info-icon-container"><i className="fas fa-info-circle info-icon"></i> </span>
                 <Typography color="textPrimary" gutterBottom>
-                     <i className="fas fa-info-circle info-icon"></i>
+                     
                      Node Information
                 </Typography>
                 <CardContent className="node-info-display-card-content">

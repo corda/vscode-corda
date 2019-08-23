@@ -3,18 +3,10 @@ body{
     
 }
 
-html, body {
-    overflow: hidden;
-}
-CardCarousel{
-    padding-top:75vh;
-}
 
-NodeViewer{
-    min-height: 100%;
-    min-width: 100%;
-    position: fixed;
-    top: 0;
-    left:0;
-    color: black;
-}
+/*
+.node-view-port{
+    -webkit-transform:scale(0.75);
+     transform:scale(0.75);
+ 
+}*/
