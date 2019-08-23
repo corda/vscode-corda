@@ -104,7 +104,7 @@ public class ClientWebSocket {
         if (obj instanceof Collection) content = ObjEncoder.encode((Collection) obj);
         else if (obj instanceof String) content = ObjEncoder.encode((String) obj);
         else if (obj instanceof NodeInfo) content = ObjEncoder.encode((NodeInfo) obj);
-        else content = obj.toString();
+        else content = ObjEncoder.encode(obj.toString());
         message.setContent(content);
 
         session.getBasicRemote().sendObject(message);

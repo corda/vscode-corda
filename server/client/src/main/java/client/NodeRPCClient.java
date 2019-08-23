@@ -82,7 +82,7 @@ public class NodeRPCClient {
         updateNodeData();
 
         // build maps for FQN->Class, FQN->List<Class> Params
-        setFlowsJarPath("."); // TESTING hardcoded dir
+        setFlowsJarPath("/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps"); // TESTING hardcoded dir
 
 
         if (debug) System.out.println("RPC Connection Established");
@@ -124,6 +124,7 @@ public class NodeRPCClient {
 
     /**
      * Todo: GET JAR from node cordapp directory instead of build dir?
+     *  - Handle MULTIPLE JARS
      * propagates the maps used to track flow classes, constructors and params.
      * @param jarPath full path to the .jar files containing CorDapp flows
      * @param registeredFlows list of registeredFlows on the Node
@@ -137,7 +138,7 @@ public class NodeRPCClient {
 
         File[] filesList = dir.listFiles();
         for (File file : filesList) {
-            if (file.getName().contains(".jar")) {
+            if (file.getName().contains(".jar") && !file.getName().equals("contracts-java-0.1.jar")) {
                 flowJarFile = file;
                 System.out.println(file.getName());
             }
@@ -149,7 +150,7 @@ public class NodeRPCClient {
 
             URLClassLoader classLoader = new URLClassLoader(
                     new URL[]{url},
-                    ClassLoader.getSystemClassLoader()
+                    getClass().getClassLoader()
             );
 
             // iterate through all flows and add to flow -> class map
