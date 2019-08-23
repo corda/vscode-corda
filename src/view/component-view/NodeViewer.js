@@ -71,7 +71,7 @@ export default class NodeViewer extends React.Component {
       var detailDisplay = <DetailCard contents = {this.state.nodeDetail}/>;
     } 
     return (
-      <div>
+      <div id="node-viewer">
         {detailDisplay}
         <Stage width={window.innerWidth} height={window.innerHeight}>
           <Layer>

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import "../component-style/NodeExplorer.css";
 import NodeInfoDisplay from "./NodeInfoDisplay";
+import FlowInfoDisplay from "./FlowInfoDisplay";
 import Grid from '@material-ui/core/Grid';
 
 export default class NodeExplorer extends React.Component {
@@ -14,8 +15,8 @@ export default class NodeExplorer extends React.Component {
           hostport: null,
           serial: null,
           platform: null
-      }
-         
+        },
+        flowDetails:[]
        }
        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -45,9 +46,14 @@ export default class NodeExplorer extends React.Component {
            });
        }
        
-       if(evt.cmd === "getRegisteredFlow"){
-         console.log(JSON.stringify(content))
+       if(evt.cmd == "getRegisteredFlows"){
+         console.log("updating the flow")
+         this.setState({
+           flowDetails : content
+         })
        }
+
+
 
        if(evt.cmd === "getStateNames"){
          console.log("state name")
@@ -81,6 +87,11 @@ export default class NodeExplorer extends React.Component {
           <Grid item xs={3}>
             <NodeInfoDisplay content = {this.state.nodeDetails} /> 
 
+          </Grid>
+        </Grid>
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <FlowInfoDisplay content = {this.state.flowDetails} />
           </Grid>
         </Grid>
       </div>
