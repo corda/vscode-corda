@@ -134,37 +134,41 @@ public class NodeRPCClient {
         registeredFlowParams = new HashMap<>();
 
         File dir = new File(jarPath);
-        File flowJarFile = null;
+        List<File> jarFiles = new ArrayList<>();
 
         File[] filesList = dir.listFiles();
         for (File file : filesList) {
-            if (file.getName().contains(".jar") && !file.getName().equals("contracts-java-0.1.jar")) {
-                flowJarFile = file;
+            if (file.getName().contains(".jar")) {
+                jarFiles.add(file);
                 System.out.println(file.getName());
             }
         }
 
-        // load the jar to extract the class
-        try {
-            URL url = flowJarFile.toURI().toURL();
+        for (File flowJarFile : jarFiles) {
+            // load the jar to extract the class
+            try {
+                URL url = flowJarFile.toURI().toURL();
 
-            URLClassLoader classLoader = new URLClassLoader(
-                    new URL[]{url},
-                    getClass().getClassLoader()
-            );
+                URLClassLoader classLoader = new URLClassLoader(
+                        new URL[]{url},
+                        getClass().getClassLoader()
+                );
 
-            // iterate through all flows and add to flow -> class map
-            for (String flow : registeredFlows) {
-                Class flowClass = null;
+                // iterate through all flows and add to flow -> class map
+                for (String flow : registeredFlows) {
+                    Class flowClass = null;
 
-                flowClass = Class.forName(flow, true, classLoader);
+                    flowClass = Class.forName(flow, true, classLoader);
 
-                registeredFlowClasses.put(flow, flowClass);
-                registeredFlowParams.put(flow, setFlowParams(flowClass));
+                    registeredFlowClasses.put(flow, flowClass);
+                    registeredFlowParams.put(flow, setFlowParams(flowClass));
+                }
+
+                System.out.println("flows FOUND in file + " + flowJarFile.toString());
+            } catch (MalformedURLException | ClassNotFoundException e) {
+//                e.printStackTrace();
+                System.out.println("flows not found in file " + flowJarFile.toString());
             }
-
-        } catch (MalformedURLException | ClassNotFoundException e) {
-            e.printStackTrace();
         }
     }
 
