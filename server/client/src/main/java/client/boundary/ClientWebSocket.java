@@ -74,7 +74,8 @@ public class ClientWebSocket {
 
     // TODO: Add notifyServerAndClose send to client and have RPCClient close the connection
     @OnClose
-    public void onClose(Session session) throws IOException, EncodeException {
+    public void onClose(Session session) {
+        if(client != null) client.closeConnection();
         System.out.println(session.getId() + " disconnected onClose");
     }
 
