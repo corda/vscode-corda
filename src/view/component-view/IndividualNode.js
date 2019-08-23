@@ -2,7 +2,6 @@ import React from 'react';
 
 import Konva from "konva";
 import { Stage, Layer, Circle, Text, Group, Label, Tag, Tween } from "react-konva";
-import { thisExpression } from '@babel/types';
 
 export default class IndividualNode extends React.Component {
 
@@ -67,7 +66,6 @@ export default class IndividualNode extends React.Component {
     }
 
   
-
 
     handleDragStart(e){
       console.log(JSON.stringify(e.target))
