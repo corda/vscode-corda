@@ -57,9 +57,13 @@ public class ClientWebSocket {
             client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
 
         } else if (message.getCmd().equals("startFlow")) {
+            String flow = content.get("flow");
+            String args = content.get("args");
+            HashMap<String, String> argMap = new ObjectMapper().readValue(args, HashMap.class);
+            Object[] argsArray = argMap.values().toArray();
+            String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
 
-            // message.content contains the flow and args
-            client.run(message.getCmd(), message.getContent(), new String[] {""});
+            client.run(flow, strArgsArray);
 
         } else {
             sendResponse(message, client.run(message.getCmd()));
