@@ -2,14 +2,19 @@ package client.entities;
 
 import javax.persistence.Entity;
 
+/**
+ * Message class wraps communication over websocket
+ */
 @Entity
 public class Message {
-    private String cmd;
-    private String content;
+    private String cmd; // command to execute
+    private String content; // returned values
+    private String result; // status: OK, or error object.
 
     public Message() {
         this.cmd = "";
         this.content = "";
+        this.result = "";
     }
     public Message(String cmd, String content) {
         this.cmd = cmd;
@@ -36,4 +41,8 @@ public class Message {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getResult() { return result; }
+
+    public void setResult(String result) { this.result = result; }
 }
