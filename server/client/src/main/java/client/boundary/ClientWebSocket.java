@@ -43,32 +43,42 @@ public class ClientWebSocket {
         System.out.println(session.getId() + " sent cmd: " + message.getCmd() + ", sent content: " + message.getContent());
 
         String msgCmd = message.getCmd();
+        Object retObj = null; // store a returned content object
         HashMap<String, String> content = null;
 
-        // parse message content if it exists
-        if(message.getContent().length() > 0) {
-            content = new ObjectMapper().readValue(message.getContent(), HashMap.class);
+        try {
+            // parse message content if it exists
+            if (message.getContent().length() > 0) {
+                content = new ObjectMapper().readValue(message.getContent(), HashMap.class);
+            }
+
+            // initial connection will have node details in the content to set client connection
+            if (msgCmd.equals("connect")) {
+
+                HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
+                client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
+
+            } else if (message.getCmd().equals("startFlow")) {
+                String flow = content.get("flow");
+                String args = content.get("args");
+                HashMap<String, String> argMap = new ObjectMapper().readValue(args, HashMap.class);
+                Object[] argsArray = argMap.values().toArray();
+                String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
+
+                client.run(flow, strArgsArray);
+
+            } else {
+                retObj = client.run(msgCmd);
+            }
+
+            message.setResult("OK");
+        } catch (Exception e) {
+            message.setResult(e.toString());
+            sendResponse(message);
         }
 
-        // initial connection will have node details in the content to set client connection
-        if (msgCmd.equals("connect")) {
-
-            HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
-            client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
-
-        } else if (message.getCmd().equals("startFlow")) {
-            String flow = content.get("flow");
-            String args = content.get("args");
-            HashMap<String, String> argMap = new ObjectMapper().readValue(args, HashMap.class);
-            Object[] argsArray = argMap.values().toArray();
-            String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
-
-            client.run(flow, strArgsArray);
-
-        } else {
-            sendResponse(message, client.run(message.getCmd()));
-        }
-
+        if (retObj != null) sendResponse(message, retObj);
+        else sendResponse(message);
 
     }
 
