@@ -59,9 +59,9 @@ export default class NodeViewer extends React.Component {
     this.setState({nodeDetail:null});
   }
  
-  switchNodeView(){
-    const { toggleNodeView } = this.props;
-    toggleNodeView();
+  switchNodeView(client){
+    const { toggleToNodeExplorer } = this.props;
+    toggleToNodeExplorer(client);
   }
   render() {
     var x;

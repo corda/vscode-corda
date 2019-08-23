@@ -37,7 +37,7 @@ public class NodeRPCClient {
 
     private Map<String, Callable> cmd;
 
-    private static boolean debug = true;
+    private static boolean debug = false;
 
     private void buildCommandMap(NodeRPCClient node) {
         cmd = new HashMap<>();
@@ -65,7 +65,7 @@ public class NodeRPCClient {
     private void updateNodeData() {
         registeredFlows = proxy.registeredFlows(); // get registered flows
 
-        setFlowMaps("bootcamp.workflows-java.jar", registeredFlows);
+        //setFlowMaps("bootcamp.workflows-java.jar", registeredFlows);
 
         // get state names
         List<Vault.StateMetadata> stateMetadata = proxy.vaultQuery(ContractState.class).getStatesMetadata();

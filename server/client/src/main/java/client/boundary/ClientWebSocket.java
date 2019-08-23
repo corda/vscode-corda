@@ -52,9 +52,11 @@ public class ClientWebSocket {
         } else if (message.getCmd().equals("startFlow")) {
             // message.content contains the flow and args
             client.run(message.getCmd(), message.getContent(), new String[] {""});
+        }else{
+            sendResponse(message, client.run(message.getCmd()));
         }
 
-        sendResponse(message, client.run(message.getCmd()));
+
     }
 
     // TODO: Add notifyServerAndClose send to client and have RPCClient close the connection

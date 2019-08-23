@@ -78,6 +78,9 @@ function activate(context) {
 			<head>
 				<meta charset="utf-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+				<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+				
+				<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 			</head>
 			<body>
 				<div id="root"></div>

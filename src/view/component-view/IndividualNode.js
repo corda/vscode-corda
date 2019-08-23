@@ -2,6 +2,7 @@ import React from 'react';
 
 import Konva from "konva";
 import { Stage, Layer, Circle, Text, Group, Label, Tag, Tween } from "react-konva";
+import { thisExpression } from '@babel/types';
 
 export default class IndividualNode extends React.Component {
 
@@ -56,13 +57,16 @@ export default class IndividualNode extends React.Component {
         // propagate initial node info
     
         this.client.onopen = () => {
-            this.client.send(JSON.stringify({"cmd":"getNodeInfo","content":JSON.stringify(
+            this.client.send(JSON.stringify({"cmd":"connect","content":JSON.stringify(
                 
                 this.state.connection
                 
             )}));
-        }
+            this.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
+        }    
     }
+
+  
 
 
     handleDragStart(e){
@@ -70,6 +74,7 @@ export default class IndividualNode extends React.Component {
         var circles = e.target.getChildren(function(node){
           return node.getClassName() === 'Circle';
         });
+        e.target.moveToTop();
         console.log(circles[0])
         circles[0].setAttrs({
           shadowOffset: {
@@ -112,21 +117,21 @@ export default class IndividualNode extends React.Component {
       }
 
       expandNode(e){
-        console.log(JSON.stringify(e.target))
+      /*  console.log(JSON.stringify(e.target))
         console.log(JSON.stringify(e.target.getParent()))
         var _this = this;
-        e.target.moveToTop();
+       // e.target.moveToTop();
         e.target.getParent().moveToTop();
         e.target.to({
-          duration: 1.5,
+          duration: 1,
           easing: Konva.Easings.Linear,
           scaleX: 20,
           scaleY: 20,
-          onFinish: function() {
-            const { switchNodeView } = _this.props;
-            switchNodeView();
-          }
-        });
+          onFinish: function() { */
+        const { switchNodeView } = this.props;
+        switchNodeView(this.client);
+       /*   }
+        });*/
         
 
         console.log("Tried")

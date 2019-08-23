@@ -15,14 +15,25 @@ export default class VaultView extends React.Component {
             displayNodeViewer: true,
             displayNodeExplorer: false
         }
-        this.toggleNodeView = this.toggleNodeView.bind(this);
+        this.toggleToNodeExplorer = this.toggleToNodeExplorer.bind(this);
+        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
+
         console.log(window.location.pathname);
     }
 
-    toggleNodeView(){
+    toggleToNodeExplorer(client){
         this.setState({
             displayNodeViewer: false,
-            displayNodeExplorer: true
+            displayNodeExplorer: true,
+            client: client
+        })
+    }
+
+    toggleToNodeViewer(){
+        console.log("I am supposedly doing something")
+        this.setState({
+            displayNodeExplorer: false,
+            displayNodeViewer: true
         })
     }
 
@@ -34,9 +45,9 @@ export default class VaultView extends React.Component {
         //<SVG src={logo} style={{height: 50 + 'vh'}}/>
         let Display = null;
         if(this.state.displayNodeViewer){
-            Display = <NodeViewer toggleNodeView = {this.toggleNodeView} />
+            Display = <NodeViewer toggleToNodeExplorer = {this.toggleToNodeExplorer} />
         }else if(this.state.displayNodeExplorer){
-            Display = <NodeExplorer />
+            Display = <NodeExplorer client = {this.state.client} toggleToNodeViewer = {this.toggleToNodeViewer}/>
         }
         return (
             <div className="App">
