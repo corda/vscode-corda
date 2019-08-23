@@ -7,7 +7,10 @@ public class Message {
     private String cmd;
     private String content;
 
-    public Message() {}
+    public Message() {
+        this.cmd = "";
+        this.content = "";
+    }
     public Message(String cmd, String content) {
         this.cmd = cmd;
         this.content = content;
