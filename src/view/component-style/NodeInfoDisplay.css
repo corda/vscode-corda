@@ -1,6 +1,18 @@
-.node-info-display-card .info-icon{
-    color: red;
+.node-info-display-card{
     margin-top: 5px;
+    position: relative;
+    overflow: visible !important;
+}
+
+.node-info-display-card .info-icon-container{
+    font-size: 20px;
+}
+
+.info-icon{
+    color: red;
+    position: absolute;
+    top: -5px;
+    left:-5px;
 }
 
 
