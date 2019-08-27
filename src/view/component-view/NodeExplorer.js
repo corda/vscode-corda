@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "../component-style/NodeExplorer.css";
 import NodeInfoDisplay from "./NodeInfoDisplay";
 import FlowInfoDisplay from "./FlowInfoDisplay";
+import VaultInfoDisplay from "./VaultInfoDisplay";
 import Grid from '@material-ui/core/Grid';
 import { Circle, Text, Group, Label, Tag, Stage, Layer} from "react-konva";
 
@@ -18,7 +19,8 @@ export default class NodeExplorer extends React.Component {
           platform: null
         },
         flowNames:[],
-        flowParams: {}
+        flowParams: {},
+        vaultItems: []
        }
        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -60,6 +62,13 @@ export default class NodeExplorer extends React.Component {
        if(evt.cmd === "getStateNames"){
        }
 
+       if(evt.cmd === "getStatesInVault"){
+         this.setState({
+           vaultItems : content
+         })
+         
+        }
+
        if(evt.cmd === "getRegisteredFlowParams"){
          this.setState({
            flowParams : content
@@ -72,6 +81,7 @@ export default class NodeExplorer extends React.Component {
     this.state.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
     this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
     //this.state.client.send(JSON.stringify({"cmd": "getStateNames"}))
+    this.state.client.send(JSON.stringify({"cmd" : "getStatesInVault"}))
     this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
    }
 
@@ -149,6 +159,9 @@ export default class NodeExplorer extends React.Component {
         <Grid container spacing={3}>
           <Grid item xs={6}>
             <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
+          </Grid>
+          <Grid item xs={6}>
+            <VaultInfoDisplay vaultItems ={this.state.vaultItems} />
           </Grid>
         </Grid>
       </div>
