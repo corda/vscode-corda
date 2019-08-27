@@ -90,7 +90,7 @@ export default class NodeExplorer extends React.Component {
       DisplayNodeDetails = <div>{this.state.nodeDetails.name}</div>
     }
     //        <span onClick={this.toggleToNodeViewer} class="return-button"><i class="fas fa-arrow-left return-icon fa-lg" ></i> </span>
-
+// 
     return (
       <div className="node-explorer-container">
         <Grid container spacing={3}>
