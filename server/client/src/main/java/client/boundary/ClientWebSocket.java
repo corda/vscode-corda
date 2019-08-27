@@ -4,15 +4,23 @@ import client.NodeRPCClient;
 import client.entities.Message;
 import client.entities.MessageDecoder;
 import client.entities.MessageEncoder;
-import client.entities.ObjEncoder;
+import client.entities.adapters.ClassTypeAdapter;
+import client.entities.adapters.NodeInfoTypeAdapter;
+import client.entities.adapters.PartyTypeAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.corda.core.identity.Party;
 import net.corda.core.node.NodeInfo;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * This class handles websocket connections form the Corda VSCODE extension.
@@ -99,15 +107,26 @@ public class ClientWebSocket {
         session.getBasicRemote().sendObject(message);
     }
     private void sendResponse(Message message, Object obj) throws IOException, EncodeException {
-        // Cast for custom encoding
-        String content = "";
-        if (obj instanceof Collection) content = ObjEncoder.encode((Collection) obj);
-        else if (obj instanceof String) content = ObjEncoder.encode((String) obj);
-        else if (obj instanceof NodeInfo) content = ObjEncoder.encode((NodeInfo) obj);
-        else content = ObjEncoder.encode(obj.toString());
+        String content = ObjEncoder.encode(obj);
         message.setContent(content);
 
         session.getBasicRemote().sendObject(message);
+    }
+
+    public static class ObjEncoder {
+
+        // set type adapter, and other options on Gson
+        private static GsonBuilder gsonBuilder = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting();
+        private static Gson gson;
+
+        public static String encode(Object obj) {
+            gson = gsonBuilder.registerTypeAdapter(Party.class, new PartyTypeAdapter())
+                    .registerTypeAdapter(NodeInfo.class, new NodeInfoTypeAdapter())
+                    .registerTypeAdapter(Class.class, new ClassTypeAdapter()).create();
+            String json = gson.toJson(obj);
+            return json;
+        }
+
     }
 
 }
