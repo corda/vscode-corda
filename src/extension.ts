@@ -18,12 +18,10 @@ var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
 var validNodes = [] as any; // names of valid nodes for referencing relative node dir
 var hasRunBuild = false;
 var hasRunDeploy = false;
+var openTerminals = [] as any;
 
 var gradleTerminal = null as any;
-var notaryTerminal = null as any;
-var partyATerminal = null as any;
-var partyBTerminal = null as any;
-var partyCTerminal = null as any;
+
 var projectCwd = '';
 var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
@@ -178,30 +176,24 @@ function runNode(name : string, port : string, logPort : string) {
 
 
 function runNodes() {
-	// TODO use nodeConfig to set see which nodes to run, which ports and all that instead of hard coding
+	// DONE use nodeConfig to set see which nodes to run, which ports and all that instead of hard coding
 	// TODO: Global boolean for hasRunBuild and hasRunDeploy. If false, build and deploy before we can run nodes
 	// (and set deploy false after build, set both false after clean)
-	// TODO use global vars to see if terminals are already running, if so kill existing processes/terminals first
-	if (notaryTerminal !== null) {
-		notaryTerminal.dispose();
-		notaryTerminal = null;
+	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
+	
+	var port = 5005;
+	var logPort = 7005;
+
+	// dispose if terminals exist
+	for (var j = 0; j < openTerminals.length; j++) {
+		openTerminals[j].dispose();
+		openTerminals[j] = null;
 	}
-	if (partyATerminal !== null) {
-		partyATerminal.dispose();
-		partyATerminal = null;
+
+	// push new terminals
+	for (var i = 0; i < validNodes.length; i++) {
+		openTerminals.push(runNode(validNodes[i], (port++).toString(), (logPort++).toString()));
 	}
-	if (partyBTerminal !== null) {
-		partyBTerminal.dispose();
-		partyBTerminal = null;
-	}
-	if (partyCTerminal !== null) {
-		partyCTerminal.dispose();
-		partyCTerminal = null;
-	}
-	notaryTerminal = runNode('Notary', '5005', '7005');
-	partyATerminal = runNode('PartyA', '5006', '7006');
-	partyBTerminal = runNode('PartyB', '5007', '7007');
-	partyCTerminal = runNode('PartyC', '5008', '7008');
 }
 
 
