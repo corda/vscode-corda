@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import { ExpansionPanelSummary, ExpansionPanelDetails, ExpansionPanel, TextField } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
-export default class NodeInfoDisplay extends React.Component {
+export default class FlowInfoDisplay extends React.Component {
 
     constructor(props) {
         super(props);
