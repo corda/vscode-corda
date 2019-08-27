@@ -14,13 +14,11 @@ import net.corda.core.identity.Party;
 import net.corda.core.node.NodeInfo;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
+import javax.json.Json;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class handles websocket connections form the Corda VSCODE extension.
@@ -52,7 +50,7 @@ public class ClientWebSocket {
 
         String msgCmd = message.getCmd();
         Object retObj = null; // store a returned content object
-        HashMap<String, String> content = null;
+        HashMap<String, Object> content = null;
 
         try {
             // parse message content if it exists
@@ -67,9 +65,8 @@ public class ClientWebSocket {
                 client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
 
             } else if (message.getCmd().equals("startFlow")) {
-                String flow = content.get("flow");
-                String args = content.get("args");
-                HashMap<String, String> argMap = new ObjectMapper().readValue(args, HashMap.class);
+                String flow = (String) content.get("flow");
+                HashMap<String, String> argMap = (HashMap<String, String>) content.get("args");
                 Object[] argsArray = argMap.values().toArray();
                 String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
 
