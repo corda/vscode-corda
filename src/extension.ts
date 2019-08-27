@@ -14,6 +14,11 @@ if(process.platform.includes("win32") || process.platform.includes("win64")){
 	gjs =  require('../src/parser');
 }
 var nodeConfig = [] as cordaNodeConfig;
+var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
+var validNodes = [] as any; // names of valid nodes for referencing relative node dir
+var hasRunBuild = false;
+var hasRunDeploy = false;
+
 var gradleTerminal = null as any;
 var notaryTerminal = null as any;
 var partyATerminal = null as any;
@@ -108,27 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
 		`;
 	});
 	context.subscriptions.push(cordaShowView);
-
-	// WINDOWS TEST
-	// let launchServer = vscode.commands.registerCommand('extension.launchServer' , () =>{
-	// 	launchSpringServer();
-	// });
-	// context.subscriptions.push(launchServer);
-
-	// let launchClient = vscode.commands.registerCommand('extension.launchClient' , () =>{
-	// 	launchSpringClient();
-	// });
-	// context.subscriptions.push(launchClient);
 }
-
-// WINDOWS TEST
-// function launchSpringServer(){
-// 	var path = terminals.integrated.shell.windows;
-// 	var shellArgs = [] as any;
-// 	var temppath = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda";
-
-// 	var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar server\\build\\libs\\server-0.1.0.jar";
-// 	let terminal = vscode.window.createTerminal("Server", path, shellArgs);
 
 function launchViewBackend() {
 
@@ -140,52 +125,7 @@ function launchViewBackend() {
 	} else {
 		console.log("Client already up");
 	}
-
-	/*
-	if (vscode.window.terminals.find((value) => {
-		return value.name === "Server Launcher";
-	}) === undefined) {
-		launchServer();
-		console.log("Server Launch successful");
-	} else {
-		console.log("Server already up");
-	}*/
-
 }
-
-function launchServer() {
-	// TODO - take off hardcoding of Jar path
-	var shellArgs = [] as any;
-
-	var cmd;
-	var path;
-	if(terminals.integrated.shell.windows !== null){
-		path = terminals.integrated.shell.windows;
-		var tempLocation = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda\\server\\server\\build\\libs";
-		if(path.includes("powershell")){
-			cmd = "cd \"" + tempLocation + "\" java -jar server-0.1.0.jar "; 
-		}else{
-			cmd = "cd " + tempLocation + "  && java -jar server-0.1.0.jar ";
-		}
-	}else{
-		path = 'bash';
-		cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/server/build/libs && java -jar server-0.1.0.jar';
-	}
-
-	let terminal = vscode.window.createTerminal("Server Launcher", path, shellArgs);
-	terminal.show(true);
-	terminal.sendText(cmd);
-	return terminal;
-}
-
-// WINDOWS TEST
-// function launchSpringClient(){
-// 	var path = terminals.integrated.shell.windows;
-// 	var shellArgs = [] as any;
-// 	var temppath = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda";
-
-// 	var cmd = "cd \"" + temppath + "\\server \" && gradlew build && java -jar client\\build\\libs\\client-0.1.0.jar localhost:10006 user1 test";
-// 	let terminal = vscode.window.createTerminal("Client", path, shellArgs);
 
 function launchClient() {
 	// TODO - take off hardcoding of Jar path
@@ -219,17 +159,16 @@ function runNode(name : string, port : string, logPort : string) {
 	var cmd;
 	var path;
 	//~TODO add jokila port to cmd string / function params
-	//bash -c 'cd "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB" ; "/Library/Java/JavaVirtualMachines/jdk1.8.0_211.jdk/Contents/Home/jre/bin/java" "-Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5008 -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=7008,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter" "-Dname=PartyB" "-jar" "/Users/chrischabot/Projects/json-cordapp/workflows-java/build/nodes/PartyB/corda.jar" && exit'
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
 		if(path.includes("powershell")){
-			cmd = "cd \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
 		}else{
-			cmd = "cd " + projectCwd + "\\workflows-java\\build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
 		}
 	}else{
 		path = 'bash';
-		cmd = 'cd ' + projectCwd + '/workflows-java/build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
+		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
 	}
 	let terminal = vscode.window.createTerminal(name, path, shellArgs);
 	terminal.show(true);
@@ -299,9 +238,20 @@ function scanGradleFile(fileName : String): any {
 		if (representation.task !== undefined && representation.task.node !== undefined) {
 			nodeConfig = representation.task.node as cordaNodeConfig;
 		}
+		
+		nodeDir = fileName.replace('build.gradle','');
+
+		// fast non-iterative conversion from to array
+		var nodes = JSON.stringify(nodeConfig);
+		var pnodes = JSON.parse(nodes);
+		
+		for (var i = 0; i < pnodes.length; i++) {
+			validNodes[i] = pnodes[i]["name"].match("O=(.*),L")[1];
+		}
+
+		console.log(validNodes);
 	});
 }
-
 
 function updateWorkspaceFolders(): void {
 	if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length < 1) {
