@@ -15,7 +15,7 @@
 
 .return-icon{
     position: fixed;
-    color: red;
+    color: #ec1d24;
     cursor: pointer;
     z-index: 9;
 }

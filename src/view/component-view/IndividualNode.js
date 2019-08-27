@@ -7,7 +7,6 @@ export default class IndividualNode extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log("the props: " + JSON.stringify(props.node))
         this.state = {
             x : props.x,
             y : props.y,
@@ -134,7 +133,7 @@ export default class IndividualNode extends React.Component {
                         x={this.state.x} 
                         y={this.state.y}
                         radius={50} 
-                        fill='#FF0000'
+                        fill='#ec1d24'
                         shadowColor="black"
                         shadowBlur={10}
                         shadowOpacity={0.6}
