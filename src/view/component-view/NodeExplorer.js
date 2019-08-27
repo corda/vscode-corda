@@ -3,6 +3,7 @@ import "../component-style/NodeExplorer.css";
 import NodeInfoDisplay from "./NodeInfoDisplay";
 import FlowInfoDisplay from "./FlowInfoDisplay";
 import Grid from '@material-ui/core/Grid';
+import { Circle, Text, Group, Label, Tag, Stage, Layer} from "react-konva";
 
 export default class NodeExplorer extends React.Component {
 
@@ -93,8 +94,44 @@ export default class NodeExplorer extends React.Component {
 // 
     return (
       <div className="node-explorer-container">
-        <Grid container spacing={3}>
-          <Grid item xs={3}>
+        
+         
+        <Grid container spacing={4}>
+          <Grid item xs={4}>
+              <Stage width={200} height={100}><Layer>
+                <Group
+                  onClick={this.toggleToNodeViewer}
+                >
+                  <Circle 
+                    class="nodeCircle" 
+                    x={0} 
+                    y={25}
+                    radius={50} 
+                    fill='#FF0000'
+                    shadowColor="black"
+                    shadowBlur={10}
+                    shadowOpacity={0.6}
+                    
+                          
+                 />
+                  <Label
+                    x={0}
+                    y={25}
+                  >
+                      <Tag 
+                      fill= 'black'
+                      pointerDirection= 'left'
+                      pointerWidth= {20}
+                      pointerHeight= {28}
+                      lineJoin='round'
+                      />
+                      <Text text="Return to all nodes" x={0} fontFamily="FontAwesome" y={25} fill="white" padding ={5}  />
+                      
+                  </Label>
+                </Group>
+              </Layer></Stage>
+          </Grid>
+          <Grid item xs={4}>
             <NodeInfoDisplay content = {this.state.nodeDetails} /> 
 
           </Grid>
