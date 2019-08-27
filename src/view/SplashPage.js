@@ -18,7 +18,6 @@ export default class VaultView extends React.Component {
         this.toggleToNodeExplorer = this.toggleToNodeExplorer.bind(this);
         this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
 
-        console.log(window.location.pathname);
     }
 
     toggleToNodeExplorer(client){

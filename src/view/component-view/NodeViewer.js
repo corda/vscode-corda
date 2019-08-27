@@ -31,18 +31,7 @@ export default class NodeViewer extends React.Component {
               username: "user1",
               password: "test"
           
-          }},
-            {name: "PartyA",
-            hostport: "localhost",
-            serial: "XFXFSSFDF",
-            platform: "4",
-            connection: {
-              
-              host: "localhost:10003",
-              username: "user1",
-              password: "test"
-          
-          }}],
+          }},],
             nodeDetail: null
 
         }
