@@ -10,11 +10,12 @@ export default class IndividualNode extends React.Component {
         this.state = {
             x : props.x,
             y : props.y,
-            name: props.node.name,
-            hostport: props.node.hostport,
-            serial:props.node.serial,
-            platform:props.node.platform,
-            connection:props.node.connection
+            name : '\uf141',
+            connection:{
+              host: props.node.rpcSettings.address,
+              username: props.node.rpcUsers.user, 
+              password: props.node.rpcUsers.password 
+            }
 
         }
         this.showToolTip = this.showToolTip.bind(this);
@@ -68,12 +69,10 @@ export default class IndividualNode extends React.Component {
   
 
     handleDragStart(e){
-      console.log(JSON.stringify(e.target))
         var circles = e.target.getChildren(function(node){
           return node.getClassName() === 'Circle';
         });
         e.target.moveToTop();
-        console.log(circles[0])
         circles[0].setAttrs({
           shadowOffset: {
             x: 15,
@@ -115,24 +114,8 @@ export default class IndividualNode extends React.Component {
       }
 
       expandNode(e){
-      /*  console.log(JSON.stringify(e.target))
-        console.log(JSON.stringify(e.target.getParent()))
-        var _this = this;
-       // e.target.moveToTop();
-        e.target.getParent().moveToTop();
-        e.target.to({
-          duration: 1,
-          easing: Konva.Easings.Linear,
-          scaleX: 20,
-          scaleY: 20,
-          onFinish: function() { */
         const { switchNodeView } = this.props;
         switchNodeView(this.client);
-       /*   }
-        });*/
-        
-
-        console.log("Tried")
       }
 
     render() {
@@ -143,8 +126,6 @@ export default class IndividualNode extends React.Component {
                       onDragEnd={this.handleDragEnd}
                       onMouseEnter={this.showToolTip}
                       onMouseLeave={this.hideToolTip}
-                      
-                      
                   >
                       <Circle 
                         class="nodeCircle" 
@@ -152,7 +133,7 @@ export default class IndividualNode extends React.Component {
                         x={this.state.x} 
                         y={this.state.y}
                         radius={50} 
-                        fill='#FF0000'
+                        fill='#ec1d24'
                         shadowColor="black"
                         shadowBlur={10}
                         shadowOpacity={0.6}
@@ -170,7 +151,7 @@ export default class IndividualNode extends React.Component {
                             pointerHeight= {28}
                             lineJoin='round'
                             />
-                            <Text text={this.state.name} x={this.state.x} y={this.state.y} fill="white" padding ={5}  />
+                            <Text text={this.state.name} x={this.state.x} fontFamily="FontAwesome" y={this.state.y} fill="white" padding ={5}  />
                         </Label>
                         
                       

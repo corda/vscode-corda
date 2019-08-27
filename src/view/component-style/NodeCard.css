@@ -15,7 +15,7 @@
 .divider{
     width:100%;
     height:2px;
-    background-color: red;
+    background-color: #ec1d24;
 }
 .node-card:hover{
     top: -5px;

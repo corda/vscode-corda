@@ -1,5 +1,5 @@
 .nodeCircle{
-    fill: red;
+    fill: #ec1d24;
     
 }
 
@@ -8,4 +8,10 @@ ToolTip{
     top:0;
     left:0;
     z-index: 9;
+}
+
+#node-viewer{
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }

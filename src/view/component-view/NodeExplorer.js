@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import "../component-style/NodeExplorer.css";
 import NodeInfoDisplay from "./NodeInfoDisplay";
+import FlowInfoDisplay from "./FlowInfoDisplay";
 import Grid from '@material-ui/core/Grid';
+import { Circle, Text, Group, Label, Tag, Stage, Layer} from "react-konva";
 
 export default class NodeExplorer extends React.Component {
 
@@ -14,8 +16,9 @@ export default class NodeExplorer extends React.Component {
           hostport: null,
           serial: null,
           platform: null
-      }
-         
+        },
+        flowNames:[],
+        flowParams: {}
        }
        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -45,25 +48,34 @@ export default class NodeExplorer extends React.Component {
            });
        }
        
-       if(evt.cmd === "getRegisteredFlow"){
-         console.log(JSON.stringify(content))
+       if(evt.cmd == "getRegisteredFlows"){
+         this.setState({
+            flowNames : content
+         })
        }
 
+
+
        if(evt.cmd === "getStateNames"){
-         console.log("state name")
-         console.log(JSON.stringify(content))
+       }
+
+       if(evt.cmd === "getRegisteredFlowParams"){
+         this.setState({
+           flowParams : content
+         })
        }
        
    }
 
    componentDidMount(){
+    //this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
     this.state.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
     this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
     this.state.client.send(JSON.stringify({"cmd": "getStateNames"}))
+    this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
    }
 
    toggleToNodeViewer(){
-     console.log("clicked");
      const { toggleToNodeViewer } = this.props;
      toggleToNodeViewer();
    }
@@ -74,13 +86,54 @@ export default class NodeExplorer extends React.Component {
       DisplayNodeDetails = <div>{this.state.nodeDetails.name}</div>
     }
     //        <span onClick={this.toggleToNodeViewer} class="return-button"><i class="fas fa-arrow-left return-icon fa-lg" ></i> </span>
-
+// 
     return (
       <div className="node-explorer-container">
-        <Grid container spacing={3}>
-          <Grid item xs={3}>
+        
+         
+        <Grid container spacing={4}>
+          <Grid item xs={4}>
+              <Stage width={200} height={100}><Layer>
+                <Group
+                  onClick={this.toggleToNodeViewer}
+                >
+                  <Circle 
+                    class="nodeCircle" 
+                    x={0} 
+                    y={25}
+                    radius={50} 
+                    fill='#ec1d24'
+                    shadowColor="black"
+                    shadowBlur={10}
+                    shadowOpacity={0.6}
+                    
+                          
+                 />
+                  <Label
+                    x={0}
+                    y={25}
+                  >
+                      <Tag 
+                      fill= 'black'
+                      pointerDirection= 'left'
+                      pointerWidth= {20}
+                      pointerHeight= {28}
+                      lineJoin='round'
+                      />
+                      <Text text="Return to all nodes" x={0} fontFamily="FontAwesome" y={25} fill="white" padding ={5}  />
+                      
+                  </Label>
+                </Group>
+              </Layer></Stage>
+          </Grid>
+          <Grid item xs={4}>
             <NodeInfoDisplay content = {this.state.nodeDetails} /> 
 
+          </Grid>
+        </Grid>
+        <Grid container spacing={3}>
+          <Grid item xs={6}>
+            <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} />
           </Grid>
         </Grid>
       </div>

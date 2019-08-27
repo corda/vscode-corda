@@ -7,45 +7,14 @@ import DetailCard from "./DetailCard";
 
 export default class NodeViewer extends React.Component {
 
+    
     constructor(props) {
         super(props);
         this.state = {
-            nodes: [{name: "PartyA",
-            hostport: "localhost",
-            serial: "XFXFSSFDF",
-            platform: "4",
-            connection: {
-              
-                host: "localhost:10009",
-                username: "user1",
-                password: "test"
-            
-            }},
-            {name: "PartyA",
-            hostport: "localhost",
-            serial: "XFXFSSFDF",
-            platform: "4",
-            connection: {
-              
-              host: "localhost:10006",
-              username: "user1",
-              password: "test"
-          
-          }},
-            {name: "PartyA",
-            hostport: "localhost",
-            serial: "XFXFSSFDF",
-            platform: "4",
-            connection: {
-              
-              host: "localhost:10003",
-              username: "user1",
-              password: "test"
-          
-          }}],
             nodeDetail: null
-
         }
+
+        this.state.nodes = JSON.parse(document.getElementById('nodeList').innerHTML);
         this.showToolTip = this.showToolTip.bind(this);
         this.hideToolTip = this.hideToolTip.bind(this);
         this.switchNodeView = this.switchNodeView.bind(this);
@@ -71,16 +40,17 @@ export default class NodeViewer extends React.Component {
       var detailDisplay = <DetailCard contents = {this.state.nodeDetail}/>;
     } 
     return (
-      <div>
+      <div id="node-viewer">
         {detailDisplay}
         <Stage width={window.innerWidth} height={window.innerHeight}>
           <Layer>
               {this.state.nodes.map((node,index) => {
                   x=Math.random() * window.innerWidth
                   y=Math.random() * window.innerHeight
-                
-                  return(<IndividualNode x={x} y={y} node={node} showToolTip={this.showToolTip} hideToolTip={this.hideToolTip} switchNodeView={this.switchNodeView} />);
-            })}
+                  if(node.rpcUsers){
+                    return(<IndividualNode x={x} y={y} node={node} showToolTip={this.showToolTip} hideToolTip={this.hideToolTip} switchNodeView={this.switchNodeView} />);
+                  }
+                })}
           </Layer>
         </Stage>
         

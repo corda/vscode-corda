@@ -1,0 +1,19 @@
+.flow-param-input-field{
+    margin-left: 5px !important;
+    margin-right:5px !important;
+}
+
+.flow-param-input-field .input-field-focused::after{
+    border-bottom: 2px solid #ec1d24;
+}
+
+
+.flow-param-input-field .input-field-label.input-field-label-focused{
+    color: black;
+}
+
+.flow-param-input-field .flow-run-button{
+    position: absolute;
+    top:0px;
+    
+}
