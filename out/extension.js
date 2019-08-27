@@ -83,6 +83,8 @@ function activate(context) {
 				<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 			</head>
 			<body>
+				<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
+ 
 				<div id="root"></div>
 				${loadScript(context, locationOfView)}
 			</body>

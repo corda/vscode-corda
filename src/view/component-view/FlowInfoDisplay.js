@@ -30,7 +30,7 @@ export default class NodeInfoDisplay extends React.Component {
         return(
             <Card className="flow-info-display-card">
                 
-                    {this.state.flowDetails.map((flow) => (  
+                    {this.state.flowNames.map((flow) => (  
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                                 {flow}

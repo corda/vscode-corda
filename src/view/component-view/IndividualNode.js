@@ -7,14 +7,16 @@ export default class IndividualNode extends React.Component {
 
     constructor(props) {
         super(props);
+        console.log("the props: " + JSON.stringify(props.node))
         this.state = {
             x : props.x,
             y : props.y,
-            name: props.node.name,
-            hostport: props.node.hostport,
-            serial:props.node.serial,
-            platform:props.node.platform,
-            connection:props.node.connection
+            name : '\uf141',
+            connection:{
+              host: props.node.rpcSettings.address,
+              username: props.node.rpcUsers.user, 
+              password: props.node.rpcUsers.password 
+            }
 
         }
         this.showToolTip = this.showToolTip.bind(this);
@@ -113,23 +115,8 @@ export default class IndividualNode extends React.Component {
       }
 
       expandNode(e){
-      /*  console.log(JSON.stringify(e.target))
-        console.log(JSON.stringify(e.target.getParent()))
-        var _this = this;
-       // e.target.moveToTop();
-        e.target.getParent().moveToTop();
-        e.target.to({
-          duration: 1,
-          easing: Konva.Easings.Linear,
-          scaleX: 20,
-          scaleY: 20,
-          onFinish: function() { */
         const { switchNodeView } = this.props;
         switchNodeView(this.client);
-       /*   }
-        });*/
-        
-
       }
 
     render() {
@@ -165,7 +152,7 @@ export default class IndividualNode extends React.Component {
                             pointerHeight= {28}
                             lineJoin='round'
                             />
-                            <Text text={this.state.name} x={this.state.x} y={this.state.y} fill="white" padding ={5}  />
+                            <Text text={this.state.name} x={this.state.x} fontFamily="FontAwesome" y={this.state.y} fill="white" padding ={5}  />
                         </Label>
                         
                       
