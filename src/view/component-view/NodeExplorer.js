@@ -22,6 +22,7 @@ export default class NodeExplorer extends React.Component {
        }
        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
+       this.startFlow = this.startFlow.bind(this);
        // set event handler for websocket
        this.state.client.onmessage = (event) => {
            this.messageHandler(event);
@@ -68,10 +69,9 @@ export default class NodeExplorer extends React.Component {
    }
 
    componentDidMount(){
-    //this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
     this.state.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
     this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
-    this.state.client.send(JSON.stringify({"cmd": "getStateNames"}))
+    //this.state.client.send(JSON.stringify({"cmd": "getStateNames"}))
     this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
    }
 
@@ -80,13 +80,28 @@ export default class NodeExplorer extends React.Component {
      toggleToNodeViewer();
    }
 
+   startFlow(flowName, paramValues){
+    console.log(flowName);
+    console.log(paramValues);
+    var content = {
+      "flow" : flowName,
+      "args" : paramValues
+    }
+    this.state.client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(
+                
+      content
+      
+     )}));
+  }
+
   render() {
     let DisplayNodeDetails = null
     if(this.state.nodeDetails){
       DisplayNodeDetails = <div>{this.state.nodeDetails.name}</div>
     }
-    //        <span onClick={this.toggleToNodeViewer} class="return-button"><i class="fas fa-arrow-left return-icon fa-lg" ></i> </span>
-// 
+
+  
+   
     return (
       <div className="node-explorer-container">
         
@@ -133,7 +148,7 @@ export default class NodeExplorer extends React.Component {
         </Grid>
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} />
+            <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
           </Grid>
         </Grid>
       </div>
