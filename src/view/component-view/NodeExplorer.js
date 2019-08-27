@@ -18,7 +18,7 @@ export default class NodeExplorer extends React.Component {
         },
         flowNames:[],
         flowParams: {}
-       }
+      }
        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
        // set event handler for websocket

@@ -27,12 +27,10 @@ export default class NodeInfoDisplay extends React.Component {
 
 
     render() {
-        console.log("Does it exist?")
-        console.log(JSON.stringify(this.state.flowParams))
         return(
             <Card className="flow-info-display-card">
                 
-                    {this.state.flowNames.map((flow) => (  
+                    {this.state.flowDetails.map((flow) => (  
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                                 {flow}
@@ -40,6 +38,7 @@ export default class NodeInfoDisplay extends React.Component {
                             <ExpansionPanelDetails>
                                 <form>
                                     {this.state.flowParams[flow] && this.state.flowParams[flow].map((input) => (  
+
                                         <TextField className="flow-param-input-field" label={input} margin="dense"
                                             InputLabelProps={{
                                                 classes: {
