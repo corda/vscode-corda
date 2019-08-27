@@ -16,7 +16,8 @@ export default class NodeExplorer extends React.Component {
           serial: null,
           platform: null
         },
-        flowDetails:[]
+        flowNames:[],
+        flowParams: {}
        }
        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -49,7 +50,7 @@ export default class NodeExplorer extends React.Component {
        if(evt.cmd == "getRegisteredFlows"){
          console.log("updating the flow")
          this.setState({
-           flowDetails : content
+            flowNames : content
          })
        }
 
@@ -59,13 +60,22 @@ export default class NodeExplorer extends React.Component {
          console.log("state name")
          console.log(JSON.stringify(content))
        }
+
+       if(evt.cmd === "getRegisteredFlowParams"){
+         console.log("got the params")
+         this.setState({
+           flowParams : content
+         })
+       }
        
    }
 
    componentDidMount(){
+    //this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
     this.state.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
     this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
     this.state.client.send(JSON.stringify({"cmd": "getStateNames"}))
+    this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
    }
 
    toggleToNodeViewer(){
@@ -91,7 +101,7 @@ export default class NodeExplorer extends React.Component {
         </Grid>
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <FlowInfoDisplay content = {this.state.flowDetails} />
+            <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} />
           </Grid>
         </Grid>
       </div>

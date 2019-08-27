@@ -68,12 +68,10 @@ export default class IndividualNode extends React.Component {
   
 
     handleDragStart(e){
-      console.log(JSON.stringify(e.target))
         var circles = e.target.getChildren(function(node){
           return node.getClassName() === 'Circle';
         });
         e.target.moveToTop();
-        console.log(circles[0])
         circles[0].setAttrs({
           shadowOffset: {
             x: 15,
@@ -132,7 +130,6 @@ export default class IndividualNode extends React.Component {
         });*/
         
 
-        console.log("Tried")
       }
 
     render() {

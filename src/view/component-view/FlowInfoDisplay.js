@@ -12,33 +12,34 @@ export default class NodeInfoDisplay extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-          flowDetails :[],
-          inputs: ["Owner", "Amount", "Observer", "just", "way", "too", "much"]
+          flowNames :[],
+          flowParams: {}
         }
     }
 
     static getDerivedStateFromProps(props){
-        console.log("UPDATING FLOW in flow details")
-        console.log(JSON.stringify(props))
         return {
-            flowDetails: props.content 
+            flowNames: props.flowNames ,
+            flowParams: props.flowParams
         }
     }
 
 
 
     render() {
+        console.log("Does it exist?")
+        console.log(JSON.stringify(this.state.flowParams))
         return(
             <Card className="flow-info-display-card">
                 
-                    {this.state.flowDetails.map((flow) => (  
+                    {this.state.flowNames.map((flow) => (  
                         <ExpansionPanel>
                             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                                 {flow}
                             </ExpansionPanelSummary>
                             <ExpansionPanelDetails>
                                 <form>
-                                    {this.state.inputs.map((input) => (  
+                                    {this.state.flowParams[flow] && this.state.flowParams[flow].map((input) => (  
                                         <TextField className="flow-param-input-field" label={input} margin="dense"
                                             InputLabelProps={{
                                                 classes: {
