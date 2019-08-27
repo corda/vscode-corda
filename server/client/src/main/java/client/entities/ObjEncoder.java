@@ -15,7 +15,7 @@ public class ObjEncoder {
 
     public static String encode(String str) throws EncodeException {
         String json = gson.toJson(str);
-        json.replaceAll("=",":");
+        json = json.replaceAll("=",":");
         return json;
     }
 
