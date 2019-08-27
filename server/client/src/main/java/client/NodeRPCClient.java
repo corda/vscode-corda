@@ -38,7 +38,7 @@ public class NodeRPCClient {
     private final CordaRPCConnection connection;
     private final NodeInfo nodeInfo;
     private List<String> registeredFlows; // updates
-    private Instant initialConnectTime;
+    private Instant initialConnectTime; // time RPCClient is connected
 
     private String flowsJarPath; // path containing .jar with flows
     private Map<String, Class> registeredFlowClasses; // maps FQN to class
@@ -51,7 +51,6 @@ public class NodeRPCClient {
 
     private static boolean debug = false;
 
-    // Todo: get State properties
     private void buildCommandMap(NodeRPCClient node) {
         cmd = new HashMap<>();
         cmd.put("getNodeInfo", node::getNodeInfo);
@@ -82,12 +81,16 @@ public class NodeRPCClient {
         updateNodeData();
 
         // build maps for FQN->Class, FQN->List<Class> Params
-        setFlowsJarPath("/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps"); // TESTING hardcoded dir
-
+        setFlowMaps("/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps",
+                    this.registeredFlows); // TESTING hardcoded dir
 
         if (debug) System.out.println("RPC Connection Established");
     }
 
+    /**
+     *
+     * @return uptime of RPCClient connection
+     */
     public Duration getUptime() {
         return Duration.between(initialConnectTime, proxy.currentNodeTime());
     }
@@ -115,13 +118,6 @@ public class NodeRPCClient {
 
     }
 
-    public void setFlowsJarPath(String flowsJarPath) {
-        this.flowsJarPath = flowsJarPath;
-        setFlowMaps(this.flowsJarPath, registeredFlows);
-
-        if (debug) System.out.println(registeredFlowParams.toString());
-    }
-
     /**
      * Todo: GET JAR from node cordapp directory instead of build dir?
      *  - Handle MULTIPLE JARS
@@ -130,6 +126,8 @@ public class NodeRPCClient {
      * @param registeredFlows list of registeredFlows on the Node
      */
     private void setFlowMaps(String jarPath, List<String> registeredFlows) {
+        this.flowsJarPath = jarPath;
+
         registeredFlowClasses = new HashMap<>();
         registeredFlowParams = new HashMap<>();
 
@@ -276,10 +274,7 @@ public class NodeRPCClient {
     public static void main(String[] args) throws Exception {
 
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
-//        System.out.println(client.getUptime());
-//        System.out.println(client.getUptime());
-        //client.getNodeInfo();
-        client.setFlowsJarPath(".");
+        client.setFlowMaps(".", client.getRegisteredFlows());
         System.out.println(client.run("getRegisteredFlowParams"));
         //System.out.println(client.getRegisteredFlowParams().get("bootcamp.flows.TokenIssueFlowInitiator").get(1).getClass());
         System.out.println(client.run("getNodeInfo"));

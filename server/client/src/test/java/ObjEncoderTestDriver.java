@@ -16,10 +16,10 @@ public class ObjEncoderTestDriver {
         NodeRPCClient client = new NodeRPCClient("localhost:10009", "user1", "test");
         System.out.println("\n\n");
 
-//        testNodeInfo(client);
-//        testFlowParams(client);
-        //testStateNames(client);
-//        testStatesInVault(client);
+        testNodeInfo(client);
+        testFlowParams(client);
+        testStateNames(client);
+        testStatesInVault(client);
         testGetUptime(client);
     }
 
