@@ -49,7 +49,6 @@ export default class NodeExplorer extends React.Component {
        }
        
        if(evt.cmd == "getRegisteredFlows"){
-         console.log("updating the flow")
          this.setState({
             flowNames : content
          })
@@ -58,12 +57,9 @@ export default class NodeExplorer extends React.Component {
 
 
        if(evt.cmd === "getStateNames"){
-         console.log("state name")
-         console.log(JSON.stringify(content))
        }
 
        if(evt.cmd === "getRegisteredFlowParams"){
-         console.log("got the params")
          this.setState({
            flowParams : content
          })
@@ -80,7 +76,6 @@ export default class NodeExplorer extends React.Component {
    }
 
    toggleToNodeViewer(){
-     console.log("clicked");
      const { toggleToNodeViewer } = this.props;
      toggleToNodeViewer();
    }
@@ -107,7 +102,7 @@ export default class NodeExplorer extends React.Component {
                     x={0} 
                     y={25}
                     radius={50} 
-                    fill='#FF0000'
+                    fill='#ec1d24'
                     shadowColor="black"
                     shadowBlur={10}
                     shadowOpacity={0.6}

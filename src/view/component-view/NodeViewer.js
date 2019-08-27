@@ -14,9 +14,7 @@ export default class NodeViewer extends React.Component {
             nodeDetail: null
         }
 
-        this.state.nodes = document.getElementById('nodeList').innerHTML;
-        console.log(this.state.nodes);
-        this.state.nodes = JSON.parse(this.state.nodes);
+        this.state.nodes = JSON.parse(document.getElementById('nodeList').innerHTML);
         this.showToolTip = this.showToolTip.bind(this);
         this.hideToolTip = this.hideToolTip.bind(this);
         this.switchNodeView = this.switchNodeView.bind(this);

@@ -4,7 +4,7 @@
 }
 
 .flow-param-input-field .input-field-focused::after{
-    border-bottom: 2px solid red;
+    border-bottom: 2px solid #ec1d24;
 }
 
 
