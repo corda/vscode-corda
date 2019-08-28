@@ -4,14 +4,15 @@ import client.NodeRPCClient;
 import client.entities.Message;
 import client.entities.MessageDecoder;
 import client.entities.MessageEncoder;
-import client.entities.adapters.ClassTypeAdapter;
-import client.entities.adapters.NodeInfoTypeAdapter;
-import client.entities.adapters.PartyTypeAdapter;
+import client.entities.adapters.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.corda.core.contracts.ContractState;
+import net.corda.core.contracts.StateAndRef;
 import net.corda.core.identity.Party;
 import net.corda.core.node.NodeInfo;
+import net.corda.core.node.services.Vault;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import javax.json.Json;
@@ -72,6 +73,8 @@ public class ClientWebSocket {
 
                 client.run(flow, strArgsArray);
 
+            } else if (msgCmd.equals("getStateProperties")) {
+                retObj = client.getStateProperties("net.corda.yo.state.YoState");
             } else {
                 retObj = client.run(msgCmd);
             }
@@ -118,7 +121,10 @@ public class ClientWebSocket {
         public static String encode(Object obj) {
             gson = gsonBuilder.registerTypeAdapter(Party.class, new PartyTypeAdapter())
                     .registerTypeAdapter(NodeInfo.class, new NodeInfoTypeAdapter())
-                    .registerTypeAdapter(Class.class, new ClassTypeAdapter()).create();
+                    .registerTypeAdapter(Class.class, new ClassTypeAdapter())
+                    .registerTypeAdapter(StateAndRef.class, new StateAndRefTypeAdapter())
+                    .registerTypeAdapter(Vault.StateMetadata.class, new StateMetadataTypeAdapter())
+                    .create();
             String json = gson.toJson(obj);
             return json;
         }
