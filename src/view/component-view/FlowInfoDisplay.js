@@ -54,8 +54,8 @@ export default class FlowInfoDisplay extends React.Component {
                                 <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
                                     {flow}
                                 </ExpansionPanelSummary>
-                                <ExpansionPanelDetails>
-                                    <form>
+                                <ExpansionPanelDetails >
+                                    <form className="flow-details-card">
                                         {this.state.flowParams[flow] && this.state.flowParams[flow].map((input,index) => (  
                                             <TextField className="flow-param-input-field" label={input.match(re)[0]} margin="dense"
                                                 onChange = {(e) => this.changeParamHandler(flow, input.match(re)[0] + index, e)}
