@@ -1,0 +1,7 @@
+#vault-info-display-table-body .vault-info-display-table-row:nth-child(2n){
+    background-color: #FDE8E9 !important;
+}
+
+#vault-info-display-table-body .vault-info-display-table-row:hover{
+    background-color: #F7A5A7 !important;
+}
