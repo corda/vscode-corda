@@ -63,6 +63,8 @@ bootJar {
     version =  '0.1.0'
 }
 
+libsDirName = '../../../src'
+
 jar {
     // CorDapps do not configure a Node's logging.
 

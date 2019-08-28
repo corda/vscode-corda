@@ -133,19 +133,19 @@ function launchClient() {
 	var shellArgs = [] as any;
 	var cmd;
 	var path;
+	var jarDir = process.cwd(); // extension directory
+	
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
-		var tempLocation = "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\IDE\\dev\\vscode-corda\\server\\client\\build\\libs";
 		if(path.includes("powershell")){
-			cmd = "cd \"" + tempLocation + "\" java -jar client-0.1.0.jar " + nodePort + ' ' + user + ' ' + password; 
+			cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar " + nodePort + ' ' + user + ' ' + password; 
 		}else{
-			cmd = "cd " + tempLocation + "  && java -jar client-0.1.0.jar " + nodePort + " " + user + " " + password;
+			cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar " + nodePort + " " + user + " " + password;
 		}
 	}else{
 		path = 'bash';
-		cmd = 'cd ' +  '/Users/anthonynixon/Repo/VSCODE/corda_extension/server/client/build/libs && java -jar client-0.1.0.jar ' + nodePort + ' ' + user + ' ' + password;
+		cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar ' + nodePort + ' ' + user + ' ' + password;
 	}
-
 	let terminal = vscode.window.createTerminal("Client Launcher", path, shellArgs);
 	terminal.show(true);
 	terminal.sendText(cmd);
