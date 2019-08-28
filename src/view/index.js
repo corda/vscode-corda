@@ -8,6 +8,7 @@ import SplashPage from './SplashPage';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import { palette } from '@material-ui/system';
 import { red } from '@material-ui/core/colors';
+import FlowExplorerIndex from './component-view/FlowExplorerIndex';
 
 const theme = createMuiTheme({
     palette: {
@@ -17,7 +18,7 @@ const theme = createMuiTheme({
     }
 })
 ReactDOM.render(
-    <MuiThemeProvider theme = {theme}><SplashPage /> </MuiThemeProvider>
+    <MuiThemeProvider theme = {theme}><FlowExplorerIndex /> </MuiThemeProvider>
     , 
 document.getElementById('root'));
 

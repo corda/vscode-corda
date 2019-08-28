@@ -3,7 +3,10 @@ import "../component-style/NodeExplorer.css";
 import NodeInfoDisplay from "./NodeInfoDisplay";
 import FlowInfoDisplay from "./FlowInfoDisplay";
 import VaultInfoDisplay from "./VaultInfoDisplay";
+import StateHoverCard from "./StateHoverCard";
 import Grid from '@material-ui/core/Grid';
+import Hidden from '@material-ui/core/Hidden';
+
 import { Circle, Text, Group, Label, Tag, Stage, Layer} from "react-konva";
 
 export default class NodeExplorer extends React.Component {
@@ -20,9 +23,11 @@ export default class NodeExplorer extends React.Component {
         },
         flowNames:[],
         flowParams: {},
-        vaultItems: []
+        vaultItems: [],
+        stateInfoHoverCard:{}
        }
        this.toggleToNodeViewer = this.toggleToNodeViewer.bind(this);
+       this.toggleStateInfoDisplay = this.toggleStateInfoDisplay.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
        this.startFlow = this.startFlow.bind(this);
        // set event handler for websocket
@@ -39,8 +44,8 @@ export default class NodeExplorer extends React.Component {
        var evt = JSON.parse(event.data);
        var content = JSON.parse(evt.content);
 
-       console.log("command received: " + evt.cmd);
-       console.log("returned content: " + evt.content);
+      // console.log("command received: " + evt.cmd);
+      // console.log("returned content: " + evt.content);
 
        if (evt.cmd == "getNodeInfo") {
            this.setState({
@@ -90,9 +95,14 @@ export default class NodeExplorer extends React.Component {
      toggleToNodeViewer();
    }
 
+   toggleStateInfoDisplay(data){
+      console.log("get more hover")
+      this.setState({
+        stateInfoHoverCard : data
+      })
+   }
+
    startFlow(flowName, paramValues){
-    console.log(flowName);
-    console.log(paramValues);
     var content = {
       "flow" : flowName,
       "args" : paramValues
@@ -106,10 +116,13 @@ export default class NodeExplorer extends React.Component {
 
   render() {
     let DisplayNodeDetails = null
+    var DisplayStateHoverCard = null
     if(this.state.nodeDetails){
       DisplayNodeDetails = <div>{this.state.nodeDetails.name}</div>
     }
-
+    if(this.state.stateInfoHoverCard){
+      DisplayStateHoverCard = <StateHoverCard hoverStateDetails ={this.state.stateInfoHoverCard} />
+    }
   
    
     return (
@@ -151,17 +164,22 @@ export default class NodeExplorer extends React.Component {
                 </Group>
               </Layer></Stage>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={6} md={4}>
             <NodeInfoDisplay content = {this.state.nodeDetails} /> 
 
           </Grid>
+          <Hidden xsDown>
+            <Grid item md={4} mdUp>
+              {DisplayStateHoverCard }
+            </Grid>
+          </Hidden>
         </Grid>
         <Grid container spacing={3}>
-          <Grid item xs={6}>
+          <Grid item sm={12} md={6}>
             <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
           </Grid>
-          <Grid item xs={6}>
-            <VaultInfoDisplay vaultItems ={this.state.vaultItems} />
+          <Grid item sm={12} md={6}>
+            <VaultInfoDisplay vaultItems ={this.state.vaultItems} toggleStateInfoDisplay = {this.toggleStateInfoDisplay} />
           </Grid>
         </Grid>
       </div>
