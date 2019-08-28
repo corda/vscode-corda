@@ -127,9 +127,6 @@ function launchViewBackend() {
 
 function launchClient() {
 	// TODO - take off hardcoding of Jar path
-	var nodePort = nodeConfig[1].rpcSettings["address"];
-	var user = nodeConfig[1].rpcUsers["user"];
-	var password = nodeConfig[1].rpcUsers["password"];
 	var shellArgs = [] as any;
 	var cmd;
 	var path;
@@ -138,13 +135,13 @@ function launchClient() {
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
 		if(path.includes("powershell")){
-			cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar " + nodePort + ' ' + user + ' ' + password; 
+			cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar"; 
 		}else{
-			cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar " + nodePort + " " + user + " " + password;
+			cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar";
 		}
 	}else{
 		path = 'bash';
-		cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar ' + nodePort + ' ' + user + ' ' + password;
+		cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar';
 	}
 	let terminal = vscode.window.createTerminal("Client Launcher", path, shellArgs);
 	terminal.show(true);
@@ -156,6 +153,9 @@ function runNode(name : string, port : string, logPort : string) {
 	var shellArgs = [] as any;
 	var cmd;
 	var path;
+
+	// store cordapp dirs for each node launch
+
 	//~TODO add jokila port to cmd string / function params
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
