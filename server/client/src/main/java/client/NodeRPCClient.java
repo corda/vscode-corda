@@ -1,16 +1,19 @@
 package client;
 
 import com.google.common.collect.ImmutableList;
+import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
 import net.corda.core.contracts.Contract;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;
+import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
+import org.hibernate.cfg.InheritanceState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +46,10 @@ public class NodeRPCClient {
     private List<String> registeredFlows; // updates
     private Instant initialConnectTime; // time RPCClient is connected
 
-    private String flowsJarPath; // path containing .jar with flows
     private Map<String, Class> registeredFlowClasses; // maps FQN to class
     private Map<String, List<Class>> registeredFlowParams; // maps FQN to required params
 
     private Set<String> stateNames; // updates
-    //private Set<ContractState> statesInVault; //updates
-    //private List<StateAndRef<ContractState>> statesInVault;
     private Vault.Page<ContractState> statesAndMeta;
 
     private Map<String, Callable> cmd; // maps incoming commands to methods
@@ -66,6 +66,7 @@ public class NodeRPCClient {
         cmd.put("closeConnection", node::closeConnection);
         cmd.put("getUptime", node::getUptime);
         cmd.put("getStatesMetaInVault", node::getStatesMetaInVault);
+        cmd.put("getTransactionMap", node::getTransactionMap);
     }
 
     /**
@@ -94,14 +95,6 @@ public class NodeRPCClient {
     }
 
     /**
-     *
-     * @return uptime of RPCClient connection
-     */
-    public Duration getUptime() {
-        return Duration.between(initialConnectTime, proxy.currentNodeTime());
-    }
-
-    /**
      * Updates the basic node data (flows, states names, and states in vault)
      * also tracks all available flows and their required params
      */
@@ -120,15 +113,11 @@ public class NodeRPCClient {
     }
 
     /**
-     * Todo: GET JAR from node cordapp directory instead of build dir?
-     *  - Handle MULTIPLE JARS
      * propagates the maps used to track flow classes, constructors and params.
      * @param jarPath full path to the .jar files containing CorDapp flows
      * @param registeredFlows list of registeredFlows on the Node
      */
     private void setFlowMaps(String jarPath, List<String> registeredFlows) {
-        this.flowsJarPath = jarPath;
-
         registeredFlowClasses = new HashMap<>();
         registeredFlowParams = new HashMap<>();
 
@@ -172,7 +161,7 @@ public class NodeRPCClient {
     }
 
     /**
-     * setFlowParams
+     * setFlowParams - helper for setFlowMaps
      * @param flowClass flow to extract paramTypes from
      * @return list of Classes corresponding to each param of the input flow class
      */
@@ -190,16 +179,80 @@ public class NodeRPCClient {
     }
 
     /**
-     * runs a given command from the command-map
-     * @param cmd
-     * @return
-     * @throws Exception
+     *
+     * @return uptime of RPCClient connection
      */
-    public Object run(String cmd) throws Exception {
-        return this.cmd.get(cmd).call();
+    public Duration getUptime() {
+        return Duration.between(initialConnectTime, proxy.currentNodeTime());
     }
-    public void run(String flow, String[] args) {
-        startFlow(flow, args);
+
+    public Map<String, List<Class>> getRegisteredFlowParams() {
+        return registeredFlowParams;
+    }
+
+    public NodeInfo getNodeInfo() {
+        return nodeInfo;
+    }
+
+    public List<String> getRegisteredFlows() {
+        return registeredFlows;
+    }
+
+    public Set<String> getStateNames() {
+        return stateNames;
+    }
+
+    public List<StateAndRef<ContractState>> getStatesInVault() { return statesAndMeta.getStates(); }
+
+    public List<Vault.StateMetadata> getStatesMetaInVault() { return statesAndMeta.getStatesMetadata(); }
+
+    // Returns all the properties of a given ContractState
+    // params: e.g. "net.corda.yo.state.YoState"
+    public List<String> getStateProperties(String contractState) {
+        for (StateAndRef<ContractState> sr : getStatesInVault()) {
+            // substring 6, removes 'class' prefix from FQN
+            if (sr.getState().getData().getClass().toString().substring(6).equals(contractState)) {
+                Field[] fields = sr.getState().getData().getClass().getDeclaredFields();
+                List<String> properties = new ArrayList<>();
+
+                for (Field f : fields) {
+                    properties.add(f.getName());
+                }
+
+                return properties;
+            }
+        }
+        return null;
+    }
+
+    public Map<SecureHash, TransRecord> getTransactionMap() {
+        Map<SecureHash, TransRecord> transMap = new HashMap<>();
+        List<Vault.StateMetadata> stateMeta = getStatesMetaInVault();
+        List<StateAndRef<ContractState>> states = getStatesInVault();
+
+        for (int i = 0; i < states.size(); i++) {
+            SecureHash txHash = states.get(i).getRef().getTxhash();
+
+            TransRecord currTrans;
+
+            // create new Transrecord if not found in map
+            if (!transMap.containsKey(txHash)) {
+                Instant timeStamp = stateMeta.get(i).getRecordedTime();
+                currTrans = new TransRecord(txHash, timeStamp);
+                transMap.put(txHash, currTrans);
+            }
+
+            currTrans = transMap.get(txHash);
+
+            currTrans.addToMeta(stateMeta.get(i));
+            currTrans.addToStates(states.get(i).getState().getData());
+
+            transMap.replace(txHash, currTrans);
+
+
+        }
+
+        return transMap;
     }
 
     /**
@@ -243,6 +296,19 @@ public class NodeRPCClient {
     }
 
     /**
+     * runs a given command from the command-map
+     * @param cmd
+     * @return
+     * @throws Exception
+     */
+    public Object run(String cmd) throws Exception {
+        return this.cmd.get(cmd).call();
+    }
+    public void run(String flow, String[] args) {
+        startFlow(flow, args);
+    }
+
+    /**
      * Closes connection
      * @return null Void object used to convert to callable for storage in cmd map
      */
@@ -251,47 +317,51 @@ public class NodeRPCClient {
         return null;
     }
 
-    public Map<String, List<Class>> getRegisteredFlowParams() {
-        return registeredFlowParams;
-    }
+    public class TransRecord {
+        private List<Vault.StateMetadata> metadata;
+        private List<ContractState> states;
+        private Instant timeStamp;
+        private SecureHash txHash;
 
-    public NodeInfo getNodeInfo() {
-        return nodeInfo;
-    }
-
-    public List<String> getRegisteredFlows() {
-        return registeredFlows;
-    }
-
-    public Set<String> getStateNames() {
-        return stateNames;
-    }
-
-    public List<StateAndRef<ContractState>> getStatesInVault() {
-        return statesAndMeta.getStates();
-    }
-
-    public List<Vault.StateMetadata> getStatesMetaInVault() {
-        return statesAndMeta.getStatesMetadata();
-    }
-
-    // Returns all the properties of a given ContractState
-    // params: e.g. "net.corda.yo.state.YoState"
-    public List<String> getStateProperties(String contractState) {
-        for (StateAndRef<ContractState> sr : getStatesInVault()) {
-            // substring 6, removes 'class' prefix from FQN
-            if (sr.getState().getData().getClass().toString().substring(6).equals(contractState)) {
-                Field[] fields = sr.getState().getData().getClass().getDeclaredFields();
-                List<String> properties = new ArrayList<>();
-
-                for (Field f : fields) {
-                    properties.add(f.getName());
-                }
-
-                return properties;
-            }
+        public void addToMeta(Vault.StateMetadata meta) {
+            metadata.add(meta);
         }
-        return null;
+        public void addToStates(ContractState c) {
+            states.add(c);
+        }
+        public void setTxHash(SecureHash txHash) {
+            this.txHash = txHash;
+        }
+
+        public TransRecord() {
+            this.metadata = new ArrayList<>();
+            this.states = new ArrayList<>();
+        }
+        public TransRecord(SecureHash txHash, Instant timeStamp) {
+            this();
+            this.timeStamp = timeStamp;
+            this.txHash = txHash;
+        }
+
+        public Instant getTimeStamp() {
+            return timeStamp;
+        }
+
+        public SecureHash getTxHash() {
+            return txHash;
+        }
+
+        public List<Vault.StateMetadata> getMetadata() {
+            return metadata;
+        }
+
+        public List<ContractState> getStates() {
+            return states;
+        }
+
+        public String toString() {
+            return metadata.toString() + " " + states.toString() + " " + timeStamp + " " + txHash;
+        }
     }
 
     // main method for debugging
@@ -303,22 +373,16 @@ public class NodeRPCClient {
         List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
         List<Vault.StateMetadata> stateMeta = (List<Vault.StateMetadata>) client.run("getStatesMetaInVault");
 
-//        System.out.println("\n\n\n" + states.get(0).getState().getData().getClass().toString());
-        System.out.println("\n\n\n" + client.getStateProperties("net.corda.yo.state.YoState"));
-//
-//        System.out.println("\n\n\n" + stateMeta.get(0).getContractStateClassName());
-//        System.out.println("\n\n\n" + stateMeta.get(0).getRef());
-//        System.out.println("\n\n\n" + stateMeta.get(0).getRecordedTime());
+        System.out.println("\n\n\n" + states.get(0).getState().getData().getClass().toString());
+        //System.out.println("\n\n\n" + states.get(0).getRef().getTxhash());
 
-//        System.out.println("\n\n" + states.getStates().get(0).getState().getData()); // get keys on the other end
-//        System.out.println("\n\n" + states.getStates().get(0).getState().getContract());
-//        System.out.println("\n\n" + states.getStates().get(0));
-//        System.out.println("\n\n" + states.getStates().get(0).getRef());
-//        System.out.println("\n\n" + states.getStatesMetadata().get(0).;
+        System.out.println(states.get(0).getRef().getTxhash());
+        System.out.println(stateMeta.get(0).getRef().getTxhash());
 
-        //System.out.println(client.getRegisteredFlowParams().get("bootcamp.flows.TokenIssueFlowInitiator").get(1).getClass());
-        //System.out.println(client.run("getNodeInfo"));
-        //client.run("bootcamp.flows.TokenIssueFlowInitiator", new String[]{"PartyA","9888999"});
+        Set<Map.Entry<SecureHash, TransRecord>> mp = client.getTransactionMap().entrySet();
+        for (Map.Entry<SecureHash, TransRecord> m : mp) {
+            System.out.println(m.getValue());
+        }
 
     }
 }

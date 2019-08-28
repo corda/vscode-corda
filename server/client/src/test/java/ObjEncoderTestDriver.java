@@ -10,47 +10,20 @@ import client.boundary.ClientWebSocket;
  */
 
 public class ObjEncoderTestDriver {
+    static NodeRPCClient client;
 
     public static void main(String[] args) throws Exception {
 
-        NodeRPCClient client = new NodeRPCClient("localhost:10009", "user1", "test");
+        client = new NodeRPCClient("localhost:10009", "user1", "test");
         System.out.println("\n\n");
 
-        testNodeInfo(client);
-        testFlowParams(client);
-        testStateNames(client);
-        testStatesInVault(client);
-        testGetUptime(client);
+        runTest("getTransactionMap");
+        runTest("getNodeInfo");
+        runTest("getRegisteredFlowParams");
     }
 
-    private static void testNodeInfo(NodeRPCClient client) throws Exception {
-        Object obj = client.run("getNodeInfo");
-
+    private static void runTest(String cmd) throws Exception {
+        Object obj = client.run(cmd);
         System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
     }
-
-    private static void testFlowParams(NodeRPCClient client) throws Exception {
-        Object obj = client.run("getRegisteredFlowParams");
-
-        System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
-    }
-
-    private static void testStateNames(NodeRPCClient client) throws Exception {
-        Object obj = client.run("getStateNames");
-
-        System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
-    }
-
-    private static void testStatesInVault(NodeRPCClient client) throws Exception {
-        Object obj = client.run("getStatesInVault");
-
-        System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
-    }
-
-    private static void testGetUptime(NodeRPCClient client) throws Exception {
-        Object obj = client.run("getUptime");
-
-        System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
-    }
-
 }

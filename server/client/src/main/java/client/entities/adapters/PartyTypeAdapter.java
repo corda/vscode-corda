@@ -13,7 +13,6 @@ import java.io.IOException;
  * "serial":"1566569470832",
  * "platformVersion":"4"}
  */
-
 public class PartyTypeAdapter extends TypeAdapter {
 
     @Override

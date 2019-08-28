@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
+// GENERIC adapter for toString on unhandled classes
 public class ClassTypeAdapter extends TypeAdapter {
     @Override
     public void write(JsonWriter out, Object value) throws IOException {

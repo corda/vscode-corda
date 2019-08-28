@@ -1,4 +1,4 @@
-package client.entities.adapters;
+package client.entities.future;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;

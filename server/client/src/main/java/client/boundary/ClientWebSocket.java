@@ -122,8 +122,8 @@ public class ClientWebSocket {
             gson = gsonBuilder.registerTypeAdapter(Party.class, new PartyTypeAdapter())
                     .registerTypeAdapter(NodeInfo.class, new NodeInfoTypeAdapter())
                     .registerTypeAdapter(Class.class, new ClassTypeAdapter())
-                    .registerTypeAdapter(StateAndRef.class, new StateAndRefTypeAdapter())
                     .registerTypeAdapter(Vault.StateMetadata.class, new StateMetadataTypeAdapter())
+                    .registerTypeAdapter(NodeRPCClient.TransRecord.class, new TransRecordTypeAdapter())
                     .create();
             String json = gson.toJson(obj);
             return json;
