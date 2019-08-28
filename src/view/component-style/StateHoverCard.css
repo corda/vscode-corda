@@ -1,0 +1,16 @@
+.state-detail-card{
+    margin-top:10px;
+    
+    background-color: black;
+    color: white;
+    width: 90%;
+}
+
+.state-detail:nth-child(1){
+    padding-top: 5px;
+}
+
+
+.state-detail:last-child{
+    padding-bottom: 5px;
+}

@@ -23,10 +23,10 @@ export default class VaultInfoDisplay extends React.Component {
         }
         this.handleChangeRowsPerPage = this.handleChangeRowsPerPage.bind(this);
         this.handleChangePage = this.handleChangePage.bind(this);
+        this.handleRowHover = this.handleRowHover.bind(this)
     }
 
     static getDerivedStateFromProps(props){
-      console.log("Should be updating!")
         return {
             vaultItems : props.vaultItems
         }
@@ -44,6 +44,13 @@ export default class VaultInfoDisplay extends React.Component {
         page: num
       })
     }
+
+    handleRowHover(data){
+      console.log(JSON.stringify(data))
+      const { toggleStateInfoDisplay } = this.props
+      toggleStateInfoDisplay(data.origin)
+    }
+
 
    
 
@@ -63,7 +70,9 @@ export default class VaultInfoDisplay extends React.Component {
                   </TableHead>
                   <TableBody id="vault-info-display-table-body">
                     {this.state.vaultItems.slice(this.state.rowsPerPage * this.state.page, this.state.rowsPerPage * this.state.page + this.state.rowsPerPage).map(row => (
-                      <TableRow className="vault-info-display-table-row">
+                      <TableRow className="vault-info-display-table-row"
+                        onMouseEnter = {() => this.handleRowHover(row)}
+                      >
                         <TableCell> YoState</TableCell>
                         <TableCell align="right">{row.origin.Organisation}</TableCell>
                         <TableCell align="right">{row.target.Organisation}</TableCell>

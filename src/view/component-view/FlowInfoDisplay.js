@@ -39,9 +39,8 @@ export default class FlowInfoDisplay extends React.Component {
 
 
     render() {
-        console.log("Does it exist?")
         let re = /([^\.]*)$/g;
-        console.log(JSON.stringify(this.state.flowParams))
+        
         return(
             <Card className="flow-info-display-card">
                 
