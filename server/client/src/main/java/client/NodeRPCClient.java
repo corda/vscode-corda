@@ -243,12 +243,9 @@ public class NodeRPCClient {
 
             currTrans = transMap.get(txHash);
 
-            currTrans.addToMeta(stateMeta.get(i));
-            currTrans.addToStates(states.get(i).getState().getData());
+            currTrans.addToStates(states.get(i).getState().getData(), stateMeta.get(i));
 
             transMap.replace(txHash, currTrans);
-
-
         }
 
         return transMap;
@@ -317,23 +314,18 @@ public class NodeRPCClient {
     }
 
     public class TransRecord {
-        private List<Vault.StateMetadata> metadata;
-        private List<ContractState> states;
+        private List<Pair<ContractState,Vault.StateMetadata>> states;
         private Instant timeStamp;
         private SecureHash txHash;
 
-        public void addToMeta(Vault.StateMetadata meta) {
-            metadata.add(meta);
-        }
-        public void addToStates(ContractState c) {
-            states.add(c);
+        public void addToStates(ContractState c, Vault.StateMetadata m) {
+            states.add(new Pair(c, m));
         }
         public void setTxHash(SecureHash txHash) {
             this.txHash = txHash;
         }
 
         public TransRecord() {
-            this.metadata = new ArrayList<>();
             this.states = new ArrayList<>();
         }
         public TransRecord(SecureHash txHash, Instant timeStamp) {
@@ -350,16 +342,12 @@ public class NodeRPCClient {
             return txHash;
         }
 
-        public List<Vault.StateMetadata> getMetadata() {
-            return metadata;
-        }
-
-        public List<ContractState> getStates() {
+        public List<Pair<ContractState, Vault.StateMetadata>> getStates() {
             return states;
         }
 
         public String toString() {
-            return metadata.toString() + " " + states.toString() + " " + timeStamp + " " + txHash;
+            return states.toString() + " " + timeStamp + " " + txHash;
         }
     }
 
@@ -369,19 +357,21 @@ public class NodeRPCClient {
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
         //client.setFlowMaps(".", client.getRegisteredFlows());
         //System.out.println(client.run("getStatesInVault"));
-        List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
-        List<Vault.StateMetadata> stateMeta = (List<Vault.StateMetadata>) client.run("getStatesMetaInVault");
+        //List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
+        //List<Vault.StateMetadata> stateMeta = (List<Vault.StateMetadata>) client.run("getStatesMetaInVault");
 
-        System.out.println("\n\n\n" + states.get(0).getState().getData().getClass().toString());
+        //System.out.println("\n\n\n" + states.get(0).getState().getData().getClass().toString());
         //System.out.println("\n\n\n" + states.get(0).getRef().getTxhash());
 
-        System.out.println(states.get(0).getRef().getTxhash());
-        System.out.println(stateMeta.get(0).getRef().getTxhash());
+        //System.out.println(states.get(0).getRef().getTxhash());
+        //System.out.println(stateMeta.get(0).getRef().getTxhash());
 
-        Set<Map.Entry<SecureHash, TransRecord>> mp = client.getTransactionMap().entrySet();
-        for (Map.Entry<SecureHash, TransRecord> m : mp) {
-            System.out.println(m.getValue());
-        }
+//        Set<Map.Entry<SecureHash, TransRecord>> mp = client.getTransactionMap().entrySet();
+//        for (Map.Entry<SecureHash, TransRecord> m : mp) {
+//            System.out.println(m.getValue());
+//        }
+        Map<SecureHash, TransRecord> t = (Map<SecureHash, TransRecord>) client.run("getTransactionMap");
+        System.out.println(t);
 
     }
 }

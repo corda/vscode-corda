@@ -18,8 +18,8 @@ public class ObjEncoderTestDriver {
         System.out.println("\n\n");
 
         runTest("getTransactionMap");
-        runTest("getNodeInfo");
-        runTest("getRegisteredFlowParams");
+        //runTest("getNodeInfo");
+        //runTest("getRegisteredFlowParams");
     }
 
     private static void runTest(String cmd) throws Exception {

@@ -18,7 +18,6 @@ public class TransRecordTypeAdapter extends TypeAdapter {
         out.name("timeStamp").value(tx.getTimeStamp().toString());
         out.name("txHash").value(tx.getTxHash().toString());
         out.name("states").value(encode(tx.getStates()));
-        out.name("metaData").value(encode(tx.getMetadata())); // encode will forward to correct typeAdapter
         out.endObject();
     }
 
