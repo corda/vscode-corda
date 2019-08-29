@@ -5,7 +5,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import FlowInfoDisplay from "./FlowInfoDisplay";
+import Grid from '@material-ui/core/Grid';
+
 
 
 
@@ -16,7 +18,9 @@ export default class FlowExplorerIndex extends React.Component {
        this.state = {
             selectedNode : "PartyA",
             connections: {},
-            nodeInfo : null
+            nodeInfo : null,
+            flowNames: [],
+            flowParams:null
        }
      
        let _this = this;
@@ -31,10 +35,11 @@ export default class FlowExplorerIndex extends React.Component {
             }
         });
        this.handleChange = this.handleChange.bind(this);
-       
+       this.startFlow = this.startFlow.bind(this);
        this.client = new WebSocket("ws://localhost:8080/session");
        
         this.messageHandler = this.messageHandler.bind(this);
+        this.flushNode = this.flushNode.bind(this);
         // set event handler for websocket
         this.client.onmessage = (event) => {
             this.messageHandler(event);
@@ -54,6 +59,18 @@ export default class FlowExplorerIndex extends React.Component {
                 nodeInfo : content
             })
         }
+
+        if(evt.cmd == "getRegisteredFlows"){
+            this.setState({
+               flowNames : content
+            })
+          }
+   
+          if(evt.cmd === "getRegisteredFlowParams"){
+            this.setState({
+              flowParams : content
+            })
+          }
     }
 
 
@@ -71,21 +88,52 @@ export default class FlowExplorerIndex extends React.Component {
         this.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
     }
 
+    loadFlowInfo(){
+        this.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
+        this.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
+    }
+
+    startFlow(flowName, paramValues){
+        var content = {
+          "flow" : flowName,
+          "args" : paramValues
+        }
+        this.client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(           
+          content
+         )}));
+      }
+
+
+    flushNode(){
+        this.setState({
+            nodeInfo : null,
+            flowNames: [],
+            flowParams:null
+        })
+       
+    }
+    
+
     handleChange(e){
         this.setState({
             selectedNode: e.target.value
         })
-
-        this.chosenNode(this.state.connections[e.target.value])
-        this.loadNodeInfo()
+        if (e.target.value){
+            this.chosenNode(this.state.connections[e.target.value])
+            this.loadNodeInfo()
+            this.loadFlowInfo()
+        }else{
+            this.flushNode()
+        }
    }
    
    
    render() {
        let re = /(?<=O=)[^,]*/g;
-       let displayNodeInfo = null;
+       let DisplayNodeInfo = null;
+       let DisplayFlowList = null;
        if(this.state.nodeInfo){
-           displayNodeInfo =
+           DisplayNodeInfo =
            <div>
                <div>Legal Identity : {this.state.nodeInfo.legalIdentities}</div>
                <div>Addresses : {this.state.nodeInfo.addresses} </div>
@@ -93,29 +141,43 @@ export default class FlowExplorerIndex extends React.Component {
                <div>Platform Version : {this.state.nodeInfo.platformVersion} </div>
            </div>
        }
+       if(this.state.flowParams){
+           DisplayFlowList = <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
+       }
        return (
            <div>
-            <FormControl >
-                
-                <InputLabel htmlFor="node-selector">Choose Node</InputLabel>
-                <Select
-                    value={this.state.selectedNode}
-                    input={<Input name="party" id="node-selector" value={this.state.selectedNode} />}
-                    onChange={this.handleChange}
-                    className='flow-explorer-select-node'
-                >
-                    <MenuItem value="">
-                        <em>None</em>
-                    </MenuItem>
-                    {this.state.allNodes.map((node,index) => {
-                    if(node.rpcUsers){
-                        return (<MenuItem data="oh hai mark" value={node.name}>{node.name.match(re)[0]}</MenuItem>)
-                    }
-                    })}
-                </Select>
-            </FormControl>
-            {displayNodeInfo}
+                <Grid  spacing={4}>
+                    <Grid item sm={6}>
+                        <FormControl >
+                        
+                            <InputLabel htmlFor="node-selector">Choose Node</InputLabel>
+                            <Select
+                                value={this.state.selectedNode}
+                                input={<Input name="party" id="node-selector" value={this.state.selectedNode} />}
+                                onChange={this.handleChange}
+                                className='flow-explorer-select-node'
+                            >
+                                <MenuItem value={null}>
+                                    <em>None</em>
+                                </MenuItem>
+                                {this.state.allNodes.map((node,index) => {
+                                if(node.rpcUsers){
+                                    return (<MenuItem value={node.name}>{node.name.match(re)[0]}</MenuItem>)
+                                }
+                                })}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                </Grid>
+                <Grid  spacing={4}>
+                <Grid item sm={4}> {DisplayNodeInfo} </Grid>
+                </Grid>
+                <Grid  container justify="center" alignitems="center" spacing={4}>
+                    <Grid item sm={6}>{DisplayFlowList}</Grid>
+                </Grid>
             </div>
+                
+            
     )
   }
 }
