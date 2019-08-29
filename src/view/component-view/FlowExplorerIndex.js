@@ -6,6 +6,7 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FlowInfoDisplay from "./FlowInfoDisplay";
+import VaultTransactionDisplay from "./VaultTransactionDisplay";
 import Grid from '@material-ui/core/Grid';
 
 
@@ -20,7 +21,8 @@ export default class FlowExplorerIndex extends React.Component {
             connections: {},
             nodeInfo : null,
             flowNames: [],
-            flowParams:null
+            flowParams:null,
+            transactionMap: null
        }
      
        let _this = this;
@@ -30,7 +32,8 @@ export default class FlowExplorerIndex extends React.Component {
                 _this.state.connections[node.name] = {
                     host: node.rpcSettings.address,
                     username: node.rpcUsers.user,
-                    password: node.rpcUsers.password
+                    password: node.rpcUsers.password,
+                    cordappDir: node.cordappDir   
                 }
             }
         });
@@ -71,6 +74,14 @@ export default class FlowExplorerIndex extends React.Component {
               flowParams : content
             })
           }
+
+          if(evt.cmd === "getTransactionMap"){
+             // console.log(Object.values(content))
+              this.setState({
+                  transactionMap: Object.values(content)
+              })
+          }
+
     }
 
 
@@ -93,6 +104,10 @@ export default class FlowExplorerIndex extends React.Component {
         this.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
     }
 
+    loadTransactionHistory(){
+        this.client.send(JSON.stringify({"cmd": "getTransactionMap"}))
+    }
+
     startFlow(flowName, paramValues){
         var content = {
           "flow" : flowName,
@@ -108,7 +123,8 @@ export default class FlowExplorerIndex extends React.Component {
         this.setState({
             nodeInfo : null,
             flowNames: [],
-            flowParams:null
+            flowParams:null,
+            transactionMap: null
         })
        
     }
@@ -122,6 +138,7 @@ export default class FlowExplorerIndex extends React.Component {
             this.chosenNode(this.state.connections[e.target.value])
             this.loadNodeInfo()
             this.loadFlowInfo()
+            this.loadTransactionHistory()
         }else{
             this.flushNode()
         }
@@ -132,6 +149,7 @@ export default class FlowExplorerIndex extends React.Component {
        let re = /(?<=O=)[^,]*/g;
        let DisplayNodeInfo = null;
        let DisplayFlowList = null;
+       let DisplayVaultTransactions = null;
        if(this.state.nodeInfo){
            DisplayNodeInfo =
            <div>
@@ -143,6 +161,10 @@ export default class FlowExplorerIndex extends React.Component {
        }
        if(this.state.flowParams){
            DisplayFlowList = <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
+       }
+
+       if(this.state.transactionMap){
+           DisplayVaultTransactions = <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
        }
        return (
            <div>
@@ -170,10 +192,13 @@ export default class FlowExplorerIndex extends React.Component {
                     </Grid>
                 </Grid>
                 <Grid  spacing={4}>
-                <Grid item sm={4}> {DisplayNodeInfo} </Grid>
+                    <Grid item sm={4}> {DisplayNodeInfo} </Grid>
                 </Grid>
                 <Grid  container justify="center" alignitems="center" spacing={4}>
                     <Grid item sm={6}>{DisplayFlowList}</Grid>
+                </Grid>
+                <Grid container justify = "center" alignitems="center" spacing={2}>
+                    <Grid item sm={12}> {DisplayVaultTransactions} </Grid>
                 </Grid>
             </div>
                 
