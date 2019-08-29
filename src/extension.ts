@@ -26,6 +26,7 @@ var gradleTerminal = null as any;
 var projectCwd = '';
 var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
+
 function loadScript(context: vscode.ExtensionContext, path: string) {
 	if(process.platform.includes("win32") || process.platform.includes("win64")){
 		path = path.replace(/\//g, "\\");
@@ -126,20 +127,28 @@ function launchViewBackend() {
 
 function launchClient() {
 	var shellArgs = [] as any;
-	var cmd;
+	var cmd = "";
 	var path;
-	var jarDir = process.cwd(); // extension directory
-	
-	if(terminals.integrated.shell.windows !== null){
-		path = terminals.integrated.shell.windows;
-		if(path.includes("powershell")){
-			cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar"; 
+	var jarDir;
+	var ext = vscode.extensions.getExtension("R3.vscode-corda");
+    if (ext !== undefined) {
+		jarDir = ext.extensionPath;
+     }
+	if(jarDir !== undefined){
+		if(terminals.integrated.shell.windows !== null){
+			if(process.platform.includes("win32") || process.platform.includes("win64")){
+				jarDir = jarDir.replace(/\//g, "\\");
+			}
+			path = terminals.integrated.shell.windows;
+			if(path.includes("powershell")){
+				cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar"; 
+			}else{
+				cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar";
+			}
 		}else{
-			cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar";
+			path = 'bash';
+			cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar';
 		}
-	}else{
-		path = 'bash';
-		cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar';
 	}
 	let terminal = vscode.window.createTerminal("Client Launcher", path, shellArgs);
 	terminal.show(true);

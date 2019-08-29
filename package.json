@@ -1,6 +1,7 @@
 {
 	"name": "vscode-corda",
 	"displayName": "vscode-corda",
+	"publisher": "R3",
 	"description": "Corda Tools",
 	"version": "0.0.1",
 	"engines": {
