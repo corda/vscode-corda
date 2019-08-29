@@ -63,7 +63,7 @@ public class ClientWebSocket {
             if (msgCmd.equals("connect")) {
 
                 HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
-                client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"));
+                client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"), node.get("cordappDir"));
 
             } else if (message.getCmd().equals("startFlow")) {
                 String flow = (String) content.get("flow");

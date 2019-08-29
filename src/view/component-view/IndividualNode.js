@@ -14,7 +14,8 @@ export default class IndividualNode extends React.Component {
             connection:{
               host: props.node.rpcSettings.address,
               username: props.node.rpcUsers.user, 
-              password: props.node.rpcUsers.password 
+              password: props.node.rpcUsers.password,
+              cordappDir: props.node.cordappDir
             }
 
         }
@@ -22,6 +23,8 @@ export default class IndividualNode extends React.Component {
         this.hideToolTip = this.hideToolTip.bind(this);
         this.expandNode = this.expandNode.bind(this);
         
+        console.log("HERE + " + this.state.connection.cordappDir)
+
         this.client = new WebSocket("ws://localhost:8080/session");
        
         this.messageHandler = this.messageHandler.bind(this);

@@ -14,7 +14,7 @@ public class ObjEncoderTestDriver {
 
     public static void main(String[] args) throws Exception {
 
-        client = new NodeRPCClient("localhost:10009", "user1", "test");
+        client = new NodeRPCClient("localhost:10009", "user1", "test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
         System.out.println("\n\n");
 
         runTest("getTransactionMap");

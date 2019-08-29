@@ -76,7 +76,7 @@ public class NodeRPCClient {
      * @param rpcUsername login username
      * @param rpcPassword login password
      */
-    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword) {
+    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) {
 
         this.client = new CordaRPCClient(parse(nodeAddress));
         this.connection = client.start(rpcUsername,rpcPassword);
@@ -88,8 +88,7 @@ public class NodeRPCClient {
         updateNodeData();
 
         // build maps for FQN->Class, FQN->List<Class> Params
-        setFlowMaps("/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps",
-                    this.registeredFlows); // TESTING hardcoded dir
+        setFlowMaps(cordappDir, this.registeredFlows);
 
         if (debug) System.out.println("RPC Connection Established");
     }
@@ -367,8 +366,8 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test");
-        client.setFlowMaps(".", client.getRegisteredFlows());
+        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
+        //client.setFlowMaps(".", client.getRegisteredFlows());
         //System.out.println(client.run("getStatesInVault"));
         List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
         List<Vault.StateMetadata> stateMeta = (List<Vault.StateMetadata>) client.run("getStatesMetaInVault");

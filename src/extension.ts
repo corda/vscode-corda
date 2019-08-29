@@ -16,6 +16,7 @@ if(process.platform.includes("win32") || process.platform.includes("win64")){
 var nodeConfig = [] as cordaNodeConfig;
 var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
 var validNodes = [] as any; // names of valid nodes for referencing relative node dir
+var nodeCordappDir = new Map(); // cordapp dir for each node
 var hasRunBuild = false;
 var hasRunDeploy = false;
 var openTerminals = [] as any;
@@ -50,7 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
 	let cordaBuild = vscode.commands.registerCommand('extension.cordaBuild', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew build', 4000);
 		gradleRun('build');
-		console.log(nodeConfig);
 	});
 	context.subscriptions.push(cordaBuild);
 
@@ -103,7 +103,6 @@ export function activate(context: vscode.ExtensionContext) {
 			</head>
 			<body>
 				<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
- 
 				<div id="root"></div>
 				${loadScript(context,locationOfView)}
 			</body>
@@ -126,7 +125,6 @@ function launchViewBackend() {
 }
 
 function launchClient() {
-	// TODO - take off hardcoding of Jar path
 	var shellArgs = [] as any;
 	var cmd;
 	var path;
@@ -154,8 +152,6 @@ function runNode(name : string, port : string, logPort : string) {
 	var cmd;
 	var path;
 
-	// store cordapp dirs for each node launch
-
 	//~TODO add jokila port to cmd string / function params
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
@@ -181,6 +177,13 @@ function runNodes() {
 	// (and set deploy false after build, set both false after clean)
 	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
 	
+	// update cordapp dirs on nodes in node config
+	for (var index in nodeConfig) {
+		var name = nodeConfig[index].name.match("O=(.*),L")![1];
+		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
+		validNodes[index] = name;
+	}
+
 	var port = 5005;
 	var logPort = 7005;
 
@@ -201,7 +204,6 @@ function gradleRun(param : string) {
 	var path;
 	var cmd;
 	
-
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
 		if(path.includes("powershell")){
@@ -230,18 +232,7 @@ function scanGradleFile(fileName : String): any {
 		if (representation.task !== undefined && representation.task.node !== undefined) {
 			nodeConfig = representation.task.node as cordaNodeConfig;
 		}
-		
 		nodeDir = fileName.replace('build.gradle','');
-
-		// fast non-iterative conversion from to array
-		var nodes = JSON.stringify(nodeConfig);
-		var pnodes = JSON.parse(nodes);
-		
-		for (var i = 0; i < pnodes.length; i++) {
-			validNodes[i] = pnodes[i]["name"].match("O=(.*),L")[1];
-		}
-
-		console.log(validNodes);
 	});
 }
 
@@ -265,7 +256,7 @@ function updateWorkspaceFolders(): void {
 
 // tslint:disable-next-line: class-name
 interface cordaNodeConfig {
-	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : any, rpcUsers : any};
+	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : any, rpcUsers : any, cordappDir: string};
 }
 
 // tslint:disable-next-line: class-name
