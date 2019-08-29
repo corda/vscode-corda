@@ -114,6 +114,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 function launchViewBackend() {
 
+	// update cordapp dirs on nodes in node config
+	for (var index in nodeConfig) {
+		var name = nodeConfig[index].name.match("O=(.*),L")![1];
+		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
+		validNodes[index] = name;
+	}
+
 	if (vscode.window.terminals.find((value) => {
 		return value.name === "Client Launcher";
 	}) === undefined) {
@@ -176,13 +183,7 @@ function runNodes() {
 	// TODO: Global boolean for hasRunBuild and hasRunDeploy. If false, build and deploy before we can run nodes
 	// (and set deploy false after build, set both false after clean)
 	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
-	
-	// update cordapp dirs on nodes in node config
-	for (var index in nodeConfig) {
-		var name = nodeConfig[index].name.match("O=(.*),L")![1];
-		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
-		validNodes[index] = name;
-	}
+
 
 	var port = 5005;
 	var logPort = 7005;
