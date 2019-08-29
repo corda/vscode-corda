@@ -3,7 +3,6 @@ import './component-style/SplashPage.css';
 import logo from './resources/corda.svg';
 import SVG from 'react-inlinesvg'
 
-import CardCarousel from './component-view/CardCarousel'
 import NodeViewer from './component-view/NodeViewer'
 import NodeExplorer from './component-view/NodeExplorer'
 
