@@ -9,9 +9,6 @@ import FlowInfoDisplay from "./FlowInfoDisplay";
 import VaultTransactionDisplay from "./VaultTransactionDisplay";
 import Grid from '@material-ui/core/Grid';
 
-
-
-
 export default class FlowExplorerIndex extends React.Component {
 
     constructor(props) {
@@ -22,13 +19,14 @@ export default class FlowExplorerIndex extends React.Component {
             nodeInfo : null,
             flowNames: [],
             flowParams:null,
-            transactionMap: null
-       }
+            transactionMap: null,
+            client: null
+        }
      
-       let _this = this;
-       this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
-       this.state.allNodes.forEach(function(node) {
-             if(node.rpcUsers){
+        let _this = this;
+        this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
+        this.state.allNodes.forEach(function(node) {
+            if(node.rpcUsers){
                 _this.state.connections[node.name] = {
                     host: node.rpcSettings.address,
                     username: node.rpcUsers.user,
@@ -39,15 +37,33 @@ export default class FlowExplorerIndex extends React.Component {
         });
        this.handleChange = this.handleChange.bind(this);
        this.startFlow = this.startFlow.bind(this);
-       this.client = new WebSocket("ws://localhost:8080/session");
+       this.messageHandler = this.messageHandler.bind(this);
+       this.flushNode = this.flushNode.bind(this);
        
-        this.messageHandler = this.messageHandler.bind(this);
-        this.flushNode = this.flushNode.bind(this);
-        // set event handler for websocket
-        this.client.onmessage = (event) => {
-            this.messageHandler(event);
-        }
+       // wait for websocket server to go up - 4 second delay between tries
+        (function wsCon() {
+        var ws = new WebSocket("ws://localhost:8080/session");
+            setTimeout(function() {
+                if (ws.readyState != 0 && ws.readyState != 1) {
+                    console.log("attempting connect");
+                    console.log(ws.readyState)
+                }
+                if (ws.readyState != 1) {
+                    wsCon();
+                } else {
+                    _this.setState({
+                        client: ws
+                    })
+                    //_this.state.client = ws;
+                    _this.state.client.onmessage = (event) => {
+                        _this.messageHandler(event);
+                    }
+                }
+            }, 4000)
+        })();
+  
     }
+
 
     messageHandler(event) {
     
@@ -88,7 +104,7 @@ export default class FlowExplorerIndex extends React.Component {
     chosenNode(connection) {
         // propagate initial node info
        // this.client.onopen = () => {
-            this.client.send(JSON.stringify({"cmd":"connect","content":JSON.stringify(
+            this.state.client.send(JSON.stringify({"cmd":"connect","content":JSON.stringify(
                 connection
             )}));
             
@@ -96,16 +112,16 @@ export default class FlowExplorerIndex extends React.Component {
     }
 
     loadNodeInfo(){
-        this.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
+        this.state.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
     }
 
     loadFlowInfo(){
-        this.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
-        this.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
+        this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
+        this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
     }
 
     loadTransactionHistory(){
-        this.client.send(JSON.stringify({"cmd": "getTransactionMap"}))
+        this.state.client.send(JSON.stringify({"cmd": "getTransactionMap"}))
     }
 
     startFlow(flowName, paramValues){
@@ -113,7 +129,7 @@ export default class FlowExplorerIndex extends React.Component {
           "flow" : flowName,
           "args" : paramValues
         }
-        this.client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(           
+        this.state.client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(           
           content
          )}));
       }
@@ -146,6 +162,17 @@ export default class FlowExplorerIndex extends React.Component {
    
    
    render() {
+        if (this.state.client == null) {
+            return (
+                <div>
+                    Waiting for Node Server.
+                    <div class="fa-3x">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </div>
+            )
+        }
+
        let re = /(?<=O=)[^,]*/g;
        let DisplayNodeInfo = null;
        let DisplayFlowList = null;
@@ -167,7 +194,7 @@ export default class FlowExplorerIndex extends React.Component {
            DisplayVaultTransactions = <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
        }
        return (
-           <div>
+            <div>
                 <Grid  spacing={4}>
                     <Grid item sm={6}>
                         <FormControl >
