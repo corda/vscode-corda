@@ -4,20 +4,18 @@ import com.google.common.collect.ImmutableList;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
-import net.corda.core.contracts.Contract;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
+import net.corda.core.messaging.DataFeed;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
-import org.hibernate.cfg.InheritanceState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.plaf.nimbus.State;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -40,7 +38,7 @@ public class NodeRPCClient {
     private static final Logger logger = LoggerFactory.getLogger(NodeRPCClient.class);
 
     private final CordaRPCClient client;
-    private final CordaRPCOps proxy;
+    private CordaRPCOps proxy;
     private final CordaRPCConnection connection;
     private final NodeInfo nodeInfo;
     private List<String> registeredFlows; // updates
@@ -67,6 +65,7 @@ public class NodeRPCClient {
         cmd.put("getUptime", node::getUptime);
         cmd.put("getStatesMetaInVault", node::getStatesMetaInVault);
         cmd.put("getTransactionMap", node::getTransactionMap);
+        cmd.put("startVaultTrack", node::startVaultTrack);
     }
 
     /**
@@ -175,6 +174,10 @@ public class NodeRPCClient {
         }
 
         return params;
+    }
+
+    private DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>> startVaultTrack() {
+        return proxy.vaultTrack(ContractState.class);
     }
 
     /**

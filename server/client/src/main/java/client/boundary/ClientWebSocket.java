@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.identity.Party;
+import net.corda.core.messaging.DataFeed;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,6 +21,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class handles websocket connections form the Corda VSCODE extension.
@@ -65,6 +67,8 @@ public class ClientWebSocket {
                 HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
                 client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"), node.get("cordappDir"));
 
+                startVaultTrack();
+
             } else if (message.getCmd().equals("startFlow")) {
                 String flow = (String) content.get("flow");
                 HashMap<String, String> argMap = (HashMap<String, String>) content.get("args");
@@ -99,6 +103,18 @@ public class ClientWebSocket {
     @OnError
     public void onError(Session session, Throwable throwable) {
         // error handling
+    }
+
+    // starts the vaultTracking on ALL states
+    private void startVaultTrack() throws Exception {
+        DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>> feed =
+                (DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>>) client.run("startVaultTrack");
+
+        feed.getUpdates().toBlocking().subscribe(update -> {
+            List<ContractState> outputs = update.getProduced().stream().map(stateAndRef -> stateAndRef.getState()
+                                            .getData()).collect(Collectors.toList());
+            // for loop do something with output to sendMessage
+        });
     }
 
     // overloaded sendResponse sends messages back to the client web-view
