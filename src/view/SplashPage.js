@@ -3,8 +3,6 @@ import './component-style/SplashPage.css';
 import logo from './resources/corda.svg';
 import SVG from 'react-inlinesvg'
 
-import NodeViewer from './component-view/NodeViewer'
-import NodeExplorer from './component-view/NodeExplorer'
 
 export default class VaultView extends React.Component {
 

@@ -199,7 +199,7 @@ export default class FlowExplorerIndex extends React.Component {
                     <Grid item sm={6}>
                         <FormControl >
                         
-                            <InputLabel htmlFor="node-selector">Choose Node</InputLabel>
+                            <InputLabel htmlFor="node-selector" >Choose Node</InputLabel>
                             <Select
                                 value={this.state.selectedNode}
                                 input={<Input name="party" id="node-selector" value={this.state.selectedNode} />}
@@ -210,9 +210,9 @@ export default class FlowExplorerIndex extends React.Component {
                                     <em>None</em>
                                 </MenuItem>
                                 {this.state.allNodes.map((node,index) => {
-                                if(node.rpcUsers){
-                                    return (<MenuItem value={node.name}>{node.name.match(re)[0]}</MenuItem>)
-                                }
+                                    if(node.rpcUsers){
+                                        return (<MenuItem value={node.name}>{node.name.match(re)[0]}</MenuItem>)
+                                    }
                                 })}
                             </Select>
                         </FormControl>
