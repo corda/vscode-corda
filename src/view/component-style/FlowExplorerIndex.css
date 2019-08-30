@@ -1,11 +1,19 @@
+body{
+    background-color: white;
+    
+}
+
 .flow-explorer-select-node{
     min-width: 200px;
 }
+
+
 
 .flow-param-input-field{
     margin-left: 5px !important;
     margin-right:5px !important;
 }
+
 
 .flow-param-input-field .input-field-focused::after{
     border-bottom: 2px solid #ec1d24;
@@ -24,4 +32,17 @@
 
 .flow-details-card{
     width: 100%;
+}
+
+
+#vault-info-display-table-body  .vault-info-display-table-row{
+    background-color: #FDE8E9 !important;
+}
+
+#vault-info-display-table-body .vault-info-display-table-row:hover{
+    background-color: #F7A5A7 !important;
+}
+
+.state-card{
+    display: inline-block;
 }

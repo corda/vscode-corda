@@ -41,7 +41,7 @@ export default class FlowInfoDisplay extends React.Component {
     static getDerivedStateFromProps(props){
         return {
             flowNames: props.flowNames ,
-            flowParams: props.flowParams
+            flowParams: props.flowParams,
         }
     }
 
