@@ -33,14 +33,14 @@ import java.util.*;
 public class ClientWebSocket {
 
     private Session session;
-    private static List<String> nodes = new ArrayList<>();
     private NodeRPCClient client;
 
     @OnOpen
     public void onOpen(Session session) throws IOException, EncodeException {
         this.session = session;
         System.out.println(this.session.getId() + " connected!");
-        Message response = new Message("socket open", "connected!");
+        Message response = new Message();
+        response.setResult("OK");
         sendResponse(response);
     }
 
