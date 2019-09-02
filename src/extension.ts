@@ -113,13 +113,19 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(cordaShowView);
 }
 
-function launchViewBackend() {
-
+function updateCordDappDir() {
 	// update cordapp dirs on nodes in node config
 	for (var index in nodeConfig) {
 		var name = nodeConfig[index].name.match("O=(.*),L")![1];
 		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
 		validNodes[index] = name;
+	}
+}
+
+function launchViewBackend() {
+
+	if (!validNodes.length) {
+		updateCordDappDir();
 	}
 
 	if (vscode.window.terminals.find((value) => {
@@ -172,13 +178,13 @@ function runNode(name : string, port : string, logPort : string) {
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
 		if(path.includes("powershell")){
-			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + nodeDir + "build\\nodes\\" + name + "\\corda.jar\"";
 		}else{
-			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + nodeDir + "build\\nodes\\" + name + "\\corda.jar\"";
 		}
 	}else{
 		path = 'bash';
-		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
+		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + nodeDir + 'build/nodes/' + name + '/corda.jar'; 
 	}
 	let terminal = vscode.window.createTerminal(name, path, shellArgs);
 	terminal.show(true);
@@ -193,11 +199,14 @@ function runNodes() {
 	// (and set deploy false after build, set both false after clean)
 	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
 
+	if (!validNodes.length) {
+		updateCordDappDir();
+	}
 
 	var port = 5005;
 	var logPort = 7005;
 
-	// dispose if terminals exist
+	// dispose if terminals exist	
 	for (var j = 0; j < openTerminals.length; j++) {
 		openTerminals[j].dispose();
 		openTerminals[j] = null;
@@ -261,6 +270,7 @@ function updateWorkspaceFolders(): void {
 	files.forEach(element => {
 		scanGradleFile(element);
 	});
+
 }
 
 
