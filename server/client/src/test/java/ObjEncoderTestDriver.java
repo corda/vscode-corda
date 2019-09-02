@@ -17,13 +17,18 @@ public class ObjEncoderTestDriver {
         client = new NodeRPCClient("localhost:10009", "user1", "test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
         System.out.println("\n\n");
 
-        runTest("getTransactionMap");
+        //runTest("getTransactionMap");
         //runTest("getNodeInfo");
         //runTest("getRegisteredFlowParams");
+        runParamTest("getStateProperties", "net.corda.yo.state.YoState");
     }
 
     private static void runTest(String cmd) throws Exception {
         Object obj = client.run(cmd);
+        System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
+    }
+    private static void runParamTest(String cmd, String args) {
+        Object obj = client.run(cmd, args);
         System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
     }
 }

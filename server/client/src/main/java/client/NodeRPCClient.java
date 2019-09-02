@@ -11,6 +11,7 @@ import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.core.messaging.DataFeed;
+import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import org.slf4j.Logger;
@@ -262,8 +263,9 @@ public class NodeRPCClient {
      * of the startFlowDynamic call.
      * @param flow FQN of the flow
      * @param args array of args needed for the flow constructor
+     * @return
      */
-    public void startFlow(String flow, String[] args) {
+    public FlowHandle startFlow(String flow, String[] args) {
         Class flowClass = registeredFlowClasses.get(flow);
         List<Class> paramTypes = registeredFlowParams.get(flow);
         String currArg;
@@ -291,7 +293,7 @@ public class NodeRPCClient {
             }
         }
 
-        proxy.startFlowDynamic(flowClass, finalParams.toArray());
+        return proxy.startFlowDynamic(flowClass, finalParams.toArray());
     }
 
     /**
@@ -303,8 +305,23 @@ public class NodeRPCClient {
     public Object run(String cmd) throws Exception {
         return this.cmd.get(cmd).call();
     }
-    public void run(String flow, String[] args) {
-        startFlow(flow, args);
+    public Object run(String cmd, Object args) {
+
+        // parameterized methods
+        switch (cmd) {
+            case "startFlow":
+                HashMap<String, Object> argMap = (HashMap<String, Object>) args;
+                String flow = (String) argMap.get("flow");
+                HashMap<String, String> flowArgs = (HashMap<String, String>) argMap.get("args");
+                Object[] argsArray = flowArgs.values().toArray();
+                String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
+
+                return startFlow(flow, strArgsArray);
+
+            case "getStateProperties":
+                return getStateProperties((String) args);
+        }
+        return null;
     }
 
     /**

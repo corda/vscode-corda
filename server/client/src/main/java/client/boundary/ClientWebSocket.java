@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -51,53 +50,40 @@ public class ClientWebSocket {
 
         String msgCmd = message.getCmd();
         Object retObj = null; // store a returned content object
-        HashMap<String, Object> content = null;
+        HashMap<String, String> content = null;
 
         try {
-            // parse message content if it exists
+            // parse message content IF EXIST
             if (message.getContent().length() > 0) {
                 content = new ObjectMapper().readValue(message.getContent(), HashMap.class);
-            }
 
-            // initial connection will have node details in the content to set client connection
-            if (msgCmd.equals("connect")) {
+                // initial connection will have node details in the content to set client connection
+                if (msgCmd.equals("connect")) {
 
-                HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
-                client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"), node.get("cordappDir"));
+                    client = new NodeRPCClient(content.get("host"), content.get("username"), content.get("password"), content.get("cordappDir"));
 
-                // on connect start new thread for vault-tracking
-                new Thread(() -> {
-                    try {
-                        startVaultTracking();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }).start();
-
-
-            } else if (message.getCmd().equals("startFlow")) {
-                String flow = (String) content.get("flow");
-                HashMap<String, String> argMap = (HashMap<String, String>) content.get("args");
-                Object[] argsArray = argMap.values().toArray();
-                String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
-
-                client.run(flow, strArgsArray);
-
-            } else if (msgCmd.equals("getStateProperties")) {
-                retObj = client.getStateProperties("net.corda.yo.state.YoState");
-            } else {
+                    // on connect start new thread for vault-tracking
+                    new Thread(() -> {
+                        try {
+                            startVaultTracking();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                } else { // calls to parameterized commands
+                    retObj = client.run(msgCmd, content);
+                }
+            } else { // non-parameterized commands
                 retObj = client.run(msgCmd);
             }
 
             message.setResult("OK");
+
         } catch (Exception e) {
             message.setResult(e.toString());
-            sendResponse(message);
         }
 
-        if (retObj != null) sendResponse(message, retObj);
-        else sendResponse(message);
-
+        if (retObj != null && !(retObj instanceof Void)) sendResponse(message, retObj);
     }
 
     @OnClose
@@ -138,7 +124,6 @@ public class ClientWebSocket {
     private void sendResponse(Message message, Object obj) throws IOException, EncodeException {
         String content = ObjEncoder.encode(obj);
         message.setContent(content);
-
         session.getBasicRemote().sendObject(message);
     }
 
