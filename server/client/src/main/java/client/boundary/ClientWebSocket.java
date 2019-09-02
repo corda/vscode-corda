@@ -67,7 +67,15 @@ public class ClientWebSocket {
                 HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
                 client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"), node.get("cordappDir"));
 
-                startVaultTrack();
+                // on connect start new thread for vault-tracking
+                new Thread(() -> {
+                    try {
+                        startVaultTracking();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+
 
             } else if (message.getCmd().equals("startFlow")) {
                 String flow = (String) content.get("flow");
@@ -106,7 +114,8 @@ public class ClientWebSocket {
     }
 
     // starts the vaultTracking on ALL states
-    private void startVaultTrack() throws Exception {
+    // response sent for each state updated
+    private void startVaultTracking() throws Exception {
         DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>> feed =
                 (DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>>) client.run("startVaultTrack");
 
@@ -114,6 +123,16 @@ public class ClientWebSocket {
             List<ContractState> outputs = update.getProduced().stream().map(stateAndRef -> stateAndRef.getState()
                                             .getData()).collect(Collectors.toList());
             // for loop do something with output to sendMessage
+            for (ContractState c : outputs) {
+                Message stateUpdate = new Message();
+                stateUpdate.setCmd("vaultTrackResponse");
+                stateUpdate.setResult("OK");
+                try {
+                    sendResponse(stateUpdate, c);
+                } catch (IOException | EncodeException e) {
+                    e.printStackTrace();
+                }
+            }
         });
     }
 
