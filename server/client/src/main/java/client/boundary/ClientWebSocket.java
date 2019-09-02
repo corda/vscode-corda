@@ -9,19 +9,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.corda.core.contracts.ContractState;
-import net.corda.core.contracts.StateAndRef;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.DataFeed;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
-import javax.json.Json;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * This class handles websocket connections form the Corda VSCODE extension.
@@ -120,20 +118,17 @@ public class ClientWebSocket {
                 (DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>>) client.run("startVaultTrack");
 
         feed.getUpdates().toBlocking().subscribe(update -> {
-            List<ContractState> outputs = update.getProduced().stream().map(stateAndRef -> stateAndRef.getState()
-                                            .getData()).collect(Collectors.toList());
-            // for loop do something with output to sendMessage
-            for (ContractState c : outputs) {
-                Message stateUpdate = new Message();
-                stateUpdate.setCmd("vaultTrackResponse");
-                stateUpdate.setResult("OK");
-                try {
-                    sendResponse(stateUpdate, c);
-                } catch (IOException | EncodeException e) {
-                    e.printStackTrace();
-                }
+            client.updateNodeData();
+            Message stateUpdate = new Message();
+            stateUpdate.setCmd("vaultTrackResponse");
+            stateUpdate.setResult("OK");
+            try {
+                sendResponse(stateUpdate, client.run("getTransactionMap"));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
+
     }
 
     // overloaded sendResponse sends messages back to the client web-view

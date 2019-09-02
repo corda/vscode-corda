@@ -96,7 +96,7 @@ public class NodeRPCClient {
      * Updates the basic node data (flows, states names, and states in vault)
      * also tracks all available flows and their required params
      */
-    private void updateNodeData() {
+    public void updateNodeData() {
         registeredFlows = proxy.registeredFlows(); // get registered flows
 
         // get state names
