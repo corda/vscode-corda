@@ -88,11 +88,9 @@ public class ClientWebSocket {
                 case "getStateProperties":
                     // custom message result can be added
                     retObj = client.run(msgCmd, content);
-                    message.setResult("{\"status\" : \"OK\", \"result\": \"\"}");
                     break;
                 default:
                     retObj = client.run(msgCmd);
-                    message.setResult("{\"status\" : \"OK\", \"result\": \"\"}");
             }
 
 
@@ -100,7 +98,7 @@ public class ClientWebSocket {
             message.setResult("{\"status\" : \"ERR\", \"result\": \""  + e.toString() + "\"}");
             //sendResponse(message);
         }
-
+        System.out.println(message);
         if (retObj != null) sendResponse(message, retObj);
         else sendResponse(message);
 
@@ -127,7 +125,6 @@ public class ClientWebSocket {
             client.updateNodeData();
             Message stateUpdate = new Message();
             stateUpdate.setCmd("vaultTrackResponse");
-            stateUpdate.setResult("OK");
             try {
                 sendResponse(stateUpdate, client.run("getTransactionMap"));
             } catch (Exception e) {

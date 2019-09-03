@@ -73,13 +73,14 @@ export default class FlowExplorerIndex extends React.Component {
 
 
     messageHandler(event) {
+        //console.log(event.data)
         var evt = JSON.parse(event.data);
         var content = JSON.parse(evt.content);
         var status = JSON.parse(evt.result);
 
-       /*console.log("status: " + evt.result);
+       console.log("status: " + evt.result);
        console.log("command received: " + evt.cmd);
-       console.log("returned content: " + evt.content);*/
+       console.log("returned content: " + evt.content);
 
         if (evt.cmd == "getNodeInfo") {
             this.setState({
@@ -99,7 +100,7 @@ export default class FlowExplorerIndex extends React.Component {
             })
           }
 
-          if(evt.cmd === "getTransactionMap"){
+          if(evt.cmd === "getTransactionMap" || evt.cmd === "vaultTrackResponse"){
              // console.log(Object.values(content))
               this.setState({
                   transactionMap: Object.values(content)
