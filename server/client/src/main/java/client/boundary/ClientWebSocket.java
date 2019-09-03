@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.DataFeed;
+import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -53,15 +54,14 @@ public class ClientWebSocket {
         HashMap<String, String> content = null;
 
         try {
-            // parse message content IF EXIST
+            // parse message content if it exists
             if (message.getContent().length() > 0) {
                 content = new ObjectMapper().readValue(message.getContent(), HashMap.class);
-
-                // initial connection will have node details in the content to set client connection
-                if (msgCmd.equals("connect")) {
-
-                    client = new NodeRPCClient(content.get("host"), content.get("username"), content.get("password"), content.get("cordappDir"));
-
+            }
+            switch(msgCmd){
+                case "connect":
+                    HashMap<String, String> node = new ObjectMapper().readValue(message.getContent(), HashMap.class);
+                    client = new NodeRPCClient(node.get("host"), node.get("username"), node.get("password"), node.get("cordappDir"));
                     // on connect start new thread for vault-tracking
                     new Thread(() -> {
                         try {
@@ -70,20 +70,40 @@ public class ClientWebSocket {
                             e.printStackTrace();
                         }
                     }).start();
-                } else { // calls to parameterized commands
+                    break;
+                case "startFlow":
+                    FlowHandle flowHandle = (FlowHandle) client.run(msgCmd, content);
+                    message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Started\", \"id\": \"" + flowHandle.getId() + "\"}");
+                    flowHandle.getReturnValue().then(CordaFuture -> {
+
+                        message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\"}");
+                        try {
+                            sendResponse(message);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return CordaFuture;
+                    });
+                    break;
+                case "getStateProperties":
+                    // custom message result can be added
                     retObj = client.run(msgCmd, content);
-                }
-            } else { // non-parameterized commands
-                retObj = client.run(msgCmd);
+                    message.setResult("{\"status\" : \"OK\", \"result\": \"\"}");
+                    break;
+                default:
+                    retObj = client.run(msgCmd);
+                    message.setResult("{\"status\" : \"OK\", \"result\": \"\"}");
             }
 
-            message.setResult("OK");
 
         } catch (Exception e) {
-            message.setResult(e.toString());
+            message.setResult("{\"status\" : \"ERR\", \"result\": \""  + e.toString() + "\"}");
+            //sendResponse(message);
         }
 
-        if (retObj != null && !(retObj instanceof Void)) sendResponse(message, retObj);
+        if (retObj != null) sendResponse(message, retObj);
+        else sendResponse(message);
+
     }
 
     @OnClose
