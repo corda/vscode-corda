@@ -16,7 +16,8 @@ export default class FlowInfoDisplay extends React.Component {
           flowNames :[],
           flowParams: {},
           flowValues: {},
-          selectedFlow: null
+          selectedFlow: "",
+          selectedNode: props.selectedNode
         }
 
         this.startFlow = this.startFlow.bind(this);
@@ -41,6 +42,7 @@ export default class FlowInfoDisplay extends React.Component {
         return {
             flowNames: props.flowNames ,
             flowParams: props.flowParams,
+            selectedNode: props.selectedNode
         }
     }
 
@@ -71,19 +73,19 @@ export default class FlowInfoDisplay extends React.Component {
                             onChange={this.handleChange}
                             className='flow-explorer-select-node'
                         >
-                            <MenuItem value={null}>
+                            <MenuItem value="">
                                 <em>None</em>
                             </MenuItem>
                             {this.state.flowNames.map((flow,index) => {
-                                return (<MenuItem  value={flow}>{flow}</MenuItem>)
+                                return (<MenuItem key={this.state.selectedNode + flow + "" + index} value={flow}>{flow}</MenuItem>)
                             
                             })}
                         </Select>
                     </FormControl>
                     </Grid>
-                    <form className="flow-details-card">
+                    <form className="flow-details-card" onSubmit={() => this.startFlow(this.state.selectedFlow)}>
                         {this.state.flowParams[this.state.selectedFlow] && this.state.flowParams[this.state.selectedFlow].map((input,index) => (  
-                            <TextField className="flow-param-input-field" label={input.match(re)[0]} margin="dense"
+                            <TextField key={this.state.selectedNode + this.state.selectedFlow + "" + index} className="flow-param-input-field" label={input.match(re)[0]} margin="dense"
                                 onChange = {(e) => this.changeParamHandler(this.state.selectedFlow, input.match(re)[0] + index, e)}
                                 InputLabelProps={{
                                     classes: {

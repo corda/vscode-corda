@@ -35,6 +35,7 @@ export default class VaultTransactionDisplay extends React.Component {
     }
     
     static getDerivedStateFromProps(props){
+       
         return {
             transactionMap : props.transactionMap
         }
@@ -100,12 +101,12 @@ export default class VaultTransactionDisplay extends React.Component {
                     </TableRow>
                   </TableHead>
                   <TableBody id="vault-info-display-table-body">
-                    {this.state.transactionMap.slice(this.state.rowsPerPage * this.state.page, this.state.rowsPerPage * this.state.page + this.state.rowsPerPage).map(row => {
+                    {this.state.transactionMap.slice(this.state.rowsPerPage * this.state.page, this.state.rowsPerPage * this.state.page + this.state.rowsPerPage).map((row,index) => {
                         if(!this.state[row.txHash]){
                             this.state[row.txHash] = false
                         } 
                         return(   
-                          <React.Fragment> 
+                          <React.Fragment key={row.txHash}> 
                               <TableRow className="vault-info-display-table-row"
                                   onClick = {() => this.toggleDraw(row.txHash)}
                               >
@@ -117,8 +118,8 @@ export default class VaultTransactionDisplay extends React.Component {
                               <TableCell colSpan={3}>
                                 <Collapse in={this.state[row.txHash]}>
                                   
-                                  {JSON.parse(row.states).map(stateRow => {
-                                     return (<StateCard metaData = {stateRow.second} stateData={stateRow.first} />);
+                                  {JSON.parse(row.states).map((stateRow,index) => {
+                                     return (<StateCard key={row.txHash + "" + index} metaData = {stateRow.second} stateData={stateRow.first} />);
                                      
                                   })}
                               </Collapse>

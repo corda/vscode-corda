@@ -29,7 +29,7 @@ export default class FlowExplorerIndex extends React.Component {
      
         let _this = this;
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
-        console.log("all nodes = " + JSON.stringify(this.state.allNodes))
+       // console.log("all nodes = " + JSON.stringify(this.state.allNodes))
         this.state.allNodes.forEach(function(node) {
             if(node.rpcUsers){
                 _this.state.connections[node.name] = {
@@ -39,7 +39,7 @@ export default class FlowExplorerIndex extends React.Component {
                     cordappDir: node.cordappDir   
                 }
             }
-            console.log("added node")
+          //  console.log("added node")
         });
        this.handleChange = this.handleChange.bind(this);
        this.startFlow = this.startFlow.bind(this);
@@ -78,9 +78,9 @@ export default class FlowExplorerIndex extends React.Component {
         var content = JSON.parse(evt.content);
         var status = JSON.parse(evt.result);
 
-       console.log("status: " + evt.result);
-       console.log("command received: " + evt.cmd);
-       console.log("returned content: " + evt.content);
+    //    console.log("status: " + evt.result);
+    //    console.log("command received: " + evt.cmd);
+    //    console.log("returned content: " + evt.content);
 
         if (evt.cmd == "getNodeInfo") {
             this.setState({
@@ -133,15 +133,15 @@ export default class FlowExplorerIndex extends React.Component {
 
     removeSnack(item){
         //console.log("remove: " +  JSON.stringify(item))
-        console.log(item)
+        //console.log(item)
         this.state.messages = this.state.messages.reverse();
         var index = this.state.messages.indexOf(item)
-        console.log(index)
+        //console.log(index)
         if(index > -1) {
             this.state.messages.splice(index, 1);
         }
         this.state.messages = this.state.messages.reverse();
-        console.log(JSON.stringify(this.state.messages))
+        //console.log(JSON.stringify(this.state.messages))
         this.setState(this.state.messages);
     }
 
@@ -231,7 +231,7 @@ export default class FlowExplorerIndex extends React.Component {
            </div>
        }
        if(this.state.flowParams){
-           DisplayFlowList = <FlowInfoDisplay flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
+           DisplayFlowList = <FlowInfoDisplay selectedNode = {this.state.selectedNode} flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
        }
 
        if(this.state.transactionMap){
@@ -255,7 +255,7 @@ export default class FlowExplorerIndex extends React.Component {
                                 </MenuItem>
                                 {this.state.allNodes.map((node,index) => {
                                     if(node.rpcUsers){
-                                        return (<MenuItem value={node.name}>{node.name.match(re)[0]}</MenuItem>)
+                                        return (<MenuItem key={"node" + index} value={node.name}>{node.name.match(re)[0]}</MenuItem>)
                                     }
                                 })}
                             </Select>
@@ -273,7 +273,7 @@ export default class FlowExplorerIndex extends React.Component {
                 </Grid>
                 {this.state.messages.map((message, index) => { 
                    
-                    return ( <SnackBarWrapper message={message} remove={this.removeSnack}/>);
+                    return ( <SnackBarWrapper key={"error" + index} message={message} remove={this.removeSnack}/>);
                 })}
                
             </div>

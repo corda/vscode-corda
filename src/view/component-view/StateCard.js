@@ -42,8 +42,8 @@ export default class StateCard extends React.Component {
                 subheader={this.state.metaData.stateRef}
             />
                <CardContent>
-                   {Object.keys(this.state.stateData).map(property => (
-                       <div>
+                   {Object.keys(this.state.stateData).map((property,index) => (
+                       <div key={"stateProperty" + index}>
                            <em> {property}</em> : {JSON.stringify(this.state.stateData[property])}
                        </div>
 

@@ -5,7 +5,6 @@ import SnackbarContent from '@material-ui/core/SnackbarContent';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import ErrorIcon from '@material-ui/icons/Error';
 import IconButton from '@material-ui/core/IconButton';
-import { makeStyles, Theme } from '@material-ui/core/styles';
 
 
 export default class SnackBarWrapper extends React.Component {
@@ -53,7 +52,7 @@ export default class SnackBarWrapper extends React.Component {
                 vertical: 'bottom',
                 horizontal: 'right',
               }}
-              open={open}
+              open={true}
               className="snackbar"
               onClose={this.handleClose}
             >
