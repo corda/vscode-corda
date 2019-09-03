@@ -34,7 +34,6 @@ export default class FlowInfoDisplay extends React.Component {
             this.state.flowValues[flow] = {}
         }
         this.state.flowValues[flow][label] = e.target.value
-        console.log(JSON.stringify(this.state.flowValues[flow]))
         
     }
 

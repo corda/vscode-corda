@@ -7,7 +7,10 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FlowInfoDisplay from "./FlowInfoDisplay";
 import VaultTransactionDisplay from "./VaultTransactionDisplay";
+import SnackBarWrapper from "./SnackBarWrapper";
 import Grid from '@material-ui/core/Grid';
+
+
 
 export default class FlowExplorerIndex extends React.Component {
 
@@ -20,11 +23,13 @@ export default class FlowExplorerIndex extends React.Component {
             flowNames: [],
             flowParams:null,
             transactionMap: null,
-            client: null
+            client: null,
+            messages : []
         }
      
         let _this = this;
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
+        console.log("all nodes = " + JSON.stringify(this.state.allNodes))
         this.state.allNodes.forEach(function(node) {
             if(node.rpcUsers){
                 _this.state.connections[node.name] = {
@@ -34,11 +39,13 @@ export default class FlowExplorerIndex extends React.Component {
                     cordappDir: node.cordappDir   
                 }
             }
+            console.log("added node")
         });
        this.handleChange = this.handleChange.bind(this);
        this.startFlow = this.startFlow.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
        this.flushNode = this.flushNode.bind(this);
+       this.removeSnack = this.removeSnack.bind(this);
        
        // wait for websocket server to go up - 4 second delay between tries
         (function wsCon() {
@@ -66,12 +73,13 @@ export default class FlowExplorerIndex extends React.Component {
 
 
     messageHandler(event) {
-    
         var evt = JSON.parse(event.data);
         var content = JSON.parse(evt.content);
+        var status = JSON.parse(evt.result);
 
-        console.log("command received: " + evt.cmd);
-        console.log("returned content: " + evt.content);
+       /*console.log("status: " + evt.result);
+       console.log("command received: " + evt.cmd);
+       console.log("returned content: " + evt.content);*/
 
         if (evt.cmd == "getNodeInfo") {
             this.setState({
@@ -98,8 +106,43 @@ export default class FlowExplorerIndex extends React.Component {
               })
           }
 
+
+          if(status.result === 'Flow Finished'){
+              this.state.messages.push({content: "A flow of type " + content.flow + " finished",
+                                        type: "success"
+                                        
+            })
+              //this.state.messages.push(<SnackBarWrapper message={"A flow of type " + content.flow + " finished "} type="success" remove={this.removeSnack}/>)
+              this.setState(
+                    this.state.messages
+              )
+
+          }
+
+        if(status.status === 'ERR'){
+            this.state.messages.push({content: "An error occured: " + status.result,
+                                        type: "error"
+            })
+            this.setState(
+                this.state.messages
+            )
+        }
+
     }
 
+    removeSnack(item){
+        //console.log("remove: " +  JSON.stringify(item))
+        console.log(item)
+        this.state.messages = this.state.messages.reverse();
+        var index = this.state.messages.indexOf(item)
+        console.log(index)
+        if(index > -1) {
+            this.state.messages.splice(index, 1);
+        }
+        this.state.messages = this.state.messages.reverse();
+        console.log(JSON.stringify(this.state.messages))
+        this.setState(this.state.messages);
+    }
 
     chosenNode(connection) {
         // propagate initial node info
@@ -195,7 +238,7 @@ export default class FlowExplorerIndex extends React.Component {
        }
        return (
             <div>
-                <Grid  spacing={4}>
+                <Grid container spacing={4}>
                     <Grid item sm={6}>
                         <FormControl >
                         
@@ -218,7 +261,7 @@ export default class FlowExplorerIndex extends React.Component {
                         </FormControl>
                     </Grid>
                 </Grid>
-                <Grid  spacing={4}>
+                <Grid  container spacing={4}>
                     <Grid item sm={4}> {DisplayNodeInfo} </Grid>
                 </Grid>
                 <Grid  container justify="center" alignitems="center" spacing={4}>
@@ -227,6 +270,11 @@ export default class FlowExplorerIndex extends React.Component {
                 <Grid container justify = "center" alignitems="center" spacing={2}>
                     <Grid item sm={12}> {DisplayVaultTransactions} </Grid>
                 </Grid>
+                {this.state.messages.map((message, index) => { 
+                   
+                    return ( <SnackBarWrapper message={message} remove={this.removeSnack}/>);
+                })}
+               
             </div>
                 
             

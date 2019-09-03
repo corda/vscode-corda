@@ -33,7 +33,7 @@ export default class VaultTransactionDisplay extends React.Component {
     componentDidMount(){
       this.sortTable();
     }
-
+    
     static getDerivedStateFromProps(props){
         return {
             transactionMap : props.transactionMap
@@ -88,7 +88,7 @@ export default class VaultTransactionDisplay extends React.Component {
                       <TableCell> 
                       <TableSortLabel
                         active={true} // do some validation to decide where the icon will be displayed
-                        direction={(this.state.asc) ? 'asc' : 'dsc'} 
+                        direction={(this.state.asc) ? 'asc' : 'desc'} 
                         onClick={this.sortTable}
                       >
                       TimeStamp

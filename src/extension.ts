@@ -76,56 +76,64 @@ export function activate(context: vscode.ExtensionContext) {
 	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowView', () => {
 		vscode.window.setStatusBarMessage('Displaying Corda Vault View', 4000);
 
-		// LAUNCH BACKEND
-		launchViewBackend();
+		// while(nodeConfig[0] === undefined){
+		// 	console.log("trying");
+		// 	updateWorkspaceFolders();
+		// }
+		launchView(context);
 
-		const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
-			enableScripts: true,
-			retainContextWhenHidden: true,
-			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
-		});
-
-		var locationOfView; 
-		if(process.platform.includes("win32") || process.platform.includes("win64")){
-			locationOfView =  'out\\vaultview.js';
-		}else{
-			locationOfView =  'out/vaultview.js';
-		}
-
-		panel.webview.html = `
-			<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="utf-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-				<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-				
-				<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
-			</head>
-			<body>
-				<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
-				<div id="root"></div>
-				${loadScript(context,locationOfView)}
-			</body>
-			</html>
-		`;
 	});
+
 	context.subscriptions.push(cordaShowView);
 }
 
-function updateCordDappDir() {
+function launchView(context: any){
+	// LAUNCH BACKEND
+	launchViewBackend();
+
+	const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
+		enableScripts: true,
+		retainContextWhenHidden: true,
+		localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
+	});
+
+	var locationOfView; 
+	if(process.platform.includes("win32") || process.platform.includes("win64")){
+		locationOfView =  'out\\vaultview.js';
+	}else{
+		locationOfView =  'out/vaultview.js';
+	}
+
+	console.log("Node config has " + JSON.stringify(nodeConfig) );
+	// console.log(nodeConfig[0]);
+
+
+	panel.webview.html = `
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+			<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+			
+			<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+		</head>
+		<body>
+			<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
+			<div id="root"></div>
+			${loadScript(context,locationOfView)}
+		</body>
+		</html>
+	`;
+}
+
+function launchViewBackend() {
+
 	// update cordapp dirs on nodes in node config
 	for (var index in nodeConfig) {
 		var name = nodeConfig[index].name.match("O=(.*),L")![1];
 		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
 		validNodes[index] = name;
-	}
-}
-
-function launchViewBackend() {
-
-	if (!validNodes.length) {
-		updateCordDappDir();
 	}
 
 	if (vscode.window.terminals.find((value) => {
@@ -178,13 +186,13 @@ function runNode(name : string, port : string, logPort : string) {
 	if(terminals.integrated.shell.windows !== null){
 		path = terminals.integrated.shell.windows;
 		if(path.includes("powershell")){
-			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + nodeDir + "build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
 		}else{
-			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + nodeDir + "build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
 		}
 	}else{
 		path = 'bash';
-		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + nodeDir + 'build/nodes/' + name + '/corda.jar'; 
+		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
 	}
 	let terminal = vscode.window.createTerminal(name, path, shellArgs);
 	terminal.show(true);
@@ -199,14 +207,11 @@ function runNodes() {
 	// (and set deploy false after build, set both false after clean)
 	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
 
-	if (!validNodes.length) {
-		updateCordDappDir();
-	}
 
 	var port = 5005;
 	var logPort = 7005;
 
-	// dispose if terminals exist	
+	// dispose if terminals exist
 	for (var j = 0; j < openTerminals.length; j++) {
 		openTerminals[j].dispose();
 		openTerminals[j] = null;
@@ -270,7 +275,6 @@ function updateWorkspaceFolders(): void {
 	files.forEach(element => {
 		scanGradleFile(element);
 	});
-
 }
 
 
