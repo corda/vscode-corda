@@ -94,9 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
 			})(i);
 		  }
 		
-		if(!viewIsLaunched){
-			vscode.window.setStatusBarMessage('Something went wrong loading the nodes from gradle', 10000);
-		}
+	
 
 	});
 	context.subscriptions.push(cordaShowVaultQuery);
@@ -117,9 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
 			})(i);
 		  }
 		
-		if(!viewIsLaunched){
-			vscode.window.setStatusBarMessage('Something went wrong loading the nodes from gradle', 10000);
-		}
+		
 		
 		
 	});
