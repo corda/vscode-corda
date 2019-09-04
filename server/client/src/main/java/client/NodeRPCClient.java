@@ -16,8 +16,7 @@ import net.corda.core.messaging.DataFeed;
 import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
-import net.corda.core.node.services.vault.ColumnPredicate;
-import net.corda.core.node.services.vault.QueryCriteria;
+import net.corda.core.node.services.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +33,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import static net.corda.core.node.services.vault.QueryCriteriaUtils.DEFAULT_PAGE_SIZE;
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
 
 
@@ -303,7 +303,57 @@ public class NodeRPCClient {
         return proxy.startFlowDynamic(flowClass, finalParams.toArray());
     }
 
-    private Vault.Page<ContractState> userVaultQuery() throws Exception {
+    /**
+     * Note: softlockingType and constraintsType and constraints not implemented for use
+     * with VaultQueryCriteria
+     * @param args: ?pageSpecification (int), ?pageSize (int),
+     *            ?sortAttribute (notary, contractStateClassName, recordedTime, consumedTime, lockId, constraintType)
+     *            ?sortDirection (ASC, DESC)
+     * @param values JSON string { <predicateType>: "value", ... }
+     * @return
+     * @throws Exception
+     *
+     * If no [PageSpecification] is provided, a maximum of [DEFAULT_PAGE_SIZE] results will be returned.
+     * API users must specify a [PageSpecification] if they are expecting more than [DEFAULT_PAGE_SIZE] results
+     *
+     * JSON sample:
+     * {
+     *     "args": {
+     *         "pageSpecification":"10",
+     *         "pageSize":"10",
+     *         "sortAttribute":"notary",
+     *         "sortDirection":"ASC"
+     *     },
+     *     "values": {
+     *         "contractStateType":"net.corda.core.contracts.ContractState",
+     *         "stateRefs":{
+     *             "hash":"0x...",
+     *             "index":"2"
+     *         },
+     *         "participants":"[PartyA,PartyB,PartyC]",
+     *         "notary":"[PartyA,PartyB,PartyC]",
+     *         "timeCondition":{
+     *             "type":"RECORDED",
+     *             "start":"2018-11-30T18:35:24.00Z",
+     *             "end":"2018-11-30T18:35:24.00Z"
+     *         },
+     *         "relevancyStatus":"RELEVANT"
+     *     }
+     * }
+     */
+    private Vault.Page<ContractState> userVaultQuery(String args, String values) throws Exception {
+
+        Gson gson = new GsonBuilder().create();
+
+        Map<String, String> argsIn = gson.fromJson(args, Map.class);
+        Map<String, String> query = gson.fromJson(values, Map.class);
+
+        String pageSpecification = argsIn.get("pageSpecification");
+        String pageSize = argsIn.get("pageSize");
+        String sortAttribute = argsIn.get("sortAttribute");
+        String sortDirection = argsIn.get("sortDirection");
+
+        QueryCriteria.VaultQueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria();
 
         // Generate Set of all classes for contractStates
         if (contractStateClasses.isEmpty()) {
@@ -330,16 +380,12 @@ public class NodeRPCClient {
             if (!(stateNames.size() == contractStateClasses.size())) throw new Exception("Error construction stateName:Class map");
         }
 
-        Map<String, String> query = new HashMap<>();
-        QueryCriteria.VaultQueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria();
-
-        Gson gson = new GsonBuilder().create();
-
         for (Map.Entry<String, String> entry : query.entrySet()) {
             String predicate = entry.getKey();
             String value = entry.getValue();
 
             switch(predicate) {
+
                 // contractState types input should be FQN of class
                 // value = ['a','b','c']
                 case "contractStateTypes":
@@ -373,27 +419,28 @@ public class NodeRPCClient {
                     // add to QueryCriteria
                     userCriteria.withStateRefs(stateRefs);
                     break;
-                // notary input is
+
+                // notary OR participants input is
                 // ['PartyA', 'PartyB', ...]
+                case "participants":
                 case "notary":
-                    List<AbstractParty> notaryList = new ArrayList<>();
-                    String[] notariesIn = gson.fromJson(value, String[].class); // parse array
+                    List<AbstractParty> partyList = new ArrayList<>();
+                    String[] partiesIn = gson.fromJson(value, String[].class); // parse array
 
                     // fill notary list
-                    for (int i = 0; i < notariesIn.length; i++) {
+                    for (int i = 0; i < partiesIn.length; i++) {
                         // grab party from RPCOps and add to list
-                        Party p = proxy.partiesFromName(notariesIn[i], true).iterator().next();
-                        notaryList.add(p);
+                        Party p = proxy.partiesFromName(partiesIn[i], true).iterator().next();
+                        partyList.add(p);
                     }
                     // add to QueryCriteria
-                    userCriteria.withNotary(notaryList);
+                    if (predicate.equals("notary")) {
+                        userCriteria.withNotary(partyList);
+                    } else { // predicate 'participants'
+                        userCriteria.withParticipants(partyList);
+                    }
+
                     break;
-                // softLockingCondition input is
-                // 'UNLOCKED_ONLY' (condition)
-                // NEEDS ALSO A LIST<UUID> related to FlowHandle (ON HOLD)
-//                case "softLockingCondition":
-//                    QueryCriteria.SoftLockingType sl = QueryCriteria.SoftLockingType.valueOf(value);
-//                    QueryCriteria.SoftLockingCondition slc = new QueryCriteria.SoftLockingCondition(slType.get(value));
 
                 // timeCondition input is
                 // { 'type':'RECORDED', 'start': <time>, 'end': <time> }
@@ -409,18 +456,53 @@ public class NodeRPCClient {
 
                     // add to QueryCriteria
                     userCriteria.withTimeCondition(tc);
+                    break;
 
                 // relevancyStatus input is
                 // "<ALL/RELEVANT/NON_RELEVANT>"
                 case "relevancyStatus":
                     String relIn = value;
 
-                    Vault.RelevancyStatus rs = Vault.RelevancyStatus.valueOf()
+                    Vault.RelevancyStatus rs = Vault.RelevancyStatus.valueOf(value);
+                    // add to QueryCriteria
+                    userCriteria.withRelevancyStatus(rs);
+                    break;
+
+
             }
         }
 
+        // PageSpecification default is -1, DEFAULT_PAGE_SIZE
+        PageSpecification ps;
+        if (pageSpecification != null || pageSize != null) {
+            if (pageSpecification == null) {
+                ps = new PageSpecification(-1, Integer.parseInt(pageSize));
+            } else if (pageSize == null) {
+                ps = new PageSpecification(Integer.parseInt(pageSpecification), DEFAULT_PAGE_SIZE);
+            } else {
+                ps = new PageSpecification(Integer.parseInt(pageSpecification), Integer.parseInt(pageSize));
+            }
+        } else {
+           ps = new PageSpecification(); // default
+        }
 
-        return null;
+        // default sort is DESC on RECORDED TIME
+        SortAttribute.Standard sa;
+        Sort.Direction sd = Sort.Direction.DESC;
+
+        // sortDirection is optional to pair with sortAttribute
+        if (sortAttribute != null) {
+            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.valueOf(sortAttribute));
+            if (sortDirection != null) {
+                sd = Sort.Direction.valueOf(sortDirection);
+            }
+        } else { // default
+            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME);
+        }
+
+        Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
+
+        return proxy.vaultQueryBy(userCriteria, ps, sort, ContractState.class);
     }
 
     /**
