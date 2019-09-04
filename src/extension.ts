@@ -78,8 +78,8 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(cordaRunNodes);
 
-	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowView', () => {
-		vscode.window.setStatusBarMessage('Displaying Corda Vault View', 5000);
+	let cordaShowVaultQuery = vscode.commands.registerCommand('extension.cordaShowVaultQuery', () =>{
+		vscode.window.setStatusBarMessage('Displaying Corda Vault Query View', 5000);
 		var viewIsLaunched = false;
 		for (var i = 0; i < 10; i++) {
 			(function (i) {
@@ -87,7 +87,30 @@ export function activate(context: vscode.ExtensionContext) {
 				if(nodeLoaded){
 					if(!viewIsLaunched){
 						viewIsLaunched = true;
-						launchView(context);
+						launchView(context, "vaultQuery");
+					}
+				}
+			  }, 3000*i);
+			})(i);
+		  }
+		
+		if(!viewIsLaunched){
+			vscode.window.setStatusBarMessage('Something went wrong loading the nodes from gradle', 10000);
+		}
+
+	});
+	context.subscriptions.push(cordaShowVaultQuery);
+
+	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowTransactionExplorer', () => {
+		vscode.window.setStatusBarMessage('Displaying Corda Transaction Explorer', 5000);
+		var viewIsLaunched = false;
+		for (var i = 0; i < 10; i++) {
+			(function (i) {
+			  setTimeout(function () {
+				if(nodeLoaded){
+					if(!viewIsLaunched){
+						viewIsLaunched = true;
+						launchView(context, "transactionExplorer");
 					}
 				}
 			  }, 3000*i);
@@ -108,11 +131,11 @@ export function activate(context: vscode.ExtensionContext) {
 	
 }
 
-function launchView(context: any){
+function launchView(context: any, view: string){
 	// LAUNCH BACKEND
 	launchViewBackend();
 
-	const panel = vscode.window.createWebviewPanel('reactView', "Corda Node View", vscode.ViewColumn.Active, {
+	const panel = vscode.window.createWebviewPanel('reactView', "Corda View " + view, vscode.ViewColumn.Active, {
 		enableScripts: true,
 		retainContextWhenHidden: true,
 		localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
@@ -120,9 +143,9 @@ function launchView(context: any){
 
 	var locationOfView; 
 	if(process.platform.includes("win32") || process.platform.includes("win64")){
-		locationOfView =  'out\\vaultview.js';
+		locationOfView =  'out\\' + view + '.js';
 	}else{
-		locationOfView =  'out/vaultview.js';
+		locationOfView =  'out/' + view + '.js';
 	}
 
 	//console.log("Node config has " + JSON.stringify(nodeConfig) );

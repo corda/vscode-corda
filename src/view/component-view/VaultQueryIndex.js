@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import "../component-style/FlowExplorerIndex.css";
 
 import FlowInfoDisplay from "./FlowInfoDisplay";
@@ -11,7 +11,7 @@ import Grid from '@material-ui/core/Grid';
 
 
 
-export default class FlowExplorerIndex extends React.Component {
+export default class VaultQueryIndex extends React.Component {
 
     constructor(props) {
        super(props)
@@ -41,7 +41,7 @@ export default class FlowExplorerIndex extends React.Component {
           //  console.log("added node")
         });
        this.handleChange = this.handleChange.bind(this);
-       this.startFlow = this.startFlow.bind(this);
+      
        this.messageHandler = this.messageHandler.bind(this);
        this.flushNode = this.flushNode.bind(this);
        this.removeSnack = this.removeSnack.bind(this);
@@ -87,17 +87,7 @@ export default class FlowExplorerIndex extends React.Component {
             })
         }
 
-        if(evt.cmd == "getRegisteredFlows"){
-            this.setState({
-               flowNames : content
-            })
-          }
-   
-          if(evt.cmd === "getRegisteredFlowParams"){
-            this.setState({
-              flowParams : content
-            })
-          }
+  
 
           if(evt.cmd === "getTransactionMap" || evt.cmd === "vaultTrackResponse"){
              // console.log(Object.values(content))
@@ -106,36 +96,8 @@ export default class FlowExplorerIndex extends React.Component {
               })
           }
 
-          if(evt.cmd === "startFlow"){
-            if(result.result === "Flow Started"){
-                this.state.messages.push({content: "A flow of type " + content.flow + " started",
-                                          type: "info",
-                                          id: result.id
-              })
-              this.setState(this.state.messages);
-            }
-  
-            if(result.result === 'Flow Finished'){
-                //Find index of specific object using findIndex method.    
-              var objIndex = this.state.messages.findIndex((obj => obj.id == result.id));
-              if(objIndex != -1){
-              //Update object's name property.
-                  this.state.messages[objIndex].type = "success"
-                  this.state.messages[objIndex].content = "A flow of type " + content.flow + " finished"
-              } else{
-                  this.state.messages.push({content: "A flow of type " + content.flow + " finished",
-                                          type: "success"
-                                          
-                  })
-              }
-              //this.state.messages.push(<SnackBarWrapper message={"A flow of type " + content.flow + " finished "} type="success" remove={this.removeSnack}/>)
-              this.setState(
-                      this.state.messages
-              )
-  
-            }
-          }
-          
+         
+            
 
         if(result.status === 'ERR'){
             this.state.messages.push({content: "An error occured: " + result.result,
@@ -176,24 +138,10 @@ export default class FlowExplorerIndex extends React.Component {
         this.state.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
     }
 
-    loadFlowInfo(){
-        this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
-        this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
-    }
-
+  
     loadTransactionHistory(){
         this.state.client.send(JSON.stringify({"cmd": "getTransactionMap"}))
     }
-
-    startFlow(flowName, paramValues){
-        var content = {
-          "flow" : flowName,
-          "args" : paramValues
-        }
-        this.state.client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(           
-          content
-         )}));
-      }
 
 
     flushNode(){
@@ -214,7 +162,6 @@ export default class FlowExplorerIndex extends React.Component {
         if (value){
             this.chosenNode(this.state.connections[value])
             this.loadNodeInfo()
-            this.loadFlowInfo()
             this.loadTransactionHistory()
         }else{
             this.flushNode()
@@ -235,7 +182,6 @@ export default class FlowExplorerIndex extends React.Component {
         }
 
        let DisplayNodeInfo = null;
-       let DisplayFlowList = null;
        let DisplayVaultTransactions = null;
        if(this.state.nodeInfo){
            DisplayNodeInfo = <NodeInfo nodeInfo = {this.state.nodeInfo} />
@@ -258,11 +204,9 @@ export default class FlowExplorerIndex extends React.Component {
                 <Grid  container spacing={4}>
                     <Grid item sm={4}> {DisplayNodeInfo} </Grid>
                 </Grid>
-                <Grid  container justify="center" alignitems="center" spacing={4}>
-                    <Grid item sm={6}>{DisplayFlowList}</Grid>
-                </Grid>
-                <Grid container justify = "center" alignitems="center" spacing={2}>
-                    <Grid item sm={12}> {DisplayVaultTransactions} </Grid>
+                <Grid container justify = "center" alignitems="center" >
+                    <Grid item sm={4} ></Grid>
+                    <Grid item sm={5}> {DisplayVaultTransactions} </Grid>
                 </Grid>
                 {this.state.messages.map((message, index) => { 
                    

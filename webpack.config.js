@@ -3,7 +3,9 @@ const tsImportPlugin = require('ts-import-plugin');
 
 module.exports = {
     entry: {
-        vaultview: './src/view/index.js'
+        transactionExplorer: './src/view/transactionExplorer.js',
+        vaultQuery: './src/view/vaultQuery.js'
+
     },
     output: {
         path: path.resolve(__dirname, 'out'),
