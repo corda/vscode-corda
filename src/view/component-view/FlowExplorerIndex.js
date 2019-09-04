@@ -76,11 +76,11 @@ export default class FlowExplorerIndex extends React.Component {
         //console.log(event.data)
         var evt = JSON.parse(event.data);
         var content = JSON.parse(evt.content);
-        var status = JSON.parse(evt.result);
+        var result = JSON.parse(evt.result);
 
-    //    console.log("status: " + evt.result);
-    //    console.log("command received: " + evt.cmd);
-    //    console.log("returned content: " + evt.content);
+       console.log("result: " + evt.result);
+       console.log("command received: " + evt.cmd);
+       console.log("returned content: " + evt.content);
 
         if (evt.cmd == "getNodeInfo") {
             this.setState({
@@ -107,21 +107,39 @@ export default class FlowExplorerIndex extends React.Component {
               })
           }
 
-
-          if(status.result === 'Flow Finished'){
-              this.state.messages.push({content: "A flow of type " + content.flow + " finished",
-                                        type: "success"
-                                        
-            })
+          if(evt.cmd === "startFlow"){
+            if(result.result === "Flow Started"){
+                this.state.messages.push({content: "A flow of type " + content.flow + " started",
+                                          type: "info",
+                                          id: result.id
+              })
+              this.setState(this.state.messages);
+            }
+  
+            if(result.result === 'Flow Finished'){
+                //Find index of specific object using findIndex method.    
+              var objIndex = this.state.messages.findIndex((obj => obj.id == result.id));
+              if(objIndex != -1){
+              //Update object's name property.
+                  this.state.messages[objIndex].type = "success"
+                  this.state.messages[objIndex].content = "A flow of type " + content.flow + " finished"
+              } else{
+                  this.state.messages.push({content: "A flow of type " + content.flow + " finished",
+                                          type: "success"
+                                          
+                  })
+              }
               //this.state.messages.push(<SnackBarWrapper message={"A flow of type " + content.flow + " finished "} type="success" remove={this.removeSnack}/>)
               this.setState(
-                    this.state.messages
+                      this.state.messages
               )
-
+  
+            }
           }
+          
 
-        if(status.status === 'ERR'){
-            this.state.messages.push({content: "An error occured: " + status.result,
+        if(result.status === 'ERR'){
+            this.state.messages.push({content: "An error occured: " + result.result,
                                         type: "error"
             })
             this.setState(

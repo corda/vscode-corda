@@ -119,7 +119,6 @@ public class NodeRPCClient {
     private void setFlowMaps(String jarPath, List<String> registeredFlows) {
         registeredFlowClasses = new HashMap<>();
         registeredFlowParams = new HashMap<>();
-
         File dir = new File(jarPath);
         List<File> jarFiles = new ArrayList<>();
 
@@ -148,6 +147,8 @@ public class NodeRPCClient {
                     flowClass = Class.forName(flow, true, classLoader);
 
                     registeredFlowClasses.put(flow, flowClass);
+                    System.out.println(flow);
+                    System.out.println(flowClass);
                     registeredFlowParams.put(flow, setFlowParams(flowClass));
                 }
 
@@ -171,6 +172,8 @@ public class NodeRPCClient {
             List<Class> paramTypes = ImmutableList.copyOf(c.getParameterTypes());
             for (Class param : paramTypes) {
                 params.add(param);
+
+                System.out.println(param);
             }
         }
 

@@ -5,6 +5,8 @@ import { cwd } from 'process';
 import { makeRe } from 'minimatch';
 import * as path from 'path';
 import { platform } from 'os';
+import { async, timeout } from 'q';
+import { node } from 'prop-types';
 
 var gjs = [] as any;
 
@@ -20,7 +22,7 @@ var nodeCordappDir = new Map(); // cordapp dir for each node
 var hasRunBuild = false;
 var hasRunDeploy = false;
 var openTerminals = [] as any;
-
+var nodeLoaded = false;
 var gradleTerminal = null as any;
 
 var projectCwd = '';
@@ -41,7 +43,10 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(e => updateWorkspaceFolders()));
 
 	// and initialize
+	vscode.window.setStatusBarMessage('Loading nodes from gradle', 4000);
 	updateWorkspaceFolders();
+	console.log("loaded?");
+	console.log(nodeLoaded);
 
 	let cordaClean = vscode.commands.registerCommand('extension.cordaClean', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew clean', 4000);
@@ -74,17 +79,33 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(cordaRunNodes);
 
 	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowView', () => {
-		vscode.window.setStatusBarMessage('Displaying Corda Vault View', 4000);
-
-		// while(nodeConfig[0] === undefined){
-		// 	console.log("trying");
-		// 	updateWorkspaceFolders();
-		// }
-		launchView(context);
-
+		vscode.window.setStatusBarMessage('Displaying Corda Vault View', 5000);
+		var viewIsLaunched = false;
+		for (var i = 0; i < 10; i++) {
+			(function (i) {
+			  setTimeout(function () {
+				if(nodeLoaded){
+					if(!viewIsLaunched){
+						viewIsLaunched = true;
+						launchView(context);
+					}
+				}
+			  }, 3000*i);
+			})(i);
+		  }
+		
+		if(!viewIsLaunched){
+			vscode.window.setStatusBarMessage('Something went wrong loading the nodes from gradle', 10000);
+		}
+		
+		
 	});
-
+	
 	context.subscriptions.push(cordaShowView);
+
+
+	
+	
 }
 
 function launchView(context: any){
@@ -104,7 +125,7 @@ function launchView(context: any){
 		locationOfView =  'out/vaultview.js';
 	}
 
-	console.log("Node config has " + JSON.stringify(nodeConfig) );
+	//console.log("Node config has " + JSON.stringify(nodeConfig) );
 	// console.log(nodeConfig[0]);
 
 
@@ -250,20 +271,24 @@ function gradleRun(param : string) {
 }
 
 
-function scanGradleFile(fileName : String): any {
+function scanGradleFile(fileName : String, last: boolean): any {
+	
 	gjs.parseFile(fileName).then(function (representation : cordaTaskConfig) {
 		// Pick up any other configuration we might need in this parse loop and assign it to our globals
 		if (representation.task !== undefined && representation.task.node !== undefined) {
 			nodeConfig = representation.task.node as cordaNodeConfig;
 		}
 		nodeDir = fileName.replace('build.gradle','');
+		if(last){
+			nodeLoaded = true;
+		}
 	});
 }
 
-function updateWorkspaceFolders(): void {
+function updateWorkspaceFolders(): any {
 	if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length < 1) {
 		// no active workspace folders, abort
-		return;
+		return 0;
 	}
 	//TODO Only supports one workspace folder for now, add support for multiple (named targets)
 	projectCwd = vscode.workspace.workspaceFolders[0].uri.path;
@@ -272,12 +297,23 @@ function updateWorkspaceFolders(): void {
 	}
 	// Search for build.gradle files & scan them for node config's
 	let files = fileSync(/build.gradle$/, projectCwd);
-	files.forEach(element => {
-		scanGradleFile(element);
-	});
+	
+	for(var i = 0; i < files.length; i++){
+		scanGradleFile(files[i], i === files.length - 1);
+	}
+	// files.forEach(element => {
+	// 	scanGradleFile(element);
+	// });
 }
 
-
+// async function asyncForEach(array: any, callback: any) {
+// 	for (let index = 0; index < array.length; index++) {
+// 	  await callback(array[index], index, array);
+// 	}
+// 	return Promise.resolve();
+//   }
+  
+   
 // tslint:disable-next-line: class-name
 interface cordaNodeConfig {
 	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : any, rpcUsers : any, cordappDir: string};

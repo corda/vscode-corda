@@ -58,6 +58,9 @@ body{
 
 }
 
+.snackbar-content-info{
+    background-color: #00a2ed !important;
+}
 .snackbar-message{
     display: flex !important;
     align-items: center !important;

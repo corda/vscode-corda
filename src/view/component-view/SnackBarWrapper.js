@@ -4,6 +4,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import SnackbarContent from '@material-ui/core/SnackbarContent';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import ErrorIcon from '@material-ui/icons/Error';
+import InfoIcon from '@material-ui/icons/Info';
 import IconButton from '@material-ui/core/IconButton';
 
 
@@ -20,7 +21,8 @@ export default class SnackBarWrapper extends React.Component {
 
         this.variantIcon = {
             success: CheckCircleIcon,
-            error: ErrorIcon
+            error: ErrorIcon,
+            info: InfoIcon
           };
 
 

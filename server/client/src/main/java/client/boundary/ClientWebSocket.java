@@ -76,7 +76,7 @@ public class ClientWebSocket {
                     message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Started\", \"id\": \"" + flowHandle.getId() + "\"}");
                     flowHandle.getReturnValue().then(CordaFuture -> {
 
-                        message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\"}");
+                        message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\", \"id\": \"" + flowHandle.getId() + "\"}");
                         try {
                             sendResponse(message);
                         } catch (Exception e) {
