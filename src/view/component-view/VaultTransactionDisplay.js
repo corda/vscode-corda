@@ -8,7 +8,8 @@ import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Collapse from '@material-ui/core/Collapse';
 
-import Paper from '@material-ui/core/Paper';
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+
 import TablePagination from '@material-ui/core/TablePagination';
 import StateCard from './StateCard';
 export default class VaultTransactionDisplay extends React.Component {
@@ -25,17 +26,16 @@ export default class VaultTransactionDisplay extends React.Component {
         
         this.handleChangeRowsPerPage = this.handleChangeRowsPerPage.bind(this);
         this.handleChangePage = this.handleChangePage.bind(this);
-        this.sortTable = this.sortTable.bind(this);
+        this.sortTableHandler = this.sortTableHandler.bind(this);
         this.toggleDraw = this.toggleDraw.bind(this);
                 
     }
 
     componentDidMount(){
-      this.sortTable();
+      this.sortTableHandler(this.state.transactionMap, this.state.asc);
     }
     
-    static getDerivedStateFromProps(props){
-       
+    static getDerivedStateFromProps(props){ 
         return {
             transactionMap : props.transactionMap
         }
@@ -62,7 +62,23 @@ export default class VaultTransactionDisplay extends React.Component {
         })
     }
 
+    sortTable(array, asc){
+      var sortedArray  = array.sort((a,b) => {
+        return new Moment(a.timeStamp, 'DD-MM-YY HH:mm:ss').format('YYMMDDHHmmss') - new Moment(b.timeStamp, 'DD-MM-YY HH:mm:ss').format('YYMMDDHHmmss')}
+       )
+        if(!asc){
+          sortedArray.reverse();
+        }
 
+        return sortedArray;
+      
+      /* this.setState({
+         transactionMap: sortedArray,
+         asc : !this.state.asc
+       }) */
+    } 
+
+/*
     sortTable(){
       var sortedArray  = this.state.transactionMap.sort((a,b) => {
         return new Moment(a.timeStamp, 'DD-MM-YY HH:mm:ss').format('YYMMDDHHmmss') - new Moment(b.timeStamp, 'DD-MM-YY HH:mm:ss').format('YYMMDDHHmmss')}
@@ -75,14 +91,29 @@ export default class VaultTransactionDisplay extends React.Component {
          transactionMap: sortedArray,
          asc : !this.state.asc
        })
-    }
+    } */
    
+    sortTableHandler(array, direction){
+      var sortedArray = this.sortTable(array,direction);
+      this.setState({
+        transactionMap: sortedArray,
+        asc : !direction
+      })
+    }
 
     
     render() {
-       
+      this.selectProps = {
+        MenuProps: {
+            classes: {
+                paper: "selection-box-dropdown"
+            }
+        }
+      };
+        this.sortTable(this.state.transactionMap, this.state.asc);
         return(
             <div >
+              <h3>The Vault</h3>
                 <Table size="small" id="vault-info-display-table">
                   <TableHead>
                     <TableRow>
@@ -90,7 +121,7 @@ export default class VaultTransactionDisplay extends React.Component {
                       <TableSortLabel
                         active={true} // do some validation to decide where the icon will be displayed
                         direction={(this.state.asc) ? 'asc' : 'desc'} 
-                        onClick={this.sortTable}
+                        onClick={() =>  this.sortTableHandler(this.state.transactionMap, this.state.asc)}
                       >
                       TimeStamp
                     </TableSortLabel>
@@ -98,6 +129,7 @@ export default class VaultTransactionDisplay extends React.Component {
                       </TableCell>
                       <TableCell>TxHash</TableCell>
                       <TableCell>Num Of Outputs</TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody id="vault-info-display-table-body">
@@ -112,10 +144,20 @@ export default class VaultTransactionDisplay extends React.Component {
                               >
                                 <TableCell> {row.timeStamp} </TableCell>
                                   <TableCell >{row.txHash}</TableCell>
-                                  <TableCell >{Object.keys(JSON.parse(row.states)).length}</TableCell>
+                                  <TableCell >{Object.keys(JSON.parse(row.states)).length}
+                                              
+                                  </TableCell>
+                                  <TableCell>
+                                      <TableSortLabel
+                                        active={true} // do some validation to decide where the icon will be displayed
+                                        direction={(this.state[row.txHash]) ? 'asc' : 'desc'} 
+                                        IconComponent= {ExpandMoreIcon}
+                                      >
+                                    </TableSortLabel>
+                                  </TableCell>
                                 
                               </TableRow>
-                              <TableCell colSpan={3}>
+                              <TableCell colSpan={4}>
                                 <Collapse in={this.state[row.txHash]}>
                                   
                                   {JSON.parse(row.states).map((stateRow,index) => {
@@ -134,16 +176,22 @@ export default class VaultTransactionDisplay extends React.Component {
                 </Table>
                 <TablePagination
                   rowsPerPageOptions={[5, 10, 25]}
+                  className="table-pagination"
                   colSpan={3}
                   count={this.state.transactionMap.length}
                   rowsPerPage={this.state.rowsPerPage}
                   page={this.state.page}
-                  SelectProps={{
+                  SelectProps={
+                    {
                     inputProps: { 'aria-label': 'rows per page' },
                     native: true,
-                  }}
+                    }
+                }
                   onChangePage={this.handleChangePage}
                   onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                  SelectProps = {
+                    this.selectProps
+                  }
                   //ActionsComponent={TablePaginationActions}
               />      
           </div>

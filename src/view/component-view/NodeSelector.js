@@ -49,12 +49,35 @@ export default class StateCard extends React.Component {
         return(
             <FormControl >
                         
-            <InputLabel htmlFor="node-selector" >Choose Node</InputLabel>
+            <InputLabel 
+                htmlFor="node-selector" 
+                classes={{
+                    root:"selection-box-label",
+                    focused: "selection-box-label-focused",
+                    shrink: "selection-box-label-focused"
+                  }}>
+                    Choose A Node To Explore
+            </InputLabel>
             <Select
                 value={this.state.selectedNode}
-                input={<Input name="party" id="node-selector" value={this.state.selectedNode} />}
                 onChange={this.handleChange}
-                className='flow-explorer-select-node'
+                className='select-display'
+            
+                input={<Input classes={{
+                    underline: "selection-box-underline"
+                    
+                  }}/>}
+                  classes = {{
+                      icon: "selection-box-icon"
+                  }}
+                inputProps={{
+                    name: "party",
+                    id: "node-selector",
+                    classes: {
+                      root: "selection-box-label"
+                      }
+                  }}
+                  MenuProps={{ classes: { paper: "selection-box-dropdown" } }}
             >
                 <MenuItem value={null}>
                     <em>None</em>

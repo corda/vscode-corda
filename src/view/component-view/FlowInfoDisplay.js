@@ -57,7 +57,7 @@ export default class FlowInfoDisplay extends React.Component {
         let re = /([^\.]*)$/g;
         let DisplayRunFlowButton = null;
         if(this.state.selectedFlow){
-            DisplayRunFlowButton = <Button color="secondary" className="flow-run" variant="contained" onClick={() => this.startFlow(this.state.selectedFlow)}>
+            DisplayRunFlowButton = <Button className="flow-run-button button-component" variant="contained" onClick={() => this.startFlow(this.state.selectedFlow)}>
                                           Run Flow
                                     </Button> 
         }
@@ -66,12 +66,35 @@ export default class FlowInfoDisplay extends React.Component {
                 <Grid container justify="center" alignItems="center" >
                     <FormControl >
                                 
-                        <InputLabel htmlFor="flow-selector">Choose Flow</InputLabel>
+                        <InputLabel 
+                            htmlFor="flow-selector" 
+                            className="selection-box-label"
+                            classes={{
+                                root:"selection-box-label",
+                                focused: "selection-box-label-focused",
+                                shrink: "selection-box-label-focused"
+                              }}>
+                            Choose A Flow To Run
+                        </InputLabel>
                         <Select
                             value={this.state.selectedFlow}
-                            input={<Input name="party" id="flow-selector" value={this.state.selectedFlow} />}
                             onChange={this.handleChange}
-                            className='flow-explorer-select-node'
+                            className='select-display'
+                            input={<Input classes={{
+                                underline: "selection-box-underline"
+                              }}/>}
+                              classes = {{
+                                  icon: "selection-box-icon"
+                              }}
+                            inputProps={{
+                                name: "party",
+                                id: "flow-selector",
+                                classes: {
+                                  root: "selection-box-label"
+                                }
+                              }}
+                              MenuProps={{ classes: { paper: "selection-box-dropdown" } }}
+
                         >
                             <MenuItem value="">
                                 <em>None</em>
@@ -85,17 +108,18 @@ export default class FlowInfoDisplay extends React.Component {
                     </Grid>
                     <form className="flow-details-card" onSubmit={() => this.startFlow(this.state.selectedFlow)}>
                         {this.state.flowParams[this.state.selectedFlow] && this.state.flowParams[this.state.selectedFlow].map((input,index) => (  
-                            <TextField key={this.state.selectedNode + this.state.selectedFlow + "" + index} className="flow-param-input-field" label={input.match(re)[0]} margin="dense"
+                            <TextField key={this.state.selectedNode + this.state.selectedFlow + "" + index} className="flow-param-input-field input-field-text" label={input.match(re)[0]} margin="dense"
                                 onChange = {(e) => this.changeParamHandler(this.state.selectedFlow, input.match(re)[0] + index, e)}
                                 InputLabelProps={{
                                     classes: {
                                         root: "input-field-label",
                                         focused: "input-field-label-focused",
+                                        shrink: "input-field-label-focused"
                                     },
                                 }}
                                 InputProps={{
                                     classes: {
-                                        root: "input-field-focused"
+                                        root: "input-field"
                                     },
                                 }}
                             >

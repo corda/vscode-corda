@@ -28,7 +28,7 @@ export default class NodeInfo extends React.Component {
     render() {
         
         return(
-            <div>
+            <div className="description-block"> 
                 <div>Legal Identity : {this.state.nodeInfo.legalIdentities}</div>
                 <div>Addresses : {this.state.nodeInfo.addresses} </div>
                 <div>Serial : {this.state.nodeInfo.serial} </div>

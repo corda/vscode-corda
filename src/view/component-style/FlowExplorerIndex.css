@@ -1,9 +1,10 @@
 body{
-    background-color: white;
+    background-color: var(--vscode-editor-background);
 }
 
-.flow-explorer-select-node{
-    min-width: 200px;
+
+.select-display{
+    min-width: 220px;
 }
 
 
@@ -13,14 +14,53 @@ body{
     margin-right:5px !important;
 }
 
-
-.flow-param-input-field .input-field-focused::after{
-    border-bottom: 2px solid #ec1d24;
+.selection-box{
+    color: var(--vscode-editor-foreground);
 }
 
+.description-block{
+    color: var(--vscode-descriptionForeground)
+}
+.selection-box-label{
+    color:var(--vscode-editor-foreground) !important;
+}
+.selection-box-icon{
+    color:var(--vscode-editor-foreground) !important; 
+}
+.selection-box-underline::after{
+    border-bottom: 2px solid var(--vscode-editor-selectionHighlightBackground) !important;
+}
+.selection-box-dropdown{
+    background-color: var(--vscode-dropdown-background) !important;
+    color: var(--vscode-dropdown-foreground) !important;
+}
 
-.flow-param-input-field .input-field-label.input-field-label-focused{
-    color: black;
+.input-field::after{
+    border-bottom: 3px solid var(--vscode-editor-selectionHighlightBackground) !important;
+}
+
+.input-field{
+    color: var(--vscode-editor-foreground) !important;
+}
+.input-field-label{
+    color: var(--vscode-editor-foreground) !important;
+}
+
+.selection-box-label-focused{
+    color:var(--vscode-descriptionForeground) !important;
+}
+
+.input-field-label.input-field-label-focused{
+    color: var(--vscode-descriptionForeground) !important;
+}
+
+.button-component{
+    background-color: var(--vscode-button-background) !important;
+    color: var(--vscode-button-foreground) !important;
+}
+
+.button-component:hover {
+    background-color: var(--vscode-button-hoverBackground) !important;
 }
 
 .flow-param-input-field .flow-run-button{
@@ -33,16 +73,30 @@ body{
     width: 100%;
 }
 
+#vault-info-display-table * {
+    
+    border: 0px !important;
+    color: var(--vscode-sideBar-foreground) !important;
+}
+#vault-info-display-table-body{
+    background-color: var(--vscode-sideBarSectionHeader-background) !important;
 
+}
 #vault-info-display-table-body  .vault-info-display-table-row{
-    background-color: #FDE8E9 !important;
+    background-color: var(--vscode-sideBarSectionHeader-background) !important;
+    
 }
 
 #vault-info-display-table-body .vault-info-display-table-row:hover{
-    background-color: #F7A5A7 !important;
+    cursor: pointer;
 }
 
-
+.table-pagination *{
+    color:var(--vscode-sideBar-foreground);
+}
+.state-card{
+    background-color: var(--vscode-sideBar-background) !important;
+}
 .snackbar-content-success{
     background-color: #4BB543 !important;
 

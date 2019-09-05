@@ -128,7 +128,6 @@ export default class FlowExplorerIndex extends React.Component {
                                           
                   })
               }
-              //this.state.messages.push(<SnackBarWrapper message={"A flow of type " + content.flow + " finished "} type="success" remove={this.removeSnack}/>)
               this.setState(
                       this.state.messages
               )
@@ -149,27 +148,21 @@ export default class FlowExplorerIndex extends React.Component {
     }
 
     removeSnack(item){
-        //console.log("remove: " +  JSON.stringify(item))
-        //console.log(item)
         this.state.messages = this.state.messages.reverse();
         var index = this.state.messages.indexOf(item)
-        //console.log(index)
         if(index > -1) {
             this.state.messages.splice(index, 1);
         }
         this.state.messages = this.state.messages.reverse();
-        //console.log(JSON.stringify(this.state.messages))
         this.setState(this.state.messages);
     }
 
     chosenNode(connection) {
-        // propagate initial node info
-       // this.client.onopen = () => {
-            this.state.client.send(JSON.stringify({"cmd":"connect","content":JSON.stringify(
-                connection
-            )}));
+        
+        this.state.client.send(JSON.stringify({"cmd":"connect","content":JSON.stringify(
+            connection
+        )}));
             
-        //}    
     }
 
     loadNodeInfo(){
@@ -225,7 +218,7 @@ export default class FlowExplorerIndex extends React.Component {
    render() {
         if (this.state.client == null) {
             return (
-                <div>
+                <div className="description-block">
                     Waiting for Node Server.
                     <div class="fa-3x">
                         <i class="fas fa-spinner fa-spin"></i>
@@ -250,6 +243,7 @@ export default class FlowExplorerIndex extends React.Component {
        }
        return (
             <div>
+                <h1>Transaction Explorer</h1>
                 <Grid container spacing={4}>
                     <Grid item sm={6}>
                         <NodeSelector allNodes = {this.state.allNodes} handleChange = {this.handleChange} />
