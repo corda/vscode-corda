@@ -329,6 +329,7 @@ public class NodeRPCClient {
      *     }
      *
      *     "values": {
+     *         "status":"UNCONSUMED",
      *         "contractStateType":"net.corda.core.contracts.ContractState",
      *         "stateRefs":{
      *             "hash":"0x...",
@@ -379,17 +380,7 @@ public class NodeRPCClient {
             if (!(stateNames.size() == contractStateClasses.size())) throw new Exception("Error construction stateName:Class map");
         }
 
-
-        Vault.StateStatus status = null;
-        Set<Class<ContractState>> contractStateTypes = null;
-        List<StateRef> stateRefs = null;
-        List<AbstractParty> notary = null;
-        // SoftLocking Condition add later
-        QueryCriteria.TimeCondition tc = null;
-        Vault.RelevancyStatus rs = null;
-        // ConstraintTypes add later
-        // Constraints add later
-        List<AbstractParty> participants =  null;
+        QueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria();
 
         for (Map.Entry<String, Object> entry : query.entrySet()) {
 
@@ -400,27 +391,30 @@ public class NodeRPCClient {
                 // status input is
                 // "<UNCONSUMED/CONSUMED/ALL>"
                 case "status":
-                    status = Vault.StateStatus.valueOf((String) entry.getValue());
+                    Vault.StateStatus status = Vault.StateStatus.valueOf((String) entry.getValue());
+
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStatus(status));
+                    break;
 
                 // contractState types input should be FQN of class
                 // value = ['a','b','c']
                 case "contractStateType":
                     List<String> contractNames = (List) entry.getValue();
-                    contractStateTypes = new HashSet<>();
+                    Set<Class<ContractState>> contractStateTypes = new HashSet<>();
 
                     // fill class set
                     for(String c : contractNames) {
                         contractStateTypes.add(contractStateClasses.get(c));
                     }
                     // add to QueryCriteria
-//                    userCriteria.withContractStateTypes(contractStateTypes);
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withContractStateTypes(contractStateTypes));
                     break;
 
                 // stateRefs input is
                 // value = ['{ 'hash': '0x', 'index': '3' }, ... ]
                 case "stateRefs":
                     List<Map<String, String>> stateRefInputs = (List<Map<String, String>>) entry.getValue();
-                    stateRefs = new ArrayList<>();
+                    List<StateRef> stateRefs = new ArrayList<>();
 
                     // fill stateRefs list
                     for (Map<String, String> sr : stateRefInputs) {
@@ -433,7 +427,7 @@ public class NodeRPCClient {
                         stateRefs.add(stateRef);
                     }
                     // add to QueryCriteria
-//                    userCriteria.withStateRefs(stateRefs);
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStateRefs(stateRefs));
                     break;
 
                 // notary OR participants input is
@@ -451,11 +445,9 @@ public class NodeRPCClient {
                     }
                     // add to QueryCriteria
                     if (predicate.equals("notary")) {
-                        notary = partyList;
-//                        userCriteria.withNotary(partyList);
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withNotary(partyList));
                     } else { // predicate 'participants'
-                        participants = partyList;
-//                        userCriteria.withParticipants(partyList);
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withParticipants(partyList));
                     }
 
                     break;
@@ -463,6 +455,7 @@ public class NodeRPCClient {
                 // timeCondition input is
                 // { 'type':'RECORDED', 'start': <time>, 'end': <time> }
                 case "timeCondition":
+
                     Map<String, String> tcIn = (Map<String, String>) entry.getValue();
                     QueryCriteria.TimeInstantType timeInstantType = QueryCriteria.TimeInstantType.valueOf(tcIn.get("type"));
 
@@ -470,20 +463,20 @@ public class NodeRPCClient {
                     Instant end = Instant.parse(tcIn.get("end"));
 
                     ColumnPredicate<Instant> timePred = new ColumnPredicate.Between<>(start, end);
-                    tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
+                    QueryCriteria.TimeCondition tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
 
                     // add to QueryCriteria
-//                    userCriteria.withTimeCondition(tc);
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withTimeCondition(tc));
                     break;
 
                 // relevancyStatus input is
                 // "<ALL/RELEVANT/NON_RELEVANT>"
                 case "relevancyStatus":
                     String relIn = (String) entry.getValue();
-                    rs = Vault.RelevancyStatus.valueOf(relIn);
+                    Vault.RelevancyStatus rs = Vault.RelevancyStatus.valueOf(relIn);
 
                     // add to QueryCriteria
-//                    userCriteria.withRelevancyStatus(rs);
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withRelevancyStatus(rs));
                     break;
 
 
@@ -519,14 +512,6 @@ public class NodeRPCClient {
         }
 
         Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
-
-        QueryCriteria.VaultQueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria()
-//                .withContractStateTypes(contractStateTypes)
-                .withStateRefs(stateRefs)
-                .withParticipants(participants);
-//        QueryCriteria.VaultQueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria(
-//                status, contractStateTypes, stateRefs, notary, null, tc, rs, null, null, participants
-//                );
 
         System.out.println("USERCRITERIA : \n\n" + userCriteria + "\n\n");
         return proxy.vaultQueryBy(userCriteria, ps, sort, ContractState.class);
@@ -616,12 +601,6 @@ public class NodeRPCClient {
     public static void main(String[] args) throws Exception {
 
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
-//        //client.setFlowMaps(".", client.getRegisteredFlows());
-//        //System.out.println(client.run("getStatesInVault"));
-//        List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
-//        System.out.println(states.get(0).getState().getContract());
-//        System.out.println(client.getStateNames());
-//        //List<Vault.StateMetadata> stateMeta = (List<Vault.StateMetadata>) client.run("getStatesMetaInVault");
 
         Gson gson = new GsonBuilder().create();
         String s =
