@@ -108,6 +108,9 @@ export default class VaultTransactionDisplay extends React.Component {
             classes: {
                 paper: "selection-box-dropdown"
             }
+        },
+        classes : {
+          icon: "selection-box-icon"
         }
       };
         this.sortTable(this.state.transactionMap, this.state.asc);
