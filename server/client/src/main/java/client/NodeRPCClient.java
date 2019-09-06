@@ -500,24 +500,25 @@ public class NodeRPCClient {
            ps = new PageSpecification(); // default
         }
 
-        // default sort is DESC on RECORDED TIME
-        SortAttribute.Standard sa;
-        Sort.Direction sd = Sort.Direction.DESC;
+        // TODO possibly add sort - right now will not use
 
-        // sortDirection is optional to pair with sortAttribute
-        if (sortAttribute != null) {
-            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.valueOf(sortAttribute));
-            if (sortDirection != null) {
-                sd = Sort.Direction.valueOf(sortDirection);
-            }
-        } else { // default
-            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME);
-        }
+//        // default sort is DESC on RECORDED TIME
+//        SortAttribute.Standard sa;
+//        Sort.Direction sd = Sort.Direction.DESC;
+//
+//        // sortDirection is optional to pair with sortAttribute
+//        if (sortAttribute != null) {
+//            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.valueOf(sortAttribute));
+//            if (sortDirection != null) {
+//                sd = Sort.Direction.valueOf(sortDirection);
+//            }
+//        } else { // default
+//            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME);
+//        }
+//
+//        Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
 
-        Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
-
-        System.out.println("USERCRITERIA : \n\n" + userCriteria + "\n\n");
-        return proxy.vaultQueryBy(userCriteria, ps, sort, ContractState.class);
+        return proxy.vaultQueryByWithPagingSpec(ContractState.class, userCriteria, ps);
     }
 
     /**
@@ -619,8 +620,8 @@ public class NodeRPCClient {
                         " \t\t\"stateRefs\": [{\n" +
                         " \t\t\t\"hash\": \"CABC3C3F980BDA8F20D5F06EFCA1A2516ADB248AD05529405D89D76C4C088E37\",\n" +
                         " \t\t\t\"index\": \"0\"\n" +
-                        " \t\t}],\n" +
-                        " \t\t\"participants\": [\"PartyB\"]" +
+                        " \t\t}]\n" +
+//                        " \t\t\"participants\": [\"PartyB\"]" +
                         //" \t\t\"notary\": [\"Notary\"],\n" +
 //                        " \t\t\"timeCondition\": {\n" +
 //                        " \t\t\t\"type\": \"RECORDED\",\n" +
