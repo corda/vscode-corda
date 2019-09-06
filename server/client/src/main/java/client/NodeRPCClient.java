@@ -1,10 +1,12 @@
 package client;
 
 import client.entities.customExceptions.FlowsNotFound;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
+import net.corda.core.concurrent.CordaFuture;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;
@@ -385,7 +387,20 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
+        NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
+        String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"DodgyParty\",\"SanctionsBody\"]}";
+        HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
+
+        FlowHandle corda = (FlowHandle) client.run("startFlow", content);
+        corda.getReturnValue().then(CordaFuture ->{
+            System.out.println("Finished");
+            System.out.println(CordaFuture.hashCode());
+            return CordaFuture;
+        });
+
+        while(true){
+
+        }
         //client.setFlowMaps(".", client.getRegisteredFlows());
         //System.out.println(client.run("getStatesInVault"));
         //List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
@@ -401,8 +416,8 @@ public class NodeRPCClient {
 //        for (Map.Entry<SecureHash, TransRecord> m : mp) {
 //            System.out.println(m.getValue());
 //        }
-        Map<SecureHash, TransRecord> t = (Map<SecureHash, TransRecord>) client.run("getTransactionMap");
-        System.out.println(t);
+        //Map<SecureHash, TransRecord> t = (Map<SecureHash, TransRecord>) client.run("getTransactionMap");
+        //System.out.println(t);
 
     }
 }

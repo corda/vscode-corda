@@ -83,7 +83,7 @@ export default class StateCard extends React.Component {
                     <em>None</em>
                 </MenuItem>
                 {this.state.allNodes.map((node,index) => {
-                    if(node.rpcUsers){
+                    if(!node.notary){
                         return (<MenuItem key={"node" + index} value={node.name}>{node.name.match(re)[0]}</MenuItem>)
                     }
                 })}

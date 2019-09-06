@@ -16,6 +16,7 @@ if(process.platform.includes("win32") || process.platform.includes("win64")){
 	gjs =  require('../src/parser');
 }
 var nodeConfig = [] as cordaNodeConfig;
+var nodeDefaults: cordaNodeDefaultConfig;
 var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
 var validNodes = [] as any; // names of valid nodes for referencing relative node dir
 var nodeCordappDir = new Map(); // cordapp dir for each node
@@ -159,6 +160,7 @@ function launchView(context: any, view: string){
 			<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 		</head>
 		<body>
+			<div id="nodeDefaults" style="display:none">${JSON.stringify(nodeDefaults)}</div>
 			<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
 			<div id="root"></div>
 			${loadScript(context,locationOfView)}
@@ -294,9 +296,14 @@ function scanGradleFile(fileName : String, last: boolean): any {
 	
 	gjs.parseFile(fileName).then(function (representation : cordaTaskConfig) {
 		// Pick up any other configuration we might need in this parse loop and assign it to our globals
+		console.log(representation);
 		if (representation.task !== undefined && representation.task.node !== undefined) {
+			if(representation.task.nodeDefaults){
+				nodeDefaults = representation.task.nodeDefaults as cordaNodeDefaultConfig;
+			}
 			nodeConfig = representation.task.node as cordaNodeConfig;
 			nodeDir = fileName.replace('build.gradle','');
+			console.log(nodeConfig);
 		}
 		
 		if(last){
@@ -340,9 +347,16 @@ interface cordaNodeConfig {
 }
 
 // tslint:disable-next-line: class-name
+interface cordaNodeDefaultConfig{
+	rpcUsers: any;
+}
+
+// tslint:disable-next-line: class-name
 interface cordaNodesConfig {
 	node: cordaNodeConfig;
+	nodeDefaults: cordaNodeDefaultConfig;
 }
+
 
 // tslint:disable-next-line: class-name
 interface cordaTaskConfig {

@@ -27,19 +27,28 @@ export default class FlowExplorerIndex extends React.Component {
         }
      
         let _this = this;
+        var defaultSettings = JSON.parse(document.getElementById('nodeDefaults').innerHTML);
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
-       // console.log("all nodes = " + JSON.stringify(this.state.allNodes))
+        console.log("default nodes = " + JSON.stringify(defaultSettings))
         this.state.allNodes.forEach(function(node) {
-            if(node.rpcUsers){
+            if(!node.notary){
+                console.log("building for " + node.name);
                 _this.state.connections[node.name] = {
                     host: node.rpcSettings.address,
-                    username: node.rpcUsers.user,
-                    password: node.rpcUsers.password,
                     cordappDir: node.cordappDir   
+                }
+                if(node.rpcUsers){
+                    _this.state.connections[node.name].username = node.rpcUsers.username;
+                    _this.state.connections[node.name].password = node.rpcUsers.password
+                    
+                }else{
+                    _this.state.connections[node.name].username = defaultSettings.rpcUsers.username;
+                    _this.state.connections[node.name].password = defaultSettings.rpcUsers.password;
                 }
             }
           //  console.log("added node")
         });
+        console.log("node connections = " + JSON.stringify(this.state.connections));
        this.handleChange = this.handleChange.bind(this);
        this.startFlow = this.startFlow.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -133,6 +142,7 @@ export default class FlowExplorerIndex extends React.Component {
               )
   
             }
+            
           }
           
 
