@@ -72,10 +72,10 @@ public class ClientWebSocket {
                     }).start();
                     break;
                 case "startFlow":
+                    System.out.println(content);
                     FlowHandle flowHandle = (FlowHandle) client.run(msgCmd, content);
                     message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Started\", \"id\": \"" + flowHandle.getId() + "\"}");
                     flowHandle.getReturnValue().then(CordaFuture -> {
-
                         message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\", \"id\": \"" + flowHandle.getId() + "\"}");
                         try {
                             sendResponse(message);

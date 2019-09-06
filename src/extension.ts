@@ -296,8 +296,9 @@ function scanGradleFile(fileName : String, last: boolean): any {
 		// Pick up any other configuration we might need in this parse loop and assign it to our globals
 		if (representation.task !== undefined && representation.task.node !== undefined) {
 			nodeConfig = representation.task.node as cordaNodeConfig;
+			nodeDir = fileName.replace('build.gradle','');
 		}
-		nodeDir = fileName.replace('build.gradle','');
+		
 		if(last){
 			nodeLoaded = true;
 		}

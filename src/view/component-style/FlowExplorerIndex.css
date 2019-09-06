@@ -115,6 +115,7 @@ body{
     align-items: center !important;
     width: 20vw;
     height: 10vh;
+    overflow: scroll !important;
     
 }
 

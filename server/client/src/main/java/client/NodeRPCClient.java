@@ -1,5 +1,6 @@
 package client;
 
+import client.entities.customExceptions.FlowsNotFound;
 import com.google.common.collect.ImmutableList;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
@@ -76,7 +77,7 @@ public class NodeRPCClient {
      * @param rpcUsername login username
      * @param rpcPassword login password
      */
-    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) {
+    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws FlowsNotFound {
 
         this.client = new CordaRPCClient(parse(nodeAddress));
         this.connection = client.start(rpcUsername,rpcPassword);
@@ -116,7 +117,7 @@ public class NodeRPCClient {
      * @param jarPath full path to the .jar files containing CorDapp flows
      * @param registeredFlows list of registeredFlows on the Node
      */
-    private void setFlowMaps(String jarPath, List<String> registeredFlows) {
+    private void setFlowMaps(String jarPath, List<String> registeredFlows) throws FlowsNotFound {
         registeredFlowClasses = new HashMap<>();
         registeredFlowParams = new HashMap<>();
         File dir = new File(jarPath);
@@ -153,6 +154,9 @@ public class NodeRPCClient {
                 }
 
                 System.out.println("flows FOUND in file + " + flowJarFile.toString());
+                if(registeredFlowParams.isEmpty()){
+                    throw new FlowsNotFound("Could not find any flows in the node cordapps");
+                }
             } catch (MalformedURLException | ClassNotFoundException e) {
 //                e.printStackTrace();
                 System.out.println("flows not found in file " + flowJarFile.toString());
@@ -295,8 +299,12 @@ public class NodeRPCClient {
                 }
             }
         }
+        if(finalParams.toArray().length > 0){
+            return proxy.startFlowDynamic(flowClass, finalParams.toArray());
+        }else{
+            return proxy.startFlowDynamic(flowClass);
+        }
 
-        return proxy.startFlowDynamic(flowClass, finalParams.toArray());
     }
 
     /**
@@ -313,13 +321,13 @@ public class NodeRPCClient {
         // parameterized methods
         switch (cmd) {
             case "startFlow":
+
                 HashMap<String, Object> argMap = (HashMap<String, Object>) args;
                 String flow = (String) argMap.get("flow");
-                HashMap<String, String> flowArgs = (HashMap<String, String>) argMap.get("args");
-                Object[] argsArray = flowArgs.values().toArray();
-                String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
-
-                return startFlow(flow, strArgsArray);
+                List<Object> flowArgs = (ArrayList<Object>) argMap.get("args");
+                Object[] flowArgsAsString = flowArgs.toArray();
+                String[] argsArray = Arrays.copyOf(flowArgsAsString, flowArgsAsString.length, String[].class);
+                return startFlow(flow, argsArray);
 
             case "getStateProperties":
                 return getStateProperties((String) args);

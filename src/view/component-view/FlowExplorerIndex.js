@@ -179,9 +179,18 @@ export default class FlowExplorerIndex extends React.Component {
     }
 
     startFlow(flowName, paramValues){
+        var args;
+        console.log(JSON.stringify(paramValues));
+        if(!paramValues){
+            args = []
+        }else{
+            args = Object.keys(paramValues).map(function(key) {
+                return paramValues[key];
+            });
+        }
         var content = {
           "flow" : flowName,
-          "args" : paramValues
+          "args" : args
         }
         this.state.client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(           
           content
