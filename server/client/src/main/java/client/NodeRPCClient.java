@@ -1,22 +1,29 @@
 package client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.LinkedTreeMap;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
-import net.corda.core.contracts.ContractState;
-import net.corda.core.contracts.StateAndRef;
-import net.corda.core.contracts.UniqueIdentifier;
+import net.corda.core.contracts.*;
 import net.corda.core.crypto.SecureHash;
+import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.core.messaging.DataFeed;
 import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
+import net.corda.core.node.services.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.json.Json;
+import javax.swing.plaf.nimbus.State;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -28,6 +35,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import static net.corda.core.node.services.vault.QueryCriteriaUtils.DEFAULT_PAGE_SIZE;
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
 
 
@@ -49,6 +57,7 @@ public class NodeRPCClient {
     private Map<String, List<Class>> registeredFlowParams; // maps FQN to required params
 
     private Set<String> stateNames; // updates
+    private Map<String, Class> contractStateClasses; // used for userVaultQuery
     private Vault.Page<ContractState> statesAndMeta;
 
     private Map<String, Callable> cmd; // maps incoming commands to methods
@@ -83,6 +92,7 @@ public class NodeRPCClient {
         this.proxy = connection.getProxy(); // start the RPC Connection
         this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
         this.initialConnectTime = proxy.currentNodeTime(); // set connection time
+        this.contractStateClasses = new HashMap<>();
 
         buildCommandMap(this);
         updateNodeData();
@@ -300,6 +310,217 @@ public class NodeRPCClient {
     }
 
     /**
+     * Note: softlockingType and constraintsType and constraints not implemented for use
+     * with VaultQueryCriteria
+     * @param //args: ?pageSpecification (int), ?pageSize (int),
+     *            ?sortAttribute (notary, contractStateClassName, recordedTime, consumedTime, lockId, constraintType)
+     *            ?sortDirection (ASC, DESC)
+     * @param //values JSON string { <predicateType>: "value", ... }
+     * @return
+     * @throws Exception
+     *
+     * If no [PageSpecification] is provided, a maximum of [DEFAULT_PAGE_SIZE] results will be returned.
+     * API users must specify a [PageSpecification] if they are expecting more than [DEFAULT_PAGE_SIZE] results
+     *
+     * JSON sample:
+     *
+     *     "args": {
+     *         "pageSpecification":"10",
+     *         "pageSize":"10",
+     *         "sortAttribute":"notary",
+     *         "sortDirection":"ASC"
+     *     }
+     *
+     *     "values": {
+     *         "status":"UNCONSUMED",
+     *         "contractStateType":"net.corda.core.contracts.ContractState",
+     *         "stateRefs":{
+     *             "hash":"0x...",
+     *             "index":"2"
+     *         },
+     *         "participants":"[PartyA,PartyB,PartyC]",
+     *         "notary":"[PartyA,PartyB,PartyC]",
+     *         "timeCondition":{
+     *             "type":"RECORDED",
+     *             "start":"2018-11-30T18:35:24.00Z",
+     *             "end":"2018-11-30T18:35:24.00Z"
+     *         },
+     *         "relevancyStatus":"RELEVANT"
+     *     }
+     *
+     */
+    private Vault.Page<ContractState> userVaultQuery(Map<String, String> argsIn, Map<String, Object> query) throws Exception {
+
+        Gson gson = new GsonBuilder().create();
+
+        String pageSpecification = argsIn.get("pageSpecification");
+        String pageSize = argsIn.get("pageSize");
+        String sortAttribute = argsIn.get("sortAttribute");
+        String sortDirection = argsIn.get("sortDirection");
+
+        // Generate Set of all classes for contractStates
+        if (contractStateClasses.isEmpty()) {
+            contractStateClasses = new HashMap<>();
+
+            updateNodeData(); // make sure to update node info for stateNames etc.
+
+            // iterate through all stateNames in Vault and map associated classes
+            for (String contractState : stateNames) {
+                if(!contractStateClasses.containsKey(contractState)) {
+                    Iterator<StateAndRef<ContractState>> i = getStatesInVault().iterator();
+                    while (i.hasNext()) {
+                        // look for first state that matches FQN and add to Map
+                        TransactionState<ContractState> cs = i.next().getState();
+                        if (cs.getData().getClass().toString().substring(6).equals(contractState)) {
+                            contractStateClasses.put(contractState, cs.getData().getClass());
+                            break;
+                        }
+                    }
+
+                }
+            }
+            // Check for map for integrity
+            if (!(stateNames.size() == contractStateClasses.size())) throw new Exception("Error construction stateName:Class map");
+        }
+
+        QueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria();
+
+        for (Map.Entry<String, Object> entry : query.entrySet()) {
+
+            String predicate = entry.getKey();
+
+            switch(predicate) {
+
+                // status input is
+                // "<UNCONSUMED/CONSUMED/ALL>"
+                case "status":
+                    Vault.StateStatus status = Vault.StateStatus.valueOf((String) entry.getValue());
+
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStatus(status));
+                    break;
+
+                // contractState types input should be FQN of class
+                // value = ['a','b','c']
+                case "contractStateType":
+                    List<String> contractNames = (List) entry.getValue();
+                    Set<Class<ContractState>> contractStateTypes = new HashSet<>();
+
+                    // fill class set
+                    for(String c : contractNames) {
+                        contractStateTypes.add(contractStateClasses.get(c));
+                    }
+                    // add to QueryCriteria
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withContractStateTypes(contractStateTypes));
+                    break;
+
+                // stateRefs input is
+                // value = ['{ 'hash': '0x', 'index': '3' }, ... ]
+                case "stateRefs":
+                    List<Map<String, String>> stateRefInputs = (List<Map<String, String>>) entry.getValue();
+                    List<StateRef> stateRefs = new ArrayList<>();
+
+                    // fill stateRefs list
+                    for (Map<String, String> sr : stateRefInputs) {
+                        String hashIn = sr.get("hash");
+                        Integer indexIn = Integer.parseInt(sr.get("index"));
+
+                        SecureHash hash = SecureHash.parse(hashIn);
+                        StateRef stateRef = new StateRef(hash, indexIn);
+
+                        stateRefs.add(stateRef);
+                    }
+                    // add to QueryCriteria
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStateRefs(stateRefs));
+                    break;
+
+                // notary OR participants input is
+                // ['PartyA', 'PartyB', ...]
+                case "participants":
+                case "notary":
+                    List<String> parties = (List<String>) entry.getValue();
+                    List<AbstractParty> partyList = new ArrayList<>();
+
+                    // fill notary list
+                    for (String party : parties) {
+                        // grab party from RPCOps and add to list
+                        Party p = proxy.partiesFromName(party, true).iterator().next();
+                        partyList.add(p);
+                    }
+                    // add to QueryCriteria
+                    if (predicate.equals("notary")) {
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withNotary(partyList));
+                    } else { // predicate 'participants'
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withParticipants(partyList));
+                    }
+
+                    break;
+
+                // timeCondition input is
+                // { 'type':'RECORDED', 'start': <time>, 'end': <time> }
+                case "timeCondition":
+
+                    Map<String, String> tcIn = (Map<String, String>) entry.getValue();
+                    QueryCriteria.TimeInstantType timeInstantType = QueryCriteria.TimeInstantType.valueOf(tcIn.get("type"));
+
+                    Instant start = Instant.parse(tcIn.get("start"));
+                    Instant end = Instant.parse(tcIn.get("end"));
+
+                    ColumnPredicate<Instant> timePred = new ColumnPredicate.Between<>(start, end);
+                    QueryCriteria.TimeCondition tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
+
+                    // add to QueryCriteria
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withTimeCondition(tc));
+                    break;
+
+                // relevancyStatus input is
+                // "<ALL/RELEVANT/NON_RELEVANT>"
+                case "relevancyStatus":
+                    String relIn = (String) entry.getValue();
+                    Vault.RelevancyStatus rs = Vault.RelevancyStatus.valueOf(relIn);
+
+                    // add to QueryCriteria
+                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withRelevancyStatus(rs));
+                    break;
+
+
+            }
+        }
+
+        // PageSpecification default is -1, DEFAULT_PAGE_SIZE
+        PageSpecification ps;
+        if (pageSpecification != null || pageSize != null) {
+            if (pageSpecification == null) {
+                ps = new PageSpecification(-1, Integer.parseInt(pageSize));
+            } else if (pageSize == null) {
+                ps = new PageSpecification(Integer.parseInt(pageSpecification), DEFAULT_PAGE_SIZE);
+            } else {
+                ps = new PageSpecification(Integer.parseInt(pageSpecification), Integer.parseInt(pageSize));
+            }
+        } else {
+           ps = new PageSpecification(); // default
+        }
+
+        // default sort is DESC on RECORDED TIME
+        SortAttribute.Standard sa;
+        Sort.Direction sd = Sort.Direction.DESC;
+
+        // sortDirection is optional to pair with sortAttribute
+        if (sortAttribute != null) {
+            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.valueOf(sortAttribute));
+            if (sortDirection != null) {
+                sd = Sort.Direction.valueOf(sortDirection);
+            }
+        } else { // default
+            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME);
+        }
+
+        Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
+
+        System.out.println("USERCRITERIA : \n\n" + userCriteria + "\n\n");
+        return proxy.vaultQueryBy(userCriteria, ps, sort, ContractState.class);
+    }
+
+    /**
      * runs a given command from the command-map
      * @param cmd
      * @return
@@ -308,14 +529,14 @@ public class NodeRPCClient {
     public Object run(String cmd) throws Exception {
         return this.cmd.get(cmd).call();
     }
-    public Object run(String cmd, Object args) {
+    public Object run(String cmd, Object args) throws Exception {
 
         // parameterized methods
         switch (cmd) {
             case "startFlow":
-                HashMap<String, Object> argMap = (HashMap<String, Object>) args;
-                String flow = (String) argMap.get("flow");
-                HashMap<String, String> flowArgs = (HashMap<String, String>) argMap.get("args");
+                HashMap<String, Object> flowArgMap = (HashMap<String, Object>) args;
+                String flow = (String) flowArgMap.get("flow");
+                HashMap<String, String> flowArgs = (HashMap<String, String>) flowArgMap.get("args");
                 Object[] argsArray = flowArgs.values().toArray();
                 String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
 
@@ -323,6 +544,11 @@ public class NodeRPCClient {
 
             case "getStateProperties":
                 return getStateProperties((String) args);
+            case "userVaultQuery":
+                HashMap<String, Object> queryArgMap = (HashMap<String, Object>) args;
+                Map<String, String> queryArgs = (Map<String, String>) queryArgMap.get("args");
+                Map<String, Object>  queryValues = (Map<String, Object>) queryArgMap.get("values");
+                return userVaultQuery(queryArgs, queryValues);
         }
         return null;
     }
@@ -378,23 +604,59 @@ public class NodeRPCClient {
     public static void main(String[] args) throws Exception {
 
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
-        //client.setFlowMaps(".", client.getRegisteredFlows());
-        //System.out.println(client.run("getStatesInVault"));
-        //List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
-        //List<Vault.StateMetadata> stateMeta = (List<Vault.StateMetadata>) client.run("getStatesMetaInVault");
 
-        //System.out.println("\n\n\n" + states.get(0).getState().getData().getClass().toString());
-        //System.out.println("\n\n\n" + states.get(0).getRef().getTxhash());
+        Gson gson = new GsonBuilder().create();
+        String s =
+                " {\n" +
+                        " \t\"args\": {\n" +
+//                        " \t\t\"pageSpecification\": \"1\",\n" +
+//                        " \t\t\"pageSize\": \"10\",\n" +
+                        " \t\t\"sortAttribute\": \"NOTARY_NAME\",\n" +
+                        " \t\t\"sortDirection\": \"ASC\"\n" +
+                        " \t},\n" +
+                        " \t\"values\": {\n" +
+//                        " \t\t\"contractStateType\": [\"net.corda.core.contracts.ContractState\"],\n" +
+                        " \t\t\"stateRefs\": [{\n" +
+                        " \t\t\t\"hash\": \"CABC3C3F980BDA8F20D5F06EFCA1A2516ADB248AD05529405D89D76C4C088E37\",\n" +
+                        " \t\t\t\"index\": \"0\"\n" +
+                        " \t\t}],\n" +
+                        " \t\t\"participants\": [\"PartyB\"]" +
+                        //" \t\t\"notary\": [\"Notary\"],\n" +
+//                        " \t\t\"timeCondition\": {\n" +
+//                        " \t\t\t\"type\": \"RECORDED\",\n" +
+//                        " \t\t\t\"start\": \"2018-11-30T18:35:24.00Z\",\n" +
+//                        " \t\t\t\"end\": \"2018-11-30T18:35:24.00Z\"\n" +
+//                        " \t\t},\n" +
+                        //" \t\t\"relevancyStatus\": \"RELEVANT\"\n" +
+                        " \t}\n" +
+                        "\n" +
+                        " }"
+        ;
 
-        //System.out.println(states.get(0).getRef().getTxhash());
-        //System.out.println(stateMeta.get(0).getRef().getTxhash());
+        //System.out.println("HERE is \n" +
 
-//        Set<Map.Entry<SecureHash, TransRecord>> mp = client.getTransactionMap().entrySet();
-//        for (Map.Entry<SecureHash, TransRecord> m : mp) {
-//            System.out.println(m.getValue());
-//        }
-        Map<SecureHash, TransRecord> t = (Map<SecureHash, TransRecord>) client.run("getTransactionMap");
-        System.out.println(t);
+        Map<String, Object> in = gson.fromJson(s, HashMap.class);
+//        Map a = (Map) in.get("args");
+//        Map b = (Map) in.get("values");
+//        System.out.println(b);
+//        System.out.println(b.getClass());
+//        System.out.println(a.get("pageSize").getClass());
+//        // ARRAYLIST
+//        System.out.println(b.get("stateRefs").getClass());
+//        // String - then parse to String[]
+//        System.out.println(b.get("participants").getClass());
+//        // Map<String, String>
+//        System.out.println(b.get("timeCondition").getClass());
+
+
+
+        Vault.Page<ContractState> result = (Vault.Page<ContractState>) client.run("userVaultQuery", in);
+
+        System.out.println(result.getStates());
+        System.out.println("\n\n\n" + result.getTotalStatesAvailable());
+        //System.out.println("\n\n\n" + result.getTotalStatesAvailable());
+
+
 
     }
 }
