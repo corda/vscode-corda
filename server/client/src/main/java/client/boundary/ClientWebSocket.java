@@ -5,6 +5,7 @@ import client.entities.Message;
 import client.entities.MessageDecoder;
 import client.entities.MessageEncoder;
 import client.entities.adapters.*;
+import client.entities.customExceptions.CommandNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -95,15 +96,7 @@ public class ClientWebSocket {
                         }
                         return corda;
                     });
-                    /*flowHandle.getReturnValue().then(CordaFuture -> {
 
-                        try {
-                            sendResponse(message);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return CordaFuture;
-                    });*/
                     break;
                 case "getStateProperties":
                     // custom message result can be added
@@ -111,24 +104,21 @@ public class ClientWebSocket {
                     break;
                 default:
                     retObj = client.run(msgCmd);
+
             }
 
 
         } catch (Exception e) {
             message.setCmd("ERR");
             message.setResult("{\"status\" : \"ERR\", \"result\": \""  + e.toString() + "\"}");
-            System.out.println("I did catch it");
-            //sendResponse(message);
         }
         System.out.println(message);
         try{
             if (retObj != null) sendResponse(message, retObj);
             else sendResponse(message);
         } catch (EncodeException e) {
-            System.out.println("I did catch it");
             e.printStackTrace();
         } catch (IOException e) {
-            System.out.println("I did catch it");
             e.printStackTrace();
         }
 

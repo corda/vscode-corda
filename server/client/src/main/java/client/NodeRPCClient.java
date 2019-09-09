@@ -1,12 +1,11 @@
 package client;
 
-import client.entities.customExceptions.FlowsNotFound;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import client.entities.customExceptions.CommandNotFoundException;
+import client.entities.customExceptions.FlowsNotFoundException;
 import com.google.common.collect.ImmutableList;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
-import net.corda.core.concurrent.CordaFuture;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;
@@ -19,12 +18,9 @@ import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.tags.Param;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -81,7 +77,7 @@ public class NodeRPCClient {
      * @param rpcUsername login username
      * @param rpcPassword login password
      */
-    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws FlowsNotFound {
+    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws FlowsNotFoundException {
 
         this.client = new CordaRPCClient(parse(nodeAddress));
         this.connection = client.start(rpcUsername,rpcPassword);
@@ -121,7 +117,7 @@ public class NodeRPCClient {
      * @param jarPath full path to the .jar files containing CorDapp flows
      * @param registeredFlows list of registeredFlows on the Node
      */
-    private void setFlowMaps(String jarPath, List<String> registeredFlows) throws FlowsNotFound {
+    private void setFlowMaps(String jarPath, List<String> registeredFlows) throws FlowsNotFoundException {
         registeredFlowClasses = new HashMap<>();
         registeredFlowParams = new HashMap<>();
         File dir = new File(jarPath);
@@ -159,7 +155,7 @@ public class NodeRPCClient {
 
                 System.out.println("flows FOUND in file + " + flowJarFile.toString());
                 if(registeredFlowParams.isEmpty()){
-                    throw new FlowsNotFound("Could not find any flows in the node cordapps");
+                    throw new FlowsNotFoundException("Could not find any flows in the node cordapps");
                 }
             } catch (MalformedURLException | ClassNotFoundException e) {
 //                e.printStackTrace();
@@ -262,7 +258,6 @@ public class NodeRPCClient {
             }
 
             currTrans = transMap.get(txHash);
-
             currTrans.addToStates(states.get(i).getState().getData(), stateMeta.get(i));
 
             transMap.replace(txHash, currTrans);
@@ -322,10 +317,16 @@ public class NodeRPCClient {
      * @return
      * @throws Exception
      */
-    public Object run(String cmd) throws Exception {
-        return this.cmd.get(cmd).call();
+    public Object run(String cmd) throws CommandNotFoundException, Exception {
+        Callable callable = this.cmd.get(cmd);
+        if(callable == null){
+            throw new CommandNotFoundException(cmd + " is not a registered command");
+        }else{
+            return callable.call();
+        }
+
     }
-    public Object run(String cmd, Object args) {
+    public Object run(String cmd, Object args) throws CommandNotFoundException {
 
         // parameterized methods
         switch (cmd) {
@@ -340,8 +341,9 @@ public class NodeRPCClient {
 
             case "getStateProperties":
                 return getStateProperties((String) args);
+            default:
+                throw new CommandNotFoundException(cmd + " with args is not a registered command");
         }
-        return null;
     }
 
     /**
@@ -394,20 +396,24 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-        NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
-        String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"DodgyParty\",\"SanctionsBody\"]}";
-        HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
+//        NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
+//        String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"DodgyParty\",\"SanctionsBody\"]}";
+//        HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
+//
+//        FlowHandle corda = (FlowHandle) client.run("startFlow", content);
+//        corda.getReturnValue().then(CordaFuture ->{
+//            System.out.println("Finished");
+//            System.out.println(CordaFuture.hashCode());
+//            return CordaFuture;
+//        });
+//
+//        while(true){
+//
+//        }
 
-        FlowHandle corda = (FlowHandle) client.run("startFlow", content);
-        corda.getReturnValue().then(CordaFuture ->{
-            System.out.println("Finished");
-            System.out.println(CordaFuture.hashCode());
-            return CordaFuture;
-        });
+      //  NodeRPCClient client = new NodeRPCClient("localhost:10005","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
+      //  client.run("getTransctionMap");
 
-        while(true){
-
-        }
         //client.setFlowMaps(".", client.getRegisteredFlows());
         //System.out.println(client.run("getStatesInVault"));
         //List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");

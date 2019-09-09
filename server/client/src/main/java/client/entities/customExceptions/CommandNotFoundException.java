@@ -1,8 +1,8 @@
 package client.entities.customExceptions;
 
-public class FlowsNotFound extends Exception{
+public class CommandNotFoundException extends Exception{
     private String msg;
-    public FlowsNotFound(String msg){
+    public CommandNotFoundException(String msg){
         this.msg = msg;
     }
     public String toString(){
