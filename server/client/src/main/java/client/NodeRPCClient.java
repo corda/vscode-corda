@@ -408,103 +408,104 @@ public class NodeRPCClient {
         QueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria();
 
         for (Map.Entry<String, Object> entry : query.entrySet()) {
+            if (!entry.getValue().equals("")) {
+                String predicate = entry.getKey();
 
-            String predicate = entry.getKey();
+                switch (predicate) {
 
-            switch(predicate) {
+                    // status input is
+                    // "<UNCONSUMED/CONSUMED/ALL>"
+                    case "status":
+                        Vault.StateStatus status = Vault.StateStatus.valueOf((String) entry.getValue());
 
-                // status input is
-                // "<UNCONSUMED/CONSUMED/ALL>"
-                case "status":
-                    Vault.StateStatus status = Vault.StateStatus.valueOf((String) entry.getValue());
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStatus(status));
+                        break;
 
-                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStatus(status));
-                    break;
+                    // contractState types input should be FQN of class
+                    // value = ['a','b','c']
+                    case "contractStateType":
+                        List<String> contractNames = (List) entry.getValue();
+                        Set<Class<ContractState>> contractStateTypes = new HashSet<>();
 
-                // contractState types input should be FQN of class
-                // value = ['a','b','c']
-                case "contractStateType":
-                    List<String> contractNames = (List) entry.getValue();
-                    Set<Class<ContractState>> contractStateTypes = new HashSet<>();
+                        // fill class set
+                        for (String c : contractNames) {
+                            contractStateTypes.add(contractStateClasses.get(c));
+                        }
+                        // add to QueryCriteria
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withContractStateTypes(contractStateTypes));
+                        break;
 
-                    // fill class set
-                    for(String c : contractNames) {
-                        contractStateTypes.add(contractStateClasses.get(c));
-                    }
-                    // add to QueryCriteria
-                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withContractStateTypes(contractStateTypes));
-                    break;
+                    // stateRefs input is
+                    // value = ['{ 'hash': '0x', 'index': '3' }, ... ]
+                    case "stateRefs":
+                        List<Map<String, String>> stateRefInputs = (List<Map<String, String>>) entry.getValue();
+                        List<StateRef> stateRefs = new ArrayList<>();
 
-                // stateRefs input is
-                // value = ['{ 'hash': '0x', 'index': '3' }, ... ]
-                case "stateRefs":
-                    List<Map<String, String>> stateRefInputs = (List<Map<String, String>>) entry.getValue();
-                    List<StateRef> stateRefs = new ArrayList<>();
+                        // fill stateRefs list
+                        for (Map<String, String> sr : stateRefInputs) {
+                            String hashIn = sr.get("hash");
+                            Integer indexIn = Integer.parseInt(sr.get("index"));
 
-                    // fill stateRefs list
-                    for (Map<String, String> sr : stateRefInputs) {
-                        String hashIn = sr.get("hash");
-                        Integer indexIn = Integer.parseInt(sr.get("index"));
+                            SecureHash hash = SecureHash.parse(hashIn);
+                            StateRef stateRef = new StateRef(hash, indexIn);
 
-                        SecureHash hash = SecureHash.parse(hashIn);
-                        StateRef stateRef = new StateRef(hash, indexIn);
+                            stateRefs.add(stateRef);
+                        }
+                        // add to QueryCriteria
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStateRefs(stateRefs));
+                        break;
 
-                        stateRefs.add(stateRef);
-                    }
-                    // add to QueryCriteria
-                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withStateRefs(stateRefs));
-                    break;
+                    // notary OR participants input is
+                    // ['PartyA', 'PartyB', ...]
+                    case "participants":
+                    case "notary":
+                        List<String> parties = (List<String>) entry.getValue();
+                        List<AbstractParty> partyList = new ArrayList<>();
 
-                // notary OR participants input is
-                // ['PartyA', 'PartyB', ...]
-                case "participants":
-                case "notary":
-                    List<String> parties = (List<String>) entry.getValue();
-                    List<AbstractParty> partyList = new ArrayList<>();
+                        // fill notary list
+                        for (String party : parties) {
+                            // grab party from RPCOps and add to list
+                            Party p = proxy.partiesFromName(party, true).iterator().next();
+                            partyList.add(p);
+                        }
+                        // add to QueryCriteria
+                        if (predicate.equals("notary")) {
+                            userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withNotary(partyList));
+                        } else { // predicate 'participants'
+                            userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withParticipants(partyList));
+                        }
 
-                    // fill notary list
-                    for (String party : parties) {
-                        // grab party from RPCOps and add to list
-                        Party p = proxy.partiesFromName(party, true).iterator().next();
-                        partyList.add(p);
-                    }
-                    // add to QueryCriteria
-                    if (predicate.equals("notary")) {
-                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withNotary(partyList));
-                    } else { // predicate 'participants'
-                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withParticipants(partyList));
-                    }
+                        break;
 
-                    break;
+                    // timeCondition input is
+                    // { 'type':'RECORDED', 'start': <time>, 'end': <time> }
+                    case "timeCondition":
 
-                // timeCondition input is
-                // { 'type':'RECORDED', 'start': <time>, 'end': <time> }
-                case "timeCondition":
+                        Map<String, String> tcIn = (Map<String, String>) entry.getValue();
+                        QueryCriteria.TimeInstantType timeInstantType = QueryCriteria.TimeInstantType.valueOf(tcIn.get("type"));
 
-                    Map<String, String> tcIn = (Map<String, String>) entry.getValue();
-                    QueryCriteria.TimeInstantType timeInstantType = QueryCriteria.TimeInstantType.valueOf(tcIn.get("type"));
+                        Instant start = Instant.parse(tcIn.get("start"));
+                        Instant end = Instant.parse(tcIn.get("end"));
 
-                    Instant start = Instant.parse(tcIn.get("start"));
-                    Instant end = Instant.parse(tcIn.get("end"));
+                        ColumnPredicate<Instant> timePred = new ColumnPredicate.Between<>(start, end);
+                        QueryCriteria.TimeCondition tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
 
-                    ColumnPredicate<Instant> timePred = new ColumnPredicate.Between<>(start, end);
-                    QueryCriteria.TimeCondition tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
+                        // add to QueryCriteria
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withTimeCondition(tc));
+                        break;
 
-                    // add to QueryCriteria
-                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withTimeCondition(tc));
-                    break;
+                    // relevancyStatus input is
+                    // "<ALL/RELEVANT/NON_RELEVANT>"
+                    case "relevancyStatus":
+                        String relIn = (String) entry.getValue();
+                        Vault.RelevancyStatus rs = Vault.RelevancyStatus.valueOf(relIn);
 
-                // relevancyStatus input is
-                // "<ALL/RELEVANT/NON_RELEVANT>"
-                case "relevancyStatus":
-                    String relIn = (String) entry.getValue();
-                    Vault.RelevancyStatus rs = Vault.RelevancyStatus.valueOf(relIn);
-
-                    // add to QueryCriteria
-                    userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withRelevancyStatus(rs));
-                    break;
+                        // add to QueryCriteria
+                        userCriteria = userCriteria.and(new QueryCriteria.VaultQueryCriteria().withRelevancyStatus(rs));
+                        break;
 
 
+                }
             }
         }
 
@@ -689,6 +690,8 @@ public class NodeRPCClient {
 //                        " }"
 //        ;
 
+        String t = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
+
         //System.out.println("HERE is \n" +
 
 //        Map<String, Object> in = gson.fromJson(s, HashMap.class);
@@ -707,7 +710,7 @@ public class NodeRPCClient {
 
 
 
-        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", s);
+        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", t);
 
         System.out.println(result);
         //System.out.println("\n\n\n" + result.getTotalStatesAvailable());
