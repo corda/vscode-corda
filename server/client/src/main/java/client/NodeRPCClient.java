@@ -576,7 +576,8 @@ public class NodeRPCClient {
             case "getStateProperties":
                 return getStateProperties((String) args);
             case "userVaultQuery":
-                HashMap<String, Object> queryArgMap = (HashMap<String, Object>) args;
+                Gson gson = new GsonBuilder().create();
+                HashMap<String, Object> queryArgMap = gson.fromJson((String) args, HashMap.class);
                 Map<String, String> queryArgs = (Map<String, String>) queryArgMap.get("args");
                 Map<String, Object>  queryValues = (Map<String, Object>) queryArgMap.get("values");
                 return userVaultQuery(queryArgs, queryValues);
@@ -690,7 +691,7 @@ public class NodeRPCClient {
 
         //System.out.println("HERE is \n" +
 
-  //      Map<String, Object> in = gson.fromJson(s, HashMap.class);
+//        Map<String, Object> in = gson.fromJson(s, HashMap.class);
 //        Map a = (Map) in.get("args");
 //        Map b = (Map) in.get("values");
 //        System.out.println(b);
@@ -705,10 +706,11 @@ public class NodeRPCClient {
 
 
 
-//        Vault.Page<ContractState> result = (Vault.Page<ContractState>) client.run("userVaultQuery", in);
-//
-//        System.out.println(result.getStates());
-//        System.out.println("\n\n\n" + result.getTotalStatesAvailable());
+
+        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", s);
+
+        System.out.println(result);
+        //System.out.println("\n\n\n" + result.getTotalStatesAvailable());
         //System.out.println("\n\n\n" + result.getTotalStatesAvailable());
 
 
