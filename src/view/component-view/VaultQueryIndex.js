@@ -23,6 +23,7 @@ export default class VaultQueryIndex extends React.Component {
             nodeInfo : null,
             flowNames: [],
             flowParams:null,
+            stateNames:null,
             transactionMap: null,
             client: null,
             messages : []
@@ -89,17 +90,18 @@ export default class VaultQueryIndex extends React.Component {
             })
         }
 
-  
+        if (evt.cmd == "getStateNames") {
+            this.setState({
+                stateNames : content
+            })
+        }
 
-          if(evt.cmd === "getTransactionMap" || evt.cmd === "vaultTrackResponse"){
-             // console.log(Object.values(content))
-              this.setState({
-                  transactionMap: Object.values(content)
-              })
-          }
-
-         
-            
+        if(evt.cmd === "getTransactionMap" || evt.cmd === "vaultTrackResponse"){
+            // console.log(Object.values(content))
+            this.setState({
+                transactionMap: Object.values(content)
+            })
+        }
 
         if(result.status === 'ERR'){
             this.state.messages.push({content: "An error occured: " + result.result,
@@ -145,6 +147,10 @@ export default class VaultQueryIndex extends React.Component {
         this.state.client.send(JSON.stringify({"cmd": "getTransactionMap"}))
     }
 
+    loadStateNames() {
+        this.state.client.send(JSON.stringify({"cmd": "getStateNames"}))
+    }
+
 
     flushNode(){
         this.setState({
@@ -165,6 +171,7 @@ export default class VaultQueryIndex extends React.Component {
             this.chosenNode(this.state.connections[value])
             this.loadNodeInfo()
             this.loadTransactionHistory()
+            this.loadStateNames()
         }else{
             this.flushNode()
         }
@@ -185,14 +192,16 @@ export default class VaultQueryIndex extends React.Component {
 
        let DisplayNodeInfo = null;
        let DisplayVaultTransactions = null;
+       let VaultQueryBuilder = null;
        if(this.state.nodeInfo){
            DisplayNodeInfo = <NodeInfo nodeInfo = {this.state.nodeInfo} />
-           
        }
        if(this.state.flowParams){
            DisplayFlowList = <FlowInfoDisplay selectedNode = {this.state.selectedNode} flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
        }
-
+       if(this.state.stateNames) {
+           VaultQueryBuilder = <VQueryBuilder allNodes={this.state.allNodes} contractStates={this.state.stateNames} />
+       }
        if(this.state.transactionMap){
            DisplayVaultTransactions = <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
        }
@@ -207,9 +216,7 @@ export default class VaultQueryIndex extends React.Component {
                     <Grid item sm={4}> {DisplayNodeInfo} </Grid>
                 </Grid>
                 <Grid container justify = "center" alignitems="center" >
-                    <Grid item sm={4} >
-                        <VQueryBuilder participants={this.state.allNodes} contractStates={['net.corda.myContract', 'net.corda.yourContract']} notaries={['Notary1', 'Notary2']} />
-                    </Grid>
+                    <Grid item sm={4} > {VaultQueryBuilder} </Grid>
                     <Grid item sm={5}> {DisplayVaultTransactions} </Grid>
                 </Grid>
                 {this.state.messages.map((message, index) => { 

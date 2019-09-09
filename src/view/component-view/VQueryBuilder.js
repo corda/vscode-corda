@@ -40,7 +40,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-// PROPS: notaries, contractStates, participants
+// PROPS: allNodes, contractStates
 export default function VQueryBuilder(props) {
   const classes = useStyles();
   //const [checked, setChecked] = React.useState("");
@@ -223,21 +223,33 @@ export default function VQueryBuilder(props) {
                     </Select>
                 </ListItem>
             ); 
-        case "Notary":
+        case "Notary": // if value.notary exists
         case "ContractStateType":
         case "Participants":
             var inputs = "";
             var statePropName = "";
-            if (predicate === "Notary") {
-                inputs = props.notaries;
-                statePropName = "notary"
-            } else if (predicate === "Participants") {
-                inputs = props.participants;
-                statePropName = "participants"
-            }
-            else {
+            
+            if (predicate === "ContractStateType") {
                 inputs = props.contractStates;
                 statePropName = "contractStateType";
+            } else {
+
+                // filter allNodes to relevant predicate
+                if (predicate === "Notary") {
+                    statePropName = "notary"
+                    inputs = props.allNodes.filter(value => {
+                        return value.notary;
+                    })
+                } else if (predicate === "Participants") {
+                    statePropName = "participants"
+                    inputs = props.allNodes.filter(value => {
+                        return !value.notary;
+                    })
+                }
+                // convert the incoming input <Party> to String representation
+                inputs = inputs.map(value => {
+                    return value.name.match("O=(.*),L")[1];
+                })
             }
             return (
                 <React.Fragment>
