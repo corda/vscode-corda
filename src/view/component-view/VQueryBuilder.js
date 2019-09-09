@@ -74,13 +74,15 @@ export default function VQueryBuilder(props) {
     const value = event.target.value;
 
     const currentIndex = state.queryValues[name].indexOf(value);
-    const newChecked = [...state.queryValues[name]];
+    var newChecked = [...state.queryValues[name]];
 
     if (currentIndex === -1) {
       newChecked.push(value);
     } else {
       newChecked.splice(currentIndex, 1);
     }
+
+    if (newChecked.length === 0) newChecked = ""; // reset to default
 
     setState({ 
         ...state,
@@ -101,8 +103,9 @@ export default function VQueryBuilder(props) {
                         <ListItemText primary={`ref: ${refs["hash"]} index: ${refs["index"]}`} />
                         <IconButton onClick={() => {
                                     const entryIndex = state.queryValues.stateRefs.indexOf(refs);
-                                    const newStateRefs = [...state.queryValues.stateRefs];
+                                    var newStateRefs = [...state.queryValues.stateRefs];
                                     newStateRefs.splice(entryIndex, 1);
+                                    if (newStateRefs.length === 0) newStateRefs = ""; // reset to default
 
                                     setState({ ...state,
                                         queryValues: {
@@ -198,6 +201,18 @@ export default function VQueryBuilder(props) {
         })
     }
   }
+
+  const startUserVaultQuery = () => {
+        console.log("about to run startUserVaultQuery");
+        props.startUserVaultQuery(state.queryValues);
+    }
+
+// component replacement for lifecycle componentDidUpdate()
+React.useEffect(() => {
+    console.log("state update! here");
+    
+    startUserVaultQuery();
+}, [state.queryValues])
 
   const contents = (predicate) => {
     

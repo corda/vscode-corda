@@ -44,7 +44,7 @@ export default class VaultQueryIndex extends React.Component {
           //  console.log("added node")
         });
        this.handleChange = this.handleChange.bind(this);
-      
+       this.startUserVaultQuery = this.startUserVaultQuery.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
        this.flushNode = this.flushNode.bind(this);
        this.removeSnack = this.removeSnack.bind(this);
@@ -96,8 +96,8 @@ export default class VaultQueryIndex extends React.Component {
             })
         }
 
-        if(evt.cmd === "getTransactionMap" || evt.cmd === "vaultTrackResponse"){
-            // console.log(Object.values(content))
+        if(evt.cmd === "getTransactionMap" || evt.cmd === "vaultTrackResponse" || evt.cmd === "userVaultQuery"){
+            console.log(Object.values(content))
             this.setState({
                 transactionMap: Object.values(content)
             })
@@ -112,6 +112,21 @@ export default class VaultQueryIndex extends React.Component {
             )
         }
 
+    }
+
+    startUserVaultQuery(queryValues){
+        var content = {
+          "args" : { // args will be used in future default values currently set below
+              // pageSpecification: ?
+              // pageSize: ?
+              sortAttribute: "NOTARY_NAME",
+              sortDirection: "ASC"
+          },
+          "values" : queryValues
+        }
+        this.state.client.send(JSON.stringify({"cmd": "userVaultQuery", "content": JSON.stringify(          
+          content
+        )}));
     }
 
     removeSnack(item){
@@ -192,7 +207,7 @@ export default class VaultQueryIndex extends React.Component {
 
        let DisplayNodeInfo = null;
        let DisplayVaultTransactions = null;
-       let VaultQueryBuilder = null;
+       let VaultQueryBuilder = null; // must pass in the setState for transactionMap
        if(this.state.nodeInfo){
            DisplayNodeInfo = <NodeInfo nodeInfo = {this.state.nodeInfo} />
        }
@@ -200,7 +215,7 @@ export default class VaultQueryIndex extends React.Component {
            DisplayFlowList = <FlowInfoDisplay selectedNode = {this.state.selectedNode} flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
        }
        if(this.state.stateNames) {
-           VaultQueryBuilder = <VQueryBuilder allNodes={this.state.allNodes} contractStates={this.state.stateNames} />
+           VaultQueryBuilder = <VQueryBuilder allNodes={this.state.allNodes} contractStates={this.state.stateNames} startUserVaultQuery={this.startUserVaultQuery} />
        }
        if(this.state.transactionMap){
            DisplayVaultTransactions = <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
