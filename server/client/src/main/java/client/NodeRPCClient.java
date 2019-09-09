@@ -1,6 +1,5 @@
 package client;
 
-
 import client.entities.customExceptions.AuthenticationFailureException;
 import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
@@ -117,15 +116,14 @@ public class NodeRPCClient {
     public void updateNodeData() {
         registeredFlows = proxy.registeredFlows(); // get registered flows
 
-        // get state names
-        List<Vault.StateMetadata> stateMetadata = proxy.vaultQuery(ContractState.class).getStatesMetadata();
-        stateNames = new HashSet<>();
-        stateMetadata.iterator().forEachRemaining(x -> {
-            stateNames.add(x.getContractStateClassName());
-        });
-
         // static query of vault
         statesAndMeta = proxy.vaultQuery(ContractState.class);
+
+        // get state names for all states in vault.
+        stateNames = new HashSet<>();
+        statesAndMeta.getStatesMetadata().iterator().forEachRemaining(x -> {
+            stateNames.add(x.getContractStateClassName());
+        });
     }
 
     /**
