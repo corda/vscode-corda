@@ -5,12 +5,9 @@ import client.entities.customExceptions.AuthenticationFailureException;
 import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
 import client.entities.customExceptions.UnrecognisedParameterException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.internal.LinkedTreeMap;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
@@ -23,14 +20,16 @@ import net.corda.core.messaging.DataFeed;
 import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
-import net.corda.core.node.services.vault.*;
+import net.corda.core.node.services.vault.ColumnPredicate;
+import net.corda.core.node.services.vault.PageSpecification;
+import net.corda.core.node.services.vault.QueryCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.json.Json;
-import javax.swing.plaf.nimbus.State;
 import java.io.File;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -257,10 +256,8 @@ public class NodeRPCClient {
         return null;
     }
 
-    public Map<SecureHash, TransRecord> getTransactionMap() {
+    public Map<SecureHash, TransRecord> createTransactionMap(List<Vault.StateMetadata> stateMeta, List<StateAndRef<ContractState>> states) {
         Map<SecureHash, TransRecord> transMap = new HashMap<>();
-        List<Vault.StateMetadata> stateMeta = getStatesMetaInVault();
-        List<StateAndRef<ContractState>> states = getStatesInVault();
 
         for (int i = 0; i < states.size(); i++) {
             SecureHash txHash = states.get(i).getRef().getTxhash();
@@ -281,6 +278,10 @@ public class NodeRPCClient {
         }
 
         return transMap;
+    }
+
+    public Map<SecureHash, TransRecord> getTransactionMap() {
+        return createTransactionMap(getStatesMetaInVault(), getStatesInVault());
     }
 
     /**
@@ -372,7 +373,7 @@ public class NodeRPCClient {
      *     }
      *
      */
-    private Vault.Page<ContractState> userVaultQuery(Map<String, String> argsIn, Map<String, Object> query) throws Exception {
+    private Map<SecureHash, TransRecord> userVaultQuery(Map<String, String> argsIn, Map<String, Object> query) throws Exception {
 
         Gson gson = new GsonBuilder().create();
 
@@ -541,7 +542,9 @@ public class NodeRPCClient {
 //
 //        Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
 
-        return proxy.vaultQueryByWithPagingSpec(ContractState.class, userCriteria, ps);
+        Vault.Page<ContractState> result = proxy.vaultQueryByWithPagingSpec(ContractState.class, userCriteria, ps);
+
+        return createTransactionMap(result.getStatesMetadata(), result.getStates());
     }
 
     /**
