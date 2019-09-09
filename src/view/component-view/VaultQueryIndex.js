@@ -6,6 +6,8 @@ import VaultTransactionDisplay from "./VaultTransactionDisplay";
 import NodeInfo from "./NodeInfo";
 import NodeSelector from "./NodeSelector";
 
+import VQueryBuilder from "./VQueryBuilder";
+
 import SnackBarWrapper from "./SnackBarWrapper";
 import Grid from '@material-ui/core/Grid';
 
@@ -205,7 +207,9 @@ export default class VaultQueryIndex extends React.Component {
                     <Grid item sm={4}> {DisplayNodeInfo} </Grid>
                 </Grid>
                 <Grid container justify = "center" alignitems="center" >
-                    <Grid item sm={4} ></Grid>
+                    <Grid item sm={4} >
+                        <VQueryBuilder participants={this.state.allNodes} contractStates={['net.corda.myContract', 'net.corda.yourContract']} notaries={['Notary1', 'Notary2']} />
+                    </Grid>
                     <Grid item sm={5}> {DisplayVaultTransactions} </Grid>
                 </Grid>
                 {this.state.messages.map((message, index) => { 
