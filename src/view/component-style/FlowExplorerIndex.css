@@ -113,8 +113,8 @@ body{
 .snackbar-message{
     display: flex !important;
     align-items: center !important;
-    width: 20vw;
-    height: 10vh;
+    width: 300px;
+    height: 100px;
     scroll-behavior: smooth !important;
     overflow: auto !important;
     

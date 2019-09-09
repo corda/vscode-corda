@@ -90,71 +90,82 @@ export default class FlowExplorerIndex extends React.Component {
        console.log("command received: " + evt.cmd);
        console.log("returned content: " + evt.content);
 
-        if (evt.cmd == "getNodeInfo") {
-            this.setState({
-                nodeInfo : content
-            })
-        }
-
-        if(evt.cmd == "getRegisteredFlows"){
-            this.setState({
-               flowNames : content
-            })
-          }
-   
-          if(evt.cmd === "getRegisteredFlowParams"){
-            this.setState({
-              flowParams : content
-            })
-          }
-
-          if(evt.cmd === "getTransactionMap" || evt.cmd === "vaultTrackResponse"){
-             // console.log(Object.values(content))
-              this.setState({
-                  transactionMap: Object.values(content)
-              })
-          }
-
-          if(evt.cmd === "startFlow"){
-            if(result.result === "Flow Started"){
-                this.state.messages.push({content: "A flow of type " + content.flow + " started",
-                                          type: "info",
-                                          id: result.id
-              })
-              this.setState(this.state.messages);
-            }
-  
-            if(result.result === 'Flow Finished'){
-                //Find index of specific object using findIndex method.    
-              var objIndex = this.state.messages.findIndex((obj => obj.id == result.id));
-              if(objIndex != -1){
-              //Update object's name property.
-                  this.state.messages[objIndex].type = "success"
-                  this.state.messages[objIndex].content = "A flow of type " + content.flow + " finished"
-              } else{
-                  this.state.messages.push({content: "A flow of type " + content.flow + " finished",
-                                          type: "success"
-                                          
-                  })
-              }
-              this.setState(
-                      this.state.messages
-              )
-  
-            }
-            
-          }
-          
-
-        if(result.status === 'ERR'){
-            this.state.messages.push({content: "An error occured: " + result.result,
-                                        type: "error"
-            })
-            this.setState(
-                this.state.messages
-            )
-        }
-
+       switch(evt.cmd){
+           case "getNodeInfo":
+                this.setState({
+                    nodeInfo : content
+                })
+                break;
+            case "getRegisteredFlows":
+                this.setState({
+                    flowNames : content
+                })
+                
+                break;
+            case "getRegisteredFlowParams":
+                this.setState({
+                    flowParams : content
+                })
+                break;
+            case "getTransactionMap":
+            case "vaultTrackResponse":
+                this.setState({
+                    transactionMap: Object.values(content)
+                })
+                break;
+            case "startFlow":
+                switch(result.result){
+                    case "Flow Started":
+                            console.log("yeah");
+                            this.state.messages.push({content: "A flow of type " + content.flow + " started",
+                                type: "info",
+                                id: result.id
+                            })
+                            this.setState(this.state.messages);
+                            break;
+                    case "Flow Finished":
+                            var objIndex = this.state.messages.findIndex((obj => obj.id == result.id));
+                            if(objIndex != -1){
+                            //Update object's name property.
+                                this.state.messages[objIndex].type = "success"
+                                this.state.messages[objIndex].content = "A flow of type " + content.flow + " finished"
+                            } else{
+                                this.state.messages.push({content: "A flow of type " + content.flow + " finished",
+                                                        type: "success"
+                                                        
+                                })
+                            }
+                            this.setState(
+                                    this.state.messages
+                            )
+                            break;
+                    case "Flow Finished Exceptionally":
+                            var objIndex = this.state.messages.findIndex((obj => obj.id == result.id));
+                            if(objIndex != -1){
+                            //Update object's name property.
+                                this.state.messages[objIndex].type = "error"
+                                this.state.messages[objIndex].content = "A flow of type " + content.flow + " finished exceptionally"
+                            } else{
+                                this.state.messages.push({content: "A flow of type " + content.flow + " finished exceptionally",
+                                                        type: "error"
+                                                        
+                                })
+                            }
+                            this.setState(
+                                    this.state.messages
+                            )
+                            break;
+                }
+                break;
+            case "ERR":
+                    this.state.messages.push({content: "An error occured: " + result.result,
+                    type: "error"
+                    })
+                    this.setState(
+                        this.state.messages
+                    )
+                    break;
+       }
     }
 
     removeSnack(item){

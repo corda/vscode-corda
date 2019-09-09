@@ -23,6 +23,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class handles websocket connections form the Corda VSCODE extension.
@@ -82,8 +83,10 @@ public class ClientWebSocket {
 
                     CordaFuture detail = flowHandle.getReturnValue();
                     detail.then(corda ->{
-                        if(detail.toCompletableFuture().isCompletedExceptionally()){
-                            message.setResult("{\"status\" : \"ERR\", \"result\":\"Flow Finished exceptionally\", \"id\": \"" + flowHandle.getId() + "\"}");
+                        CompletableFuture completed = detail.toCompletableFuture();
+                        if(completed.isCompletedExceptionally()){
+                            message.setResult("{\"status\" : \"ERR\", \"result\":\"Flow Finished Exceptionally\", \"id\": \"" + flowHandle.getId() + "\"}");
+                            completed.
                         }else{
                             message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\", \"id\": \"" + flowHandle.getId() + "\"}");
 
@@ -115,6 +118,7 @@ public class ClientWebSocket {
 
 
         } catch (Exception e) {
+            message.setCmd("ERR");
             message.setResult("{\"status\" : \"ERR\", \"result\": \""  + e.toString() + "\"}");
             System.out.println("I did catch it");
             //sendResponse(message);
