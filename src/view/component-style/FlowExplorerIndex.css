@@ -12,6 +12,10 @@ body{
 .flow-param-input-field{
     margin-left: 5px !important;
     margin-right:5px !important;
+    
+    width:  initial !important; 
+    max-width: initial !important;
+    display: inline-block !important;
 }
 
 .selection-box{
@@ -71,6 +75,7 @@ body{
 
 .flow-details-card{
     width: 100%;
+
 }
 
 #vault-info-display-table * {

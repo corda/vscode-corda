@@ -26,20 +26,19 @@ export default class FlowExplorerIndex extends React.Component {
             messages : []
         }
      
+        
         let _this = this;
         var defaultSettings = JSON.parse(document.getElementById('nodeDefaults').innerHTML);
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
-        console.log("default nodes = " + JSON.stringify(defaultSettings))
         this.state.allNodes.forEach(function(node) {
             if(!node.notary){
-                console.log("building for " + node.name);
                 _this.state.connections[node.name] = {
                     host: node.rpcSettings.address,
                     cordappDir: node.cordappDir   
                 }
                 if(node.rpcUsers){
-                    _this.state.connections[node.name].username = node.rpcUsers.username;
-                    _this.state.connections[node.name].password = node.rpcUsers.password
+                    _this.state.connections[node.name].username = node.rpcUsers.user;
+                    _this.state.connections[node.name].password = node.rpcUsers.password;
                     
                 }else{
                     _this.state.connections[node.name].username = defaultSettings.rpcUsers.username;
@@ -48,7 +47,6 @@ export default class FlowExplorerIndex extends React.Component {
             }
           //  console.log("added node")
         });
-        console.log("node connections = " + JSON.stringify(this.state.connections));
        this.handleChange = this.handleChange.bind(this);
        this.startFlow = this.startFlow.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -81,16 +79,23 @@ export default class FlowExplorerIndex extends React.Component {
 
 
     messageHandler(event) {
-        //console.log(event.data)
+        console.log(event.data)
         var evt = JSON.parse(event.data);
         var content = JSON.parse(evt.content);
+
         var result = JSON.parse(evt.result);
 
-       console.log("result: " + evt.result);
-       console.log("command received: " + evt.cmd);
-       console.log("returned content: " + evt.content);
+       
+       //console.log("result: " + evt.result);
+       //console.log("command received: " + evt.cmd);
+       //console.log("returned content: " + evt.content);
 
        switch(evt.cmd){
+           case "connect":
+                this.loadNodeInfo()
+                this.loadFlowInfo()
+                this.loadTransactionHistory()
+                break;
            case "getNodeInfo":
                 this.setState({
                     nodeInfo : content
@@ -116,7 +121,6 @@ export default class FlowExplorerIndex extends React.Component {
             case "startFlow":
                 switch(result.result){
                     case "Flow Started":
-                            console.log("yeah");
                             this.state.messages.push({content: "A flow of type " + content.flow + " started",
                                 type: "info",
                                 id: result.id
@@ -201,7 +205,6 @@ export default class FlowExplorerIndex extends React.Component {
 
     startFlow(flowName, paramValues){
         var args;
-        console.log(JSON.stringify(paramValues));
         if(!paramValues){
             args = []
         }else{
@@ -236,9 +239,7 @@ export default class FlowExplorerIndex extends React.Component {
         })
         if (value){
             this.chosenNode(this.state.connections[value])
-            this.loadNodeInfo()
-            this.loadFlowInfo()
-            this.loadTransactionHistory()
+            
         }else{
             this.flushNode()
         }

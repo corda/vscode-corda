@@ -1,4 +1,5 @@
 import React from 'react';
+import Downshift from 'downshift';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import { TextField } from '@material-ui/core';
@@ -108,6 +109,7 @@ export default class FlowInfoDisplay extends React.Component {
                     </Grid>
                     <form className="flow-details-card" onSubmit={() => this.startFlow(this.state.selectedFlow)}>
                         {this.state.flowParams[this.state.selectedFlow] && this.state.flowParams[this.state.selectedFlow].map((input,index) => (  
+                            
                             <TextField key={this.state.selectedNode + this.state.selectedFlow + "" + index} className="flow-param-input-field input-field-text" label={input.second + ": " + input.first.match(re)[0]} margin="dense"
                                 onChange = {(e) => this.changeParamHandler(this.state.selectedFlow, input.first.match(re)[0] + index, e)}
                                 InputLabelProps={{
@@ -122,6 +124,7 @@ export default class FlowInfoDisplay extends React.Component {
                                         root: "input-field"
                                     },
                                 }}
+                                fullWidth = {true}
                             >
 
                             </TextField>

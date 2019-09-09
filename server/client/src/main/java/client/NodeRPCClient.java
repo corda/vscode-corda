@@ -1,5 +1,6 @@
 package client;
 
+import client.entities.customExceptions.AuthenticationFailureException;
 import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
 import com.google.common.collect.ImmutableList;
@@ -41,8 +42,8 @@ public class NodeRPCClient {
 
     private final CordaRPCClient client;
     private CordaRPCOps proxy;
-    private final CordaRPCConnection connection;
-    private final NodeInfo nodeInfo;
+    private CordaRPCConnection connection;
+    private NodeInfo nodeInfo;
     private List<String> registeredFlows; // updates
     private Instant initialConnectTime; // time RPCClient is connected
 
@@ -77,14 +78,17 @@ public class NodeRPCClient {
      * @param rpcUsername login username
      * @param rpcPassword login password
      */
-    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws FlowsNotFoundException {
+    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws FlowsNotFoundException, AuthenticationFailureException {
 
         this.client = new CordaRPCClient(parse(nodeAddress));
-        this.connection = client.start(rpcUsername,rpcPassword);
-        this.proxy = connection.getProxy(); // start the RPC Connection
-        this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
-        this.initialConnectTime = proxy.currentNodeTime(); // set connection time
-
+        try {
+            this.connection = client.start(rpcUsername, rpcPassword);
+            this.proxy = connection.getProxy(); // start the RPC Connection
+            this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
+            this.initialConnectTime = proxy.currentNodeTime(); // set connection time
+        }catch(Exception e){
+            throw new AuthenticationFailureException("Failed To Authenticate To The RPC Client " + nodeAddress);
+        }
         buildCommandMap(this);
         updateNodeData();
 
@@ -396,8 +400,9 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-//        NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
-//        String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"DodgyParty\",\"SanctionsBody\"]}";
+          NodeRPCClient client = new NodeRPCClient("localhost:10009","defaul","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
+
+          //        String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"DodgyParty\",\"SanctionsBody\"]}";
 //        HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
 //
 //        FlowHandle corda = (FlowHandle) client.run("startFlow", content);

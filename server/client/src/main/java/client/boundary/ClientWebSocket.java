@@ -58,7 +58,6 @@ public class ClientWebSocket {
         try {
             // parse message content if it exists
             if (message.getContent().length() > 0) {
-                System.out.println(message.getContent());
                 content = new ObjectMapper().readValue(message.getContent(), HashMap.class);
 
             }
@@ -76,7 +75,6 @@ public class ClientWebSocket {
                     }).start();
                     break;
                 case "startFlow":
-                    System.out.println(content);
                     FlowHandle flowHandle = (FlowHandle) client.run(msgCmd, content);
                     message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Started\", \"id\": \"" + flowHandle.getId() + "\"}");
 
@@ -106,13 +104,12 @@ public class ClientWebSocket {
                     retObj = client.run(msgCmd);
 
             }
-
-
+            
         } catch (Exception e) {
+            e.printStackTrace();
             message.setCmd("ERR");
             message.setResult("{\"status\" : \"ERR\", \"result\": \""  + e.toString() + "\"}");
         }
-        System.out.println(message);
         try{
             if (retObj != null) sendResponse(message, retObj);
             else sendResponse(message);
