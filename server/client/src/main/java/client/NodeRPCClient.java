@@ -19,10 +19,12 @@ import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.tags.Param;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -49,7 +51,7 @@ public class NodeRPCClient {
     private Instant initialConnectTime; // time RPCClient is connected
 
     private Map<String, Class> registeredFlowClasses; // maps FQN to class
-    private Map<String, List<Class>> registeredFlowParams; // maps FQN to required params
+    private Map<String, List<Pair<Class, String>>> registeredFlowParams; // maps FQN to required params
 
     private Set<String> stateNames; // updates
     private Vault.Page<ContractState> statesAndMeta;
@@ -171,17 +173,22 @@ public class NodeRPCClient {
      * @param flowClass flow to extract paramTypes from
      * @return list of Classes corresponding to each param of the input flow class
      */
-    private List<Class> setFlowParams(Class flowClass) {
-        List<Class> params = new ArrayList<>();
+    private List<Pair<Class,String>> setFlowParams(Class flowClass) {
+        List<Pair<Class,String>> params = new ArrayList<>();
         List<Constructor> constructors = ImmutableList.copyOf(flowClass.getConstructors());
         for (Constructor c : constructors) {
-            List<Class> paramTypes = ImmutableList.copyOf(c.getParameterTypes());
-            for (Class param : paramTypes) {
-                params.add(param);
+            List<Parameter> paramNames = ImmutableList.copyOf(c.getParameters());
+            for(Parameter param: paramNames){
+                if(param.isNamePresent()){
+                    params.add(new Pair(param.getType(), param.getName()));
+                }else{
+                    params.add(new Pair(param.getType(), "UNKNOWN"));
+                }
 
-                System.out.println(param);
             }
+
         }
+
 
         return params;
     }
@@ -198,7 +205,7 @@ public class NodeRPCClient {
         return Duration.between(initialConnectTime, proxy.currentNodeTime());
     }
 
-    public Map<String, List<Class>> getRegisteredFlowParams() {
+    public Map<String, List<Pair<Class,String>>> getRegisteredFlowParams() {
         return registeredFlowParams;
     }
 
@@ -276,7 +283,7 @@ public class NodeRPCClient {
      */
     public FlowHandle startFlow(String flow, String[] args) {
         Class flowClass = registeredFlowClasses.get(flow);
-        List<Class> paramTypes = registeredFlowParams.get(flow);
+        List<Pair<Class,String>> paramTypes = registeredFlowParams.get(flow);
         String currArg;
         Class currParam;
 
@@ -285,7 +292,7 @@ public class NodeRPCClient {
         if (args.length == paramTypes.size()) {
             for (int i = 0; i < args.length; i++) {
                 currArg = args[i];
-                currParam = paramTypes.get(i);
+                currParam = paramTypes.get(i).getFirst();
 
                 if (currParam == Party.class) { // PARTY
                     Party p = proxy.partiesFromName(currArg, true).iterator().next();

@@ -108,8 +108,8 @@ export default class FlowInfoDisplay extends React.Component {
                     </Grid>
                     <form className="flow-details-card" onSubmit={() => this.startFlow(this.state.selectedFlow)}>
                         {this.state.flowParams[this.state.selectedFlow] && this.state.flowParams[this.state.selectedFlow].map((input,index) => (  
-                            <TextField key={this.state.selectedNode + this.state.selectedFlow + "" + index} className="flow-param-input-field input-field-text" label={input.match(re)[0]} margin="dense"
-                                onChange = {(e) => this.changeParamHandler(this.state.selectedFlow, input.match(re)[0] + index, e)}
+                            <TextField key={this.state.selectedNode + this.state.selectedFlow + "" + index} className="flow-param-input-field input-field-text" label={input.second + ": " + input.first.match(re)[0]} margin="dense"
+                                onChange = {(e) => this.changeParamHandler(this.state.selectedFlow, input.first.match(re)[0] + index, e)}
                                 InputLabelProps={{
                                     classes: {
                                         root: "input-field-label",

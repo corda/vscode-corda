@@ -11,8 +11,6 @@ import com.google.gson.GsonBuilder;
 import net.corda.core.concurrent.CordaFuture;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.identity.Party;
-import net.corda.core.internal.concurrent.CordaFutureImpl;
-import net.corda.core.internal.concurrent.CordaFutureImplKt;
 import net.corda.core.messaging.DataFeed;
 import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
@@ -86,7 +84,6 @@ public class ClientWebSocket {
                         CompletableFuture completed = detail.toCompletableFuture();
                         if(completed.isCompletedExceptionally()){
                             message.setResult("{\"status\" : \"ERR\", \"result\":\"Flow Finished Exceptionally\", \"id\": \"" + flowHandle.getId() + "\"}");
-                            completed.
                         }else{
                             message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\", \"id\": \"" + flowHandle.getId() + "\"}");
 
