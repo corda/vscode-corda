@@ -119,7 +119,7 @@ public class NodeRPCClient {
 
         // propagate stateNameToClass map
         statesAndMeta.getStates().iterator().forEachRemaining(s -> {
-            stateNameToClass.put(s.getState().getData().getClass().toString(), s.getState().getData().getClass());
+            stateNameToClass.put(s.getState().getData().getClass().toString().substring(6), s.getState().getData().getClass());
         });
     }
 
@@ -389,7 +389,7 @@ public class NodeRPCClient {
 
         List<StateRef> stateRefs = statesAndMeta.getStates().stream().map(v -> v.getRef()).collect(Collectors.toList()); // all staterefs
         List<AbstractParty> notary = proxy.notaryIdentities().stream().map(AbstractParty.class::cast).collect(Collectors.toList()); // all notaries
-        List<AbstractParty> participants = new ArrayList<>(); // no participants
+        List<AbstractParty> participants = new ArrayList<>(); // no participant criteria
         //QueryCriteria.TimeCondition tc =
         Vault.RelevancyStatus rs = Vault.RelevancyStatus.ALL; // all
 
@@ -418,6 +418,7 @@ public class NodeRPCClient {
                     // value = ['{ 'hash': '0x', 'index': '3' }, ... ]
                     case "stateRefs":
                         List<Map<String, String>> stateRefInputs = (List<Map<String, String>>) entry.getValue();
+                        stateRefs = new ArrayList<>();
 
                         // fill stateRefs list
                         for (Map<String, String> sr : stateRefInputs) {
@@ -510,24 +511,40 @@ public class NodeRPCClient {
 //
 //        Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
 
-        AbstractParty p = proxy.partiesFromName("PartyC", true).iterator().next();
-        System.out.println(p);
         QueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria()
-                //.withStatus(stateStatus);
-                //.withContractStateTypes(contractStateTypes)
-                //.withStateRefs(stateRefs)
-                //.withNotary(Arrays.asList(p));
-                .withParticipants(Arrays.asList(p));
-                //.withRelevancyStatus(rs);
-
+                .withStatus(stateStatus)
+                .withContractStateTypes(contractStateTypes)
+                .withStateRefs(stateRefs)
+                .withNotary(notary)
+                //.withParticipants(Arrays.asList(p)); PENDING BUG fix on Corda VaultQueryCriteria Jira #https://r3-cev.atlassian.net/browse/CORDA-3209
+                .withRelevancyStatus(rs);
 
         System.out.println("Query is HERE : " + userCriteria.toString());
-
-
         Vault.Page<ContractState> result = proxy.vaultQueryByWithPagingSpec(ContractState.class, userCriteria, ps);
-        System.out.println("PARTICIPANTS!!!! = " + result.getStates().iterator().next().getState().getData().getParticipants().get(0));
-        System.out.println(result);
-        return createTransactionMap(result.getStatesMetadata(), result.getStates());
+
+        // TEMPORARY FILTER on Participants only run if some participants are chosen.
+        if (participants.size() > 0) {
+            List<Vault.StateMetadata> vsm = new ArrayList<>();
+            List<StateAndRef<ContractState>> vsr = new ArrayList<>();
+
+            for (int i = 0; i < result.getStates().size(); i++) {
+                ContractState currentState = result.getStates().get(i).getState().getData();
+
+                System.out.println("here are the state participants: " + currentState.getParticipants());
+                System.out.println("here are the criteria participants: " + participants);
+
+                if (new HashSet<>(participants).equals(new HashSet<>(currentState.getParticipants()))) {
+                    System.out.println("made it inside the BRANCH");
+                    vsm.add(result.getStatesMetadata().get(i));
+                    vsr.add(result.getStates().get(i));
+
+                    System.out.println(vsm.size());
+                }
+            }
+            return createTransactionMap(vsm , vsr);
+        } else return createTransactionMap(result.getStatesMetadata(), result.getStates());
+
+
     }
 
     /**
@@ -626,17 +643,14 @@ public class NodeRPCClient {
 
         Gson gson = new GsonBuilder().create();
 
-        String t = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"UNCONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyC\"]}}";
-
-        //Map<String, Object> in = gson.fromJson(s, HashMap.class);
-
+        String t = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":[\"bootcamp.states.TokenState\"],\"stateRefs\":" +
+                "[{ \"hash\":\"3CF0273A4C29374BC0E53F516A177A41B9DA62AC331F373D542833CDC40C86D9\",\"index\":\"0\"}] ,\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyA\",\"PartyB\"]}}";
 
 
         Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", t);
 
         System.out.println("\n\n\n\nHere is the result : \n" + result);
-        System.out.println("\n\n");
-        System.out.println(client.run("getStateNames"));
+        System.out.println("\n\n Quantity returned : " + result.size());
 
 //        Set<Map.Entry<SecureHash, TransRecord>> mp = client.getTransactionMap().entrySet();
 //        for (Map.Entry<SecureHash, TransRecord> m : mp) {
