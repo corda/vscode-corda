@@ -3,6 +3,8 @@ package client;
 import client.entities.customExceptions.AuthenticationFailureException;
 import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
+import client.entities.customExceptions.UnrecognisedParameterException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
@@ -280,7 +282,7 @@ public class NodeRPCClient {
      * @param args array of args needed for the flow constructor
      * @return
      */
-    public FlowHandle startFlow(String flow, String[] args) {
+    public FlowHandle startFlow(String flow, String[] args) throws UnrecognisedParameterException {
         Class flowClass = registeredFlowClasses.get(flow);
         List<Pair<Class,String>> paramTypes = registeredFlowParams.get(flow);
         String currArg;
@@ -292,18 +294,22 @@ public class NodeRPCClient {
             for (int i = 0; i < args.length; i++) {
                 currArg = args[i];
                 currParam = paramTypes.get(i).getFirst();
+                try {
+                    if (currParam == Party.class) { // PARTY
 
-                if (currParam == Party.class) { // PARTY
-                    Party p = proxy.partiesFromName(currArg, true).iterator().next();
-                    finalParams.add(p);
-                } else if (currArg.equals("true") | currArg.equals("false")) { // BOOLEAN
-                    finalParams.add(Boolean.parseBoolean(currArg));
-                } else if (currParam == UniqueIdentifier.class) {
-                    finalParams.add(new UniqueIdentifier(null, UUID.fromString(currArg)));
-                } else if(currParam == String.class) {  // STRING
-                    finalParams.add(currArg);
-                } else {
-                    finalParams.add(Integer.valueOf(currArg)); // INTEGER
+                        Party p = proxy.partiesFromName(currArg, true).iterator().next();
+                        finalParams.add(p);
+                    } else if (currArg.equals("true") | currArg.equals("false")) { // BOOLEAN
+                        finalParams.add(Boolean.parseBoolean(currArg));
+                    } else if (currParam == UniqueIdentifier.class) {
+                        finalParams.add(new UniqueIdentifier(null, UUID.fromString(currArg)));
+                    } else if (currParam == String.class) {  // STRING
+                        finalParams.add(currArg);
+                    } else {
+                        finalParams.add(Integer.valueOf(currArg)); // INTEGER
+                    }
+                }catch (Exception e){
+                    throw new UnrecognisedParameterException(paramTypes.get(i).getSecond() + " expected a parameter of type " + currParam.toString());
                 }
             }
         }
@@ -330,7 +336,7 @@ public class NodeRPCClient {
         }
 
     }
-    public Object run(String cmd, Object args) throws CommandNotFoundException {
+    public Object run(String cmd, Object args) throws CommandNotFoundException, UnrecognisedParameterException {
 
         // parameterized methods
         switch (cmd) {
@@ -400,12 +406,13 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-          NodeRPCClient client = new NodeRPCClient("localhost:10009","defaul","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
+         NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
 
-          //        String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"DodgyParty\",\"SanctionsBody\"]}";
-//        HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
+         String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"blah\",\"SanctionsBody\"]}";
+         HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
+
 //
-//        FlowHandle corda = (FlowHandle) client.run("startFlow", content);
+         FlowHandle corda = (FlowHandle) client.run("startFlow", content);
 //        corda.getReturnValue().then(CordaFuture ->{
 //            System.out.println("Finished");
 //            System.out.println(CordaFuture.hashCode());

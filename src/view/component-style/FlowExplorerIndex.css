@@ -128,3 +128,24 @@ body{
 .snackbar-message-text{
     margin-left:5px !important;
 }
+
+.menu-item-autosuggest{
+    position:absolute;
+    z-index: 1;
+    background-color: var(--vscode-dropdown-background) !important;
+    color: var(--vscode-dropdown-foreground) !important;
+   
+
+}
+
+
+.menu-item-autosuggest-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+.menu-item-autosuggest-container{
+    display: inline-block;
+}

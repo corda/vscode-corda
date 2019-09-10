@@ -104,7 +104,7 @@ public class ClientWebSocket {
                     retObj = client.run(msgCmd);
 
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             message.setCmd("ERR");

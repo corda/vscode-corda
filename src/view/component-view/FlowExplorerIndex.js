@@ -23,15 +23,19 @@ export default class FlowExplorerIndex extends React.Component {
             flowParams:null,
             transactionMap: null,
             client: null,
-            messages : []
+            messages : [],
+            options : {}
         }
      
-        
+        let re = /(?<=O=)[^,]*/g;
+
         let _this = this;
         var defaultSettings = JSON.parse(document.getElementById('nodeDefaults').innerHTML);
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
+        this.state.options.Party = []
         this.state.allNodes.forEach(function(node) {
             if(!node.notary){
+                _this.state.options.Party.push({"value": node.name.match(re)[0], "label" : node.name.match(re)[0]})
                 _this.state.connections[node.name] = {
                     host: node.rpcSettings.address,
                     cordappDir: node.cordappDir   
@@ -45,8 +49,9 @@ export default class FlowExplorerIndex extends React.Component {
                     _this.state.connections[node.name].password = defaultSettings.rpcUsers.password;
                 }
             }
-          //  console.log("added node")
         });
+        console.log("Did it")
+        console.log(JSON.stringify(this.state.options))
        this.handleChange = this.handleChange.bind(this);
        this.startFlow = this.startFlow.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -266,7 +271,7 @@ export default class FlowExplorerIndex extends React.Component {
            
        }
        if(this.state.flowParams){
-           DisplayFlowList = <FlowInfoDisplay selectedNode = {this.state.selectedNode} flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
+           DisplayFlowList = <FlowInfoDisplay options = {this.state.options} selectedNode = {this.state.selectedNode} flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
        }
 
        if(this.state.transactionMap){

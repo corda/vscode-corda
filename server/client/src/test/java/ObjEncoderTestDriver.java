@@ -1,6 +1,7 @@
 import client.NodeRPCClient;
 import client.boundary.ClientWebSocket;
 import client.entities.customExceptions.CommandNotFoundException;
+import client.entities.customExceptions.UnrecognisedParameterException;
 
 /**
  *         cmd.put("getStateNames", node::getStateNames);
@@ -28,7 +29,7 @@ public class ObjEncoderTestDriver {
         Object obj = client.run(cmd);
         System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
     }
-    private static void runParamTest(String cmd, String args) throws CommandNotFoundException {
+    private static void runParamTest(String cmd, String args) throws CommandNotFoundException, UnrecognisedParameterException {
         Object obj = client.run(cmd, args);
         System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
     }
