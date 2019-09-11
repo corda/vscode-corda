@@ -1,14 +1,10 @@
 import * as vscode from 'vscode';
-import { execSync } from 'child_process';
 import { fileSync } from 'find';
-import { cwd } from 'process';
-import { makeRe } from 'minimatch';
 import * as path from 'path';
-import { platform } from 'os';
-import { async, timeout } from 'q';
-import { node } from 'prop-types';
+
 
 var gjs = [] as any;
+
 
 if(process.platform.includes("win32") || process.platform.includes("win64")){
 	gjs =  require('..\\src\\parser');
