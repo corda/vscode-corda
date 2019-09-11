@@ -89,7 +89,6 @@ export default class FlowInfoDisplay extends React.Component {
     };
 
     onSuggestionsFetchRequested(event, type) {
-        console.log(JSON.stringify(event.value))
         this.setState({
           suggestions: this.getSuggestions(event.value, type)
         });
@@ -199,7 +198,6 @@ export default class FlowInfoDisplay extends React.Component {
                     </Grid>
                     <form className="flow-details-card" onSubmit={() => this.startFlow(this.state.selectedFlow)}>
                         {this.state.flowParams[this.state.selectedFlow] && this.state.flowParams[this.state.selectedFlow].map((input,index) => { 
-                            console.log("Did Update")
                             const val = this.state.flowValues[this.state.selectedFlow] &&  this.state.flowValues[this.state.selectedFlow][input.first.match(re)[0] + index] ? this.state.flowValues[this.state.selectedFlow][input.first.match(re)[0] + index] : ""
                             return(<Autosuggest
                                     suggestions={this.state.suggestions}

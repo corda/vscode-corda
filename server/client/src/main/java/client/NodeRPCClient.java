@@ -36,6 +36,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -139,7 +141,7 @@ public class NodeRPCClient {
         registeredFlowParams = new HashMap<>();
         File dir = new File(jarPath);
         List<File> jarFiles = new ArrayList<>();
-
+        List<File> retryFiles;
         File[] filesList = dir.listFiles();
         for (File file : filesList) {
             if (file.getName().contains(".jar")) {
@@ -147,6 +149,28 @@ public class NodeRPCClient {
                 System.out.println(file.getName());
             }
         }
+
+        // First add all of the necessary jar files to the class path so that they are available when loading classes
+        URLClassLoader sysClassLoader = (URLClassLoader) getClass().getClassLoader();
+        Method method = null;
+        try {
+            method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            for(File flowJarFile : jarFiles){
+                URL url = flowJarFile.toURI().toURL();
+                method.setAccessible(true);
+                method.invoke(sysClassLoader, url);
+                System.out.println("Loaded URL " );
+            }
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
 
         for (File flowJarFile : jarFiles) {
             // load the jar to extract the class
@@ -158,24 +182,35 @@ public class NodeRPCClient {
                         getClass().getClassLoader()
                 );
 
+
+
                 // iterate through all flows and add to flow -> class map
                 for (String flow : registeredFlows) {
+
+
                     Class flowClass = null;
+                    try {
+                        flowClass = Class.forName(flow, true, classLoader);
+                        registeredFlowClasses.put(flow, flowClass);
+                        System.out.println(flow);
+                        System.out.println(flowClass);
+                        registeredFlowParams.put(flow, setFlowParams(flowClass));
+                    }catch(ClassNotFoundException e){
 
-                    flowClass = Class.forName(flow, true, classLoader);
+                    }catch(Throwable t){
 
-                    registeredFlowClasses.put(flow, flowClass);
-                    System.out.println(flow);
-                    System.out.println(flowClass);
-                    registeredFlowParams.put(flow, setFlowParams(flowClass));
+                        t.printStackTrace();
+
+                    }
+
                 }
 
                 System.out.println("flows FOUND in file + " + flowJarFile.toString());
                 if(registeredFlowParams.isEmpty()){
                     throw new FlowsNotFoundException("Could not find any flows in the node cordapps");
                 }
-            } catch (MalformedURLException | ClassNotFoundException e) {
-//                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                //e.printStackTrace();
                 System.out.println("flows not found in file " + flowJarFile.toString());
             }
         }
@@ -316,6 +351,10 @@ public class NodeRPCClient {
                         finalParams.add(new UniqueIdentifier(null, UUID.fromString(currArg)));
                     } else if (currParam == String.class) {  // STRING
                         finalParams.add(currArg);
+                    }else if (currParam == LocalDate.class){
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yy");
+                        LocalDate localDate = LocalDate.parse(currArg,formatter);
+                        finalParams.add(localDate);
                     } else {
                         finalParams.add(Integer.valueOf(currArg)); // INTEGER
                     }
@@ -634,13 +673,13 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-//         NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
+         NodeRPCClient client = new NodeRPCClient("localhost:10005","user1","test", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\timesheet-example\\workflows-java\\build\\nodes\\Contractor\\cordapps");
 
-  //       String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"blah\",\"SanctionsBody\"]}";
-   //      HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
+         String s = "{\"flow\":\"com.timesheet.flow.IssueInvoiceFlow$Initiator\",\"args\":[\"5\",\"12/12/92\",\"MegaCorp 1\"]}";
+         HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
 
 //
-    //     FlowHandle corda = (FlowHandle) client.run("startFlow", content);
+         FlowHandle corda = (FlowHandle) client.run("startFlow", content);
 //        corda.getReturnValue().then(CordaFuture ->{
 //            System.out.println("Finished");
 //            System.out.println(CordaFuture.hashCode());

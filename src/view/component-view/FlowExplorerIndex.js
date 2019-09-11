@@ -8,6 +8,7 @@ import NodeSelector from "./NodeSelector";
 
 import SnackBarWrapper from "./SnackBarWrapper";
 import Grid from '@material-ui/core/Grid';
+const matchAll = require("match-all");
 
 
 
@@ -50,8 +51,7 @@ export default class FlowExplorerIndex extends React.Component {
                 }
             }
         });
-        console.log("Did it")
-        console.log(JSON.stringify(this.state.options))
+        
        this.handleChange = this.handleChange.bind(this);
        this.startFlow = this.startFlow.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
@@ -100,6 +100,8 @@ export default class FlowExplorerIndex extends React.Component {
                 this.loadNodeInfo()
                 this.loadFlowInfo()
                 this.loadTransactionHistory()
+                this.loadStateNames()
+        
                 break;
            case "getNodeInfo":
                 this.setState({
@@ -119,9 +121,28 @@ export default class FlowExplorerIndex extends React.Component {
                 break;
             case "getTransactionMap":
             case "vaultTrackResponse":
+               /* var re = /linearId.*:.*{".+":"(.+)"/gi
+                this.state.options.UUID = []
+                var stringContent = JSON.stringify(evt.content);
+                var linearID = matchAll(stringContent,re).toArray();
+                console.log("ID " + linearID);
+                linearID.forEach(function(match){
+                    this.state.options.UUID.push({"value" : match[1], "label":match[1]})      
+                }) 
+                console.log("the ids " + this.state.options.UUID)*/
                 this.setState({
                     transactionMap: Object.values(content)
                 })
+                break;
+            case "getStateNames":
+                this.state.options.ContractState = []
+                var _this = this
+                content.forEach(function(state){
+                    _this.state.options.ContractState.push({"value" :state, "label": state})
+                })
+            
+                console.log("Options " + JSON.stringify(this.state.options.ContractState));
+                this.setState(this.state.options)
                 break;
             case "startFlow":
                 switch(result.result){
@@ -208,13 +229,25 @@ export default class FlowExplorerIndex extends React.Component {
         this.state.client.send(JSON.stringify({"cmd": "getTransactionMap"}))
     }
 
+    loadStateNames(){
+        this.state.client.send(JSON.stringify({"cmd" : "getStateNames" }))
+    }
+
     startFlow(flowName, paramValues){
         var args;
+        
         if(!paramValues){
             args = []
         }else{
-            args = Object.keys(paramValues).map(function(key) {
-                return paramValues[key];
+            var orderedParams = {}
+            var re = /\d+/g
+            Object.keys(paramValues).sort(function(a,b){
+                return(a.match(re) > b.match(re))
+            }).forEach(function(key) {
+                orderedParams[key] = paramValues[key];
+            });
+            args = Object.keys(orderedParams).map(function(key) {
+                return orderedParams[key];
             });
         }
         var content = {

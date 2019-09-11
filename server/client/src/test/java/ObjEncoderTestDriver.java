@@ -30,7 +30,7 @@ public class ObjEncoderTestDriver {
         System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
     }
     private static void runParamTest(String cmd, String args) throws CommandNotFoundException, UnrecognisedParameterException {
-        Object obj = client.run(cmd, args);
-        System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
+      //  Object obj = client.run(cmd, args);
+       // System.out.println(ClientWebSocket.ObjEncoder.encode(obj));
     }
 }
