@@ -13,7 +13,7 @@ public class Message {
 
     public Message() {
         this.cmd = "";
-        this.content = "";
+        this.content = "{}";
         this.result = "{\"status\" : \"OK\", \"result\": \"\"}";
     }
     public Message(String cmd, String content) {

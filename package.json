@@ -41,12 +41,12 @@
 				"title": "Launch the server"
 			},
 			{
-				"command" : "extension.cordaShowVaultQuery",
-				"title" : "Corda Show Vault Query View"
+				"command": "extension.cordaShowVaultQuery",
+				"title": "Corda Show Vault Query View"
 			},
 			{
-				"command" : "extension.cordaShowTransactionExplorer",
-				"title" : "Corda Show Transaction Explorer"
+				"command": "extension.cordaShowTransactionExplorer",
+				"title": "Corda Show Transaction Explorer"
 			},
 			{
 				"command": "extension.launchClient",
@@ -99,15 +99,19 @@
 		"@babel/preset-react": "^7.0.0",
 		"@material-ui/core": "^4.3.3",
 		"@material-ui/icons": "^4.2.1",
+		"autosuggest-highlight": "^3.1.1",
 		"axios": "^0.19.0",
 		"babel-loader": "^8.0.6",
+		"downshift": "^3.2.14",
 		"find": "^0.3.0",
 		"fs": "0.0.1-security",
 		"gradle-to-js": "^2.0.0",
 		"konva": "^4.0.5",
 		"lodash.merge": "^4.6.2",
 		"material-ui-icons": "^1.0.0-beta.36",
+		"moment": "^2.24.0",
 		"react": "^16.9.0",
+		"react-autosuggest": "^9.4.3",
 		"react-dom": "^16.9.0",
 		"react-konva": "^16.9.0-0",
 		"react-scripts": "3.0.1",

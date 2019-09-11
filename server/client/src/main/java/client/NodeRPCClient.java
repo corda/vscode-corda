@@ -1,5 +1,10 @@
 package client;
 
+
+import client.entities.customExceptions.AuthenticationFailureException;
+import client.entities.customExceptions.CommandNotFoundException;
+import client.entities.customExceptions.FlowsNotFoundException;
+import client.entities.customExceptions.UnrecognisedParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -25,8 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.json.Json;
 import javax.swing.plaf.nimbus.State;
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import java.lang.reflect.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -48,13 +52,13 @@ public class NodeRPCClient {
 
     private final CordaRPCClient client;
     private CordaRPCOps proxy;
-    private final CordaRPCConnection connection;
-    private final NodeInfo nodeInfo;
+    private CordaRPCConnection connection;
+    private NodeInfo nodeInfo;
     private List<String> registeredFlows; // updates
     private Instant initialConnectTime; // time RPCClient is connected
 
     private Map<String, Class> registeredFlowClasses; // maps FQN to class
-    private Map<String, List<Class>> registeredFlowParams; // maps FQN to required params
+    private Map<String, List<Pair<Class, String>>> registeredFlowParams; // maps FQN to required params
 
     private Set<String> stateNames; // updates
     private Map<String, Class> contractStateClasses; // used for userVaultQuery
@@ -85,15 +89,19 @@ public class NodeRPCClient {
      * @param rpcUsername login username
      * @param rpcPassword login password
      */
-    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) {
+    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws FlowsNotFoundException, AuthenticationFailureException {
 
         this.client = new CordaRPCClient(parse(nodeAddress));
-        this.connection = client.start(rpcUsername,rpcPassword);
-        this.proxy = connection.getProxy(); // start the RPC Connection
-        this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
-        this.initialConnectTime = proxy.currentNodeTime(); // set connection time
-        this.contractStateClasses = new HashMap<>();
 
+        try {
+            this.connection = client.start(rpcUsername, rpcPassword);
+            this.proxy = connection.getProxy(); // start the RPC Connection
+            this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
+            this.initialConnectTime = proxy.currentNodeTime(); // set connection time
+            this.contractStateClasses = new HashMap<>();
+        }catch(Exception e){
+            throw new AuthenticationFailureException("Failed To Authenticate To The RPC Client " + nodeAddress);
+        }
         buildCommandMap(this);
         updateNodeData();
 
@@ -126,7 +134,7 @@ public class NodeRPCClient {
      * @param jarPath full path to the .jar files containing CorDapp flows
      * @param registeredFlows list of registeredFlows on the Node
      */
-    private void setFlowMaps(String jarPath, List<String> registeredFlows) {
+    private void setFlowMaps(String jarPath, List<String> registeredFlows) throws FlowsNotFoundException {
         registeredFlowClasses = new HashMap<>();
         registeredFlowParams = new HashMap<>();
         File dir = new File(jarPath);
@@ -163,6 +171,9 @@ public class NodeRPCClient {
                 }
 
                 System.out.println("flows FOUND in file + " + flowJarFile.toString());
+                if(registeredFlowParams.isEmpty()){
+                    throw new FlowsNotFoundException("Could not find any flows in the node cordapps");
+                }
             } catch (MalformedURLException | ClassNotFoundException e) {
 //                e.printStackTrace();
                 System.out.println("flows not found in file " + flowJarFile.toString());
@@ -175,17 +186,22 @@ public class NodeRPCClient {
      * @param flowClass flow to extract paramTypes from
      * @return list of Classes corresponding to each param of the input flow class
      */
-    private List<Class> setFlowParams(Class flowClass) {
-        List<Class> params = new ArrayList<>();
+    private List<Pair<Class,String>> setFlowParams(Class flowClass) {
+        List<Pair<Class,String>> params = new ArrayList<>();
         List<Constructor> constructors = ImmutableList.copyOf(flowClass.getConstructors());
         for (Constructor c : constructors) {
-            List<Class> paramTypes = ImmutableList.copyOf(c.getParameterTypes());
-            for (Class param : paramTypes) {
-                params.add(param);
+            List<Parameter> paramNames = ImmutableList.copyOf(c.getParameters());
+            for(Parameter param: paramNames){
+                if(param.isNamePresent()){
+                    params.add(new Pair(param.getType(), param.getName()));
+                }else{
+                    params.add(new Pair(param.getType(), "UNKNOWN"));
+                }
 
-                System.out.println(param);
             }
+
         }
+
 
         return params;
     }
@@ -202,7 +218,7 @@ public class NodeRPCClient {
         return Duration.between(initialConnectTime, proxy.currentNodeTime());
     }
 
-    public Map<String, List<Class>> getRegisteredFlowParams() {
+    public Map<String, List<Pair<Class,String>>> getRegisteredFlowParams() {
         return registeredFlowParams;
     }
 
@@ -259,7 +275,6 @@ public class NodeRPCClient {
             }
 
             currTrans = transMap.get(txHash);
-
             currTrans.addToStates(states.get(i).getState().getData(), stateMeta.get(i));
 
             transMap.replace(txHash, currTrans);
@@ -278,9 +293,9 @@ public class NodeRPCClient {
      * @param args array of args needed for the flow constructor
      * @return
      */
-    public FlowHandle startFlow(String flow, String[] args) {
+    public FlowHandle startFlow(String flow, String[] args) throws UnrecognisedParameterException {
         Class flowClass = registeredFlowClasses.get(flow);
-        List<Class> paramTypes = registeredFlowParams.get(flow);
+        List<Pair<Class,String>> paramTypes = registeredFlowParams.get(flow);
         String currArg;
         Class currParam;
 
@@ -289,24 +304,32 @@ public class NodeRPCClient {
         if (args.length == paramTypes.size()) {
             for (int i = 0; i < args.length; i++) {
                 currArg = args[i];
-                currParam = paramTypes.get(i);
+                currParam = paramTypes.get(i).getFirst();
+                try {
+                    if (currParam == Party.class) { // PARTY
 
-                if (currParam == Party.class) { // PARTY
-                    Party p = proxy.partiesFromName(currArg, true).iterator().next();
-                    finalParams.add(p);
-                } else if (currArg.equals("true") | currArg.equals("false")) { // BOOLEAN
-                    finalParams.add(Boolean.parseBoolean(currArg));
-                } else if (currParam == UniqueIdentifier.class) {
-                    finalParams.add(new UniqueIdentifier(null, UUID.fromString(currArg)));
-                } else if(currParam == String.class) {  // STRING
-                    finalParams.add(currArg);
-                } else {
-                    finalParams.add(Integer.valueOf(currArg)); // INTEGER
+                        Party p = proxy.partiesFromName(currArg, true).iterator().next();
+                        finalParams.add(p);
+                    } else if (currArg.equals("true") | currArg.equals("false")) { // BOOLEAN
+                        finalParams.add(Boolean.parseBoolean(currArg));
+                    } else if (currParam == UniqueIdentifier.class) {
+                        finalParams.add(new UniqueIdentifier(null, UUID.fromString(currArg)));
+                    } else if (currParam == String.class) {  // STRING
+                        finalParams.add(currArg);
+                    } else {
+                        finalParams.add(Integer.valueOf(currArg)); // INTEGER
+                    }
+                }catch (Exception e){
+                    throw new UnrecognisedParameterException(paramTypes.get(i).getSecond() + " expected a parameter of type " + currParam.toString());
                 }
             }
         }
+        if(finalParams.toArray().length > 0){
+            return proxy.startFlowDynamic(flowClass, finalParams.toArray());
+        }else{
+            return proxy.startFlowDynamic(flowClass);
+        }
 
-        return proxy.startFlowDynamic(flowClass, finalParams.toArray());
     }
 
     /**
@@ -527,21 +550,27 @@ public class NodeRPCClient {
      * @return
      * @throws Exception
      */
-    public Object run(String cmd) throws Exception {
-        return this.cmd.get(cmd).call();
+    public Object run(String cmd) throws CommandNotFoundException, Exception {
+        Callable callable = this.cmd.get(cmd);
+        if(callable == null){
+            throw new CommandNotFoundException(cmd + " is not a registered command");
+        }else{
+            return callable.call();
+        }
+
     }
-    public Object run(String cmd, Object args) throws Exception {
+
+    public Object run(String cmd, Object args) throws CommandNotFoundException, UnrecognisedParameterException, Exception {
 
         // parameterized methods
         switch (cmd) {
             case "startFlow":
-                HashMap<String, Object> flowArgMap = (HashMap<String, Object>) args;
-                String flow = (String) flowArgMap.get("flow");
-                HashMap<String, String> flowArgs = (HashMap<String, String>) flowArgMap.get("args");
-                Object[] argsArray = flowArgs.values().toArray();
-                String[] strArgsArray = Arrays.copyOf(argsArray, argsArray.length, String[].class);
-
-                return startFlow(flow, strArgsArray);
+                HashMap<String, Object> argMap = (HashMap<String, Object>) args;
+                String flow = (String) argMap.get("flow");
+                List<Object> flowArgs = (ArrayList<Object>) argMap.get("args");
+                Object[] flowArgsAsString = flowArgs.toArray();
+                String[] argsArray = Arrays.copyOf(flowArgsAsString, flowArgsAsString.length, String[].class);
+                return startFlow(flow, argsArray);
 
             case "getStateProperties":
                 return getStateProperties((String) args);
@@ -550,8 +579,9 @@ public class NodeRPCClient {
                 Map<String, String> queryArgs = (Map<String, String>) queryArgMap.get("args");
                 Map<String, Object>  queryValues = (Map<String, Object>) queryArgMap.get("values");
                 return userVaultQuery(queryArgs, queryValues);
+            default:
+                throw new CommandNotFoundException(cmd + " with args is not a registered command");
         }
-        return null;
     }
 
     /**
@@ -604,23 +634,46 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/Clones/Freya_JAVA-samples/yo-cordapp/workflows-java/build/nodes/PartyB/cordapps");
+//         NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
 
-        Gson gson = new GsonBuilder().create();
-        String s =
-                " {\n" +
-                        " \t\"args\": {\n" +
-//                        " \t\t\"pageSpecification\": \"1\",\n" +
-//                        " \t\t\"pageSize\": \"10\",\n" +
-                        " \t\t\"sortAttribute\": \"NOTARY_NAME\",\n" +
-                        " \t\t\"sortDirection\": \"ASC\"\n" +
-                        " \t},\n" +
-                        " \t\"values\": {\n" +
-//                        " \t\t\"contractStateType\": [\"net.corda.core.contracts.ContractState\"],\n" +
-                        " \t\t\"stateRefs\": [{\n" +
-                        " \t\t\t\"hash\": \"CABC3C3F980BDA8F20D5F06EFCA1A2516ADB248AD05529405D89D76C4C088E37\",\n" +
-                        " \t\t\t\"index\": \"0\"\n" +
-                        " \t\t}]\n" +
+  //       String s = "{\"flow\":\"com.example.flow.IOUIssueFlow$Initiator\",\"args\":[\"5\",\"blah\",\"SanctionsBody\"]}";
+   //      HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
+
+//
+    //     FlowHandle corda = (FlowHandle) client.run("startFlow", content);
+//        corda.getReturnValue().then(CordaFuture ->{
+//            System.out.println("Finished");
+//            System.out.println(CordaFuture.hashCode());
+//            return CordaFuture;
+//        });
+//
+//        while(true){
+//
+//        }
+
+      //  NodeRPCClient client = new NodeRPCClient("localhost:10005","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
+      //  client.run("getTransctionMap");
+
+        //client.setFlowMaps(".", client.getRegisteredFlows());
+        //System.out.println(client.run("getStatesInVault"));
+        //List<StateAndRef<ContractState>> states = (List<StateAndRef<ContractState>>) client.run("getStatesInVault");
+        //List<Vault.StateMetadata> stateMeta = (List<Vault.StateMetadata>) client.run("getStatesMetaInVault");
+
+//        Gson gson = new GsonBuilder().create();
+//        String s =
+//                " {\n" +
+//                        " \t\"args\": {\n" +
+////                        " \t\t\"pageSpecification\": \"1\",\n" +
+////                        " \t\t\"pageSize\": \"10\",\n" +
+//                        " \t\t\"sortAttribute\": \"NOTARY_NAME\",\n" +
+//                        " \t\t\"sortDirection\": \"ASC\"\n" +
+//                        " \t},\n" +
+//                        " \t\"values\": {\n" +
+////                        " \t\t\"contractStateType\": [\"net.corda.core.contracts.ContractState\"],\n" +
+//                        " \t\t\"stateRefs\": [{\n" +
+//                        " \t\t\t\"hash\": \"CABC3C3F980BDA8F20D5F06EFCA1A2516ADB248AD05529405D89D76C4C088E37\",\n" +
+//                        " \t\t\t\"index\": \"0\"\n" +
+//                        " \t\t}]\n" +
 //                        " \t\t\"participants\": [\"PartyB\"]" +
                         //" \t\t\"notary\": [\"Notary\"],\n" +
 //                        " \t\t\"timeCondition\": {\n" +
@@ -629,14 +682,14 @@ public class NodeRPCClient {
 //                        " \t\t\t\"end\": \"2018-11-30T18:35:24.00Z\"\n" +
 //                        " \t\t},\n" +
                         //" \t\t\"relevancyStatus\": \"RELEVANT\"\n" +
-                        " \t}\n" +
-                        "\n" +
-                        " }"
-        ;
+//                        " \t}\n" +
+//                        "\n" +
+//                        " }"
+//        ;
 
         //System.out.println("HERE is \n" +
 
-        Map<String, Object> in = gson.fromJson(s, HashMap.class);
+  //      Map<String, Object> in = gson.fromJson(s, HashMap.class);
 //        Map a = (Map) in.get("args");
 //        Map b = (Map) in.get("values");
 //        System.out.println(b);
@@ -651,13 +704,19 @@ public class NodeRPCClient {
 
 
 
-        Vault.Page<ContractState> result = (Vault.Page<ContractState>) client.run("userVaultQuery", in);
-
-        System.out.println(result.getStates());
-        System.out.println("\n\n\n" + result.getTotalStatesAvailable());
+//        Vault.Page<ContractState> result = (Vault.Page<ContractState>) client.run("userVaultQuery", in);
+//
+//        System.out.println(result.getStates());
+//        System.out.println("\n\n\n" + result.getTotalStatesAvailable());
         //System.out.println("\n\n\n" + result.getTotalStatesAvailable());
 
 
+//        Set<Map.Entry<SecureHash, TransRecord>> mp = client.getTransactionMap().entrySet();
+//        for (Map.Entry<SecureHash, TransRecord> m : mp) {
+//            System.out.println(m.getValue());
+//        }
+        //Map<SecureHash, TransRecord> t = (Map<SecureHash, TransRecord>) client.run("getTransactionMap");
+        //System.out.println(t);
 
     }
 }

@@ -5,9 +5,11 @@ import client.entities.Message;
 import client.entities.MessageDecoder;
 import client.entities.MessageEncoder;
 import client.entities.adapters.*;
+import client.entities.customExceptions.CommandNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.corda.core.concurrent.CordaFuture;
 import net.corda.core.contracts.ContractState;
 import net.corda.core.identity.Party;
 import net.corda.core.messaging.DataFeed;
@@ -20,6 +22,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class handles websocket connections form the Corda VSCODE extension.
@@ -45,10 +48,9 @@ public class ClientWebSocket {
     }
 
     @OnMessage
-    public void onMessage(Session session, Message message) throws Exception {
+    public void onMessage(Session session, Message message) {
         // debug
         System.out.println(session.getId() + " sent cmd: " + message.getCmd() + ", sent content: " + message.getContent());
-
         String msgCmd = message.getCmd();
         Object retObj = null; // store a returned content object
         HashMap<String, String> content = null;
@@ -57,6 +59,7 @@ public class ClientWebSocket {
             // parse message content if it exists
             if (message.getContent().length() > 0) {
                 content = new ObjectMapper().readValue(message.getContent(), HashMap.class);
+
             }
             switch(msgCmd){
                 case "connect":
@@ -74,16 +77,24 @@ public class ClientWebSocket {
                 case "startFlow":
                     FlowHandle flowHandle = (FlowHandle) client.run(msgCmd, content);
                     message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Started\", \"id\": \"" + flowHandle.getId() + "\"}");
-                    flowHandle.getReturnValue().then(CordaFuture -> {
 
-                        message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\", \"id\": \"" + flowHandle.getId() + "\"}");
+                    CordaFuture detail = flowHandle.getReturnValue();
+                    detail.then(corda ->{
+                        CompletableFuture completed = detail.toCompletableFuture();
+                        if(completed.isCompletedExceptionally()){
+                            message.setResult("{\"status\" : \"ERR\", \"result\":\"Flow Finished Exceptionally\", \"id\": \"" + flowHandle.getId() + "\"}");
+                        }else{
+                            message.setResult("{\"status\" : \"OK\", \"result\":\"Flow Finished\", \"id\": \"" + flowHandle.getId() + "\"}");
+
+                        }
                         try {
                             sendResponse(message);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        return CordaFuture;
+                        return corda;
                     });
+
                     break;
                 case "getStateProperties":
                     // custom message result can be added
@@ -91,16 +102,23 @@ public class ClientWebSocket {
                     break;
                 default:
                     retObj = client.run(msgCmd);
+
             }
 
-
         } catch (Exception e) {
+            e.printStackTrace();
+            message.setCmd("ERR");
             message.setResult("{\"status\" : \"ERR\", \"result\": \""  + e.toString() + "\"}");
-            //sendResponse(message);
         }
-        System.out.println(message);
-        if (retObj != null) sendResponse(message, retObj);
-        else sendResponse(message);
+        try{
+            if (retObj != null) sendResponse(message, retObj);
+            else sendResponse(message);
+        } catch (EncodeException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
