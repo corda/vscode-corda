@@ -149,3 +149,18 @@ body{
 .menu-item-autosuggest-container{
     display: inline-block;
 }
+
+.copy-button-container{
+    margin-left: 30px;
+    font-size:20px;
+}
+
+.copy-button:hover{
+    color: var(--vscode-editor-selectionHighlightBackground) !important;
+}
+
+.copy-button{
+    cursor: pointer;
+
+}
+
