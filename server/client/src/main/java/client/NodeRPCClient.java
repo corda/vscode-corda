@@ -4,13 +4,17 @@ import client.entities.customExceptions.AuthenticationFailureException;
 import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
 import client.entities.customExceptions.UnrecognisedParameterException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
-import net.corda.core.contracts.*;
+import net.corda.core.contracts.ContractState;
+import net.corda.core.contracts.StateAndRef;
+import net.corda.core.contracts.StateRef;
+import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.crypto.SecureHash;
 import net.corda.core.identity.AbstractParty;
 import net.corda.core.identity.Party;
@@ -19,7 +23,9 @@ import net.corda.core.messaging.DataFeed;
 import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
-import net.corda.core.node.services.vault.*;
+import net.corda.core.node.services.vault.ColumnPredicate;
+import net.corda.core.node.services.vault.PageSpecification;
+import net.corda.core.node.services.vault.QueryCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +40,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static net.corda.core.node.services.vault.QueryCriteriaUtils.DEFAULT_PAGE_SIZE;
@@ -389,8 +394,9 @@ public class NodeRPCClient {
 
         List<StateRef> stateRefs = statesAndMeta.getStates().stream().map(v -> v.getRef()).collect(Collectors.toList()); // all staterefs
         List<AbstractParty> notary = proxy.notaryIdentities().stream().map(AbstractParty.class::cast).collect(Collectors.toList()); // all notaries
+        QueryCriteria.TimeCondition tc = null; // SHOULD BE ALL
         List<AbstractParty> participants = new ArrayList<>(); // no participant criteria
-        //QueryCriteria.TimeCondition tc =
+        //QueryCriteria.TimeCondition tc = null
         Vault.RelevancyStatus rs = Vault.RelevancyStatus.ALL; // all
 
         for (Map.Entry<String, Object> entry : query.entrySet()) {
@@ -463,7 +469,7 @@ public class NodeRPCClient {
                         Instant end = Instant.parse(tcIn.get("end"));
 
                         ColumnPredicate<Instant> timePred = new ColumnPredicate.Between<>(start, end);
-                        QueryCriteria.TimeCondition tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
+                        tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
 
                         break;
 
@@ -493,7 +499,7 @@ public class NodeRPCClient {
            ps = new PageSpecification(); // default
         }
 
-        // TODO possibly add sort - right now will not use
+//        TODO possibly add sort - right now will not use
 //        // default sort is DESC on RECORDED TIME
 //        SortAttribute.Standard sa;
 //        Sort.Direction sd = Sort.Direction.DESC;
@@ -515,6 +521,7 @@ public class NodeRPCClient {
                 .withContractStateTypes(contractStateTypes)
                 .withStateRefs(stateRefs)
                 .withNotary(notary)
+                //.withTimeCondition(tc) - RELIES on Core 4.3 / Maven Repo is 4.0, bug fix for Comparable<*> Jira https://r3-cev.atlassian.net/browse/CORDA-2782
                 //.withParticipants(Arrays.asList(p)); PENDING BUG fix on Corda VaultQueryCriteria Jira #https://r3-cev.atlassian.net/browse/CORDA-3209
                 .withRelevancyStatus(rs);
 
@@ -545,7 +552,6 @@ public class NodeRPCClient {
             }
             return createTransactionMap(vsm , vsr);
         } else return createTransactionMap(result.getStatesMetadata(), result.getStates());
-
 
     }
 
@@ -654,7 +660,8 @@ public class NodeRPCClient {
                 "contractStateType\":\"\",\"" +
                 "stateRefs\":\"\",\"" +
                 "notary\":\"\",\"" +
-                "timeCondition\":\"\",\"" +
+                "timeCondition\":" +
+                "{\"type\":\"RECORDED\",\"start\":\"2019-09-10T08:26:20.637Z\",\"end\":\"2019-09-12T08:26:20.637Z\"}," +
                 "relevancyStatus\":\"ALL\",\"" +
                 "participants\":\"\"}}";
 
@@ -662,17 +669,13 @@ public class NodeRPCClient {
 
         String k = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"UNCONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyB\",\"PartyA\"]}}";
 
-        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", k);
+        String z = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":{\"type\":\"RECORDED\",\"start\":\"2017-05-24T10:30:30.00Z\",\"end\":\"2019-05-25T10:30:30.00Z\"},\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
+
+        Map<String, Object> uu = new ObjectMapper().readValue(z, HashMap.class);
+        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", uu);
 
         System.out.println("\n\n\n\nHere is the result : \n" + result);
         System.out.println("\n\n Quantity returned : " + result.size());
-
-//        Set<Map.Entry<SecureHash, TransRecord>> mp = client.getTransactionMap().entrySet();
-//        for (Map.Entry<SecureHash, TransRecord> m : mp) {
-//            System.out.println(m.getValue());
-//        }
-        //Map<SecureHash, TransRecord> t = (Map<SecureHash, TransRecord>) client.run("getTransactionMap");
-        //System.out.println(t);
 
     }
 }
