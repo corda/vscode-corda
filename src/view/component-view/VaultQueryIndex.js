@@ -215,10 +215,19 @@ export default class VaultQueryIndex extends React.Component {
            DisplayFlowList = <FlowInfoDisplay selectedNode = {this.state.selectedNode} flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
        }
        if(this.state.stateNames) {
-           VaultQueryBuilder = <VQueryBuilder allNodes={this.state.allNodes} contractStates={this.state.stateNames} startUserVaultQuery={this.startUserVaultQuery} />
+           VaultQueryBuilder = 
+           <div>
+               <h3>Vault Query Builder</h3>
+               <VQueryBuilder allNodes={this.state.allNodes} contractStates={this.state.stateNames} startUserVaultQuery={this.startUserVaultQuery} />
+           </div>
        }
        if(this.state.transactionMap){
-           DisplayVaultTransactions = <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
+           DisplayVaultTransactions = 
+           <div>
+                <h3>The Vault</h3>
+                <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
+           </div>
+          
        }
        return (
             <div>
@@ -231,8 +240,11 @@ export default class VaultQueryIndex extends React.Component {
                     <Grid item sm={4}> {DisplayNodeInfo} </Grid>
                 </Grid>
                 <Grid container justify = "center" alignitems="center" >
-                    <Grid item sm={4} > {VaultQueryBuilder} </Grid>
+                    <Grid item sm={3} > {VaultQueryBuilder} </Grid>
+                    <Grid item sm={2}></Grid>
                     <Grid item sm={5}> {DisplayVaultTransactions} </Grid>
+                    <Grid item sm={2}></Grid>
+
                 </Grid>
                 {this.state.messages.map((message, index) => { 
                    

@@ -7,7 +7,12 @@ body{
     min-width: 220px;
 }
 
-
+#query-container{
+    align-content: left;
+    border-width : 1px 1px 1px 0px;
+    border-style: solid;
+    border-color:var(--vscode-sideBarSectionHeader-background) 
+}
 
 .flow-param-input-field{
     margin-left: 5px !important;
@@ -164,3 +169,20 @@ body{
 
 }
 
+.checkbox-label{
+    color:var(--vscode-descriptionForeground) !important;
+    transform: scale(0.75);
+    transform-origin:top-left;
+}
+.checkbox-icon-root{
+    color:var(--vscode-descriptionForeground) !important;
+}
+
+.checkbox-icon-root:hover{
+    background-color: var(--vscode-editor-selectionHighlightBackground) !important;
+
+}
+
+.input-field-error{
+    color: red !important
+}

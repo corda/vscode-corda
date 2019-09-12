@@ -4,39 +4,44 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Select from '@material-ui/core/Select';
+import Container from '@material-ui/core/Container';
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
+import FormGroup from '@material-ui/core/FormGroup';
+
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
 import AddIcon from '@material-ui/icons/Add';
 import Fab from '@material-ui/core/Fab';
 import DeleteIcon from '@material-ui/icons/Delete';
+import { FormControl, FormLabel } from '@material-ui/core';
 
 
 
 const useStyles = makeStyles(theme => ({
   root: {
-    width: '100%',
-    maxWidth: 600,
-    backgroundColor: theme.palette.background.paper,
+   // width: '100%',
+   // maxWidth: 600
   },
   dropDown: {
-    fontSize: 14
+    // fontSize: 14
   },
   textField: {
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
-    width: '90%',
+    // marginLeft: theme.spacing(1),
+    // marginRight: theme.spacing(1),
+    // width: '90%',
   },
   textFieldShort: {
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
-    width: '15%',
+    // marginLeft: theme.spacing(1),
+    // marginRight: theme.spacing(1),
+    // width: '15%',
   },
   textFieldInput: {
-      fontSize: 10,
+    //  fontSize: 10,
   }
 }));
 
@@ -131,31 +136,60 @@ export default function VQueryBuilder(props) {
                 id="standard-with-placeholder"
                 label="Secure Hash"
                 placeholder="CABC3C3F980BDA8F20D5F06EFCA1A2516ADB248AD05529405D89D76C4C088E37"
-                className={classes.textField}
+                className="input-field-text"
                 onChange={(event) => {
                     setState({
                         ...state,
                         stateRef0: event.target.value
                     })
                 }}
-                margin="normal"
+               
+                margin="dense"
                 value={state.stateRef0}
-                error={state.stateRef0.length !== 64} // hash must be correct length
+                error={state.stateRef0.length !== 64 && state.stateRef0.length !== 0} // hash must be correct length
+                InputLabelProps={{
+                    classes: {
+                        root: "input-field-label",
+                        focused: "input-field-label-focused",
+                        shrink: "input-field-label-focused"
+                        
+
+                    },
+                }}
+                InputProps={{
+                    classes: {
+                        root: "input-field"
+                    },
+                }}
+                
             />
             <TextField
                 id="standard-with-placeholder"
                 label="Index"
                 placeholder="0"
-                className={classes.textFieldShort}
+                className="input-field-text"
+            
                 onChange={(event) => {
                     setState({
                         ...state,
                         stateRef1: event.target.value
                     })
                 }}
-                margin="normal"
+                margin="dense"
                 value={state.stateRef1}
-                error={isNaN(state.stateRef1) || state.stateRef1.length === 0}
+                error={isNaN(state.stateRef1)}
+                InputLabelProps={{
+                    classes: {
+                        root: "input-field-label",
+                        focused: "input-field-label-focused",
+                        shrink: "input-field-label-focused"
+                    },
+                }}
+                InputProps={{
+                    classes: {
+                        root: "input-field"
+                    },
+                }}
             />
             </div>
         
@@ -220,22 +254,47 @@ React.useEffect(() => {
         case "StateStatus":
             return (
                 <ListItem>
-                    <Select
-                        value={state.queryValues.stateStatus}
-                        //value={state.queryValues.stateStatus}
-                        onChange={(event) => setState({
-                            ...state,
-                            queryValues: {
-                                ...state.queryValues,
-                                stateStatus: event.target.value
-                            }
-                        })}
-                        className={classes.dropDown}
-                        >
-                        <MenuItem value="UNCONSUMED">Unconsumed</MenuItem>
-                        <MenuItem value="CONSUMED">Consumed</MenuItem>
-                        <MenuItem value="ALL">All</MenuItem>
-                    </Select>
+                    <FormControl>
+                        <InputLabel 
+                                htmlFor="state-status-selector" 
+                                className="selection-box-label"
+                                classes={{
+                                    root:"selection-box-label",
+                                    focused: "selection-box-label-focused",
+                                    shrink: "selection-box-label-focused"
+                                }}>
+                                State Status
+                            </InputLabel>
+                        <Select
+                            value={state.queryValues.stateStatus}
+                            className='select-display'
+                            //value={state.queryValues.stateStatus}
+                            input={<Input classes={{underline: "selection-box-underline"}}/>}
+                            classes = {{
+                                icon: "selection-box-icon"
+                            }}
+                            inputProps={{
+                                name: "party",
+                                id: "state-status-selector",
+                                classes: {
+                                root: "selection-box-label"
+                                }
+                            }}
+                            MenuProps={{ classes: { paper: "selection-box-dropdown" } }}
+
+                            onChange={(event) => setState({
+                                ...state,
+                                queryValues: {
+                                    ...state.queryValues,
+                                    stateStatus: event.target.value
+                                }
+                            })}
+                            >
+                            <MenuItem value="UNCONSUMED">Unconsumed</MenuItem>
+                            <MenuItem value="CONSUMED">Consumed</MenuItem>
+                            <MenuItem value="ALL">ALL</MenuItem>
+                        </Select>
+                    </FormControl>
                 </ListItem>
             ); 
         case "Notary": // if value.notary exists
@@ -267,7 +326,12 @@ React.useEffect(() => {
                 })
             }
             return (
-                <React.Fragment>
+                <FormControl>
+                <FormGroup>
+                    
+                    <FormLabel className="checkbox-label">
+                                {predicate}
+                    </FormLabel>
                     {inputs.map(value => {
                         const labelId = `list-label-${value}`
                         return (
@@ -282,6 +346,10 @@ React.useEffect(() => {
                                         tabIndex={-1}
                                         disableRipple
                                         InputProps={{ 'aria-labelledby': labelId }}
+                                        classes={{
+                                            root: "checkbox-icon-root"
+                                            
+                                        }}
                                     />
                                 </ListItemIcon>
                                 <ListItemText id={labelId} primary={`${value}`} />
@@ -291,7 +359,8 @@ React.useEffect(() => {
                             </ListItem>
                         )
                     })}
-                </React.Fragment>
+                </FormGroup>
+                </FormControl>
             )
         case "StateRef":
             console.log(state.stateRef2)
@@ -321,32 +390,59 @@ React.useEffect(() => {
             return (
                 <React.Fragment>
                     <ListItem>
-                        <Select
-                            value={state.timeCondition0}
-                            //value={state.queryValues.stateStatus}
-                            onChange={(event) => {
-                                if (event.target.value === "NONE")
-                                {
-                                    setState({ ...state,
-                                        timeCondition0: "NONE",
-                                        queryValues: {
-                                            ...state.queryValues,
-                                            timeCondition: ""
-                                        }
-                                    });
-                                } else {
-                                    setState({
-                                        ...state,
-                                        timeCondition0: event.target.value
-                                    })
-                                }
-                            }}
-                            className={classes.dropDown}
-                            >
-                            <MenuItem value="NONE">None</MenuItem>
-                            <MenuItem value="RECORDED">Recorded</MenuItem>
-                            <MenuItem value="CONSUMED">Consumed</MenuItem>
-                        </Select>
+                        <FormControl>
+                            <InputLabel 
+                                    htmlFor="time-condition-selector" 
+                                    className="selection-box-label"
+                                    classes={{
+                                        root:"selection-box-label",
+                                        focused: "selection-box-label-focused",
+                                        shrink: "selection-box-label-focused"
+                                    }}>
+                                    Time Condition
+                                </InputLabel>
+                            <Select
+                                value={state.timeCondition0}
+                                //value={state.queryValues.stateStatus}
+                                onChange={(event) => {
+                                    if (event.target.value === "NONE")
+                                    {
+                                        setState({ ...state,
+                                            timeCondition0: "NONE",
+                                            queryValues: {
+                                                ...state.queryValues,
+                                                timeCondition: ""
+                                            }
+                                        });
+                                    } else {
+                                        setState({
+                                            ...state,
+                                            timeCondition0: event.target.value
+                                        })
+                                    }
+                                }}
+                                className='select-display'
+                                input={<Input classes={{
+                                    underline: "selection-box-underline"
+                                }}/>}
+                                classes = {{
+                                    icon: "selection-box-icon"
+                                }}
+                                inputProps={{
+                                    name: "party",
+                                    id: "time-condition-selector",
+                                    classes: {
+                                    root: "selection-box-label"
+                                    }
+                                }}
+                                MenuProps={{ classes: { paper: "selection-box-dropdown" } }}
+
+                                >
+                                <MenuItem value="NONE">None</MenuItem>
+                                <MenuItem value="RECORDED">Recorded</MenuItem>
+                                <MenuItem value="CONSUMED">Consumed</MenuItem>
+                            </Select>
+                        </FormControl>
                     </ListItem>
                     {/* HIDE Date/Time unless choosing dropdown */}
                     {(() => {
@@ -406,22 +502,49 @@ React.useEffect(() => {
         case "Relevancy Status":
                 return (
                     <ListItem>
-                        <Select
-                            value={state.queryValues.relevancyStatus}
-                            //value={state.queryValues.stateStatus}
-                            onChange={(event) => setState({
-                                ...state,
-                                queryValues: {
-                                    ...state.queryValues,
-                                    relevancyStatus: event.target.value
-                                }
-                            })}
-                            className={classes.dropDown}
-                            >
-                            <MenuItem value="RELEVANT">Relevant</MenuItem>
-                            <MenuItem value="NOT_RELEVANT">Not_Relevant</MenuItem>
-                            <MenuItem value="ALL">All</MenuItem>
-                        </Select>
+                        <FormControl>
+                             <InputLabel 
+                                htmlFor="relevancy-status-selector" 
+                                className="selection-box-label"
+                                classes={{
+                                    root:"selection-box-label",
+                                    focused: "selection-box-label-focused",
+                                    shrink: "selection-box-label-focused"
+                                }}>
+                                Relevancy Status
+                            </InputLabel>
+                            <Select
+                                value={state.queryValues.relevancyStatus}
+                                //value={state.queryValues.stateStatus}
+                                onChange={(event) => setState({
+                                    ...state,
+                                    queryValues: {
+                                        ...state.queryValues,
+                                        relevancyStatus: event.target.value
+                                    }
+                                })}
+                                className='select-display'
+                                input={<Input classes={{
+                                    underline: "selection-box-underline"
+                                }}/>}
+                                classes = {{
+                                    icon: "selection-box-icon"
+                                }}
+                                inputProps={{
+                                    name: "party",
+                                    id: "relevancy-selector",
+                                    classes: {
+                                    root: "selection-box-label"
+                                    }
+                                }}
+                                MenuProps={{ classes: { paper: "selection-box-dropdown" } }}
+
+                                >
+                                <MenuItem value="RELEVANT">Relevant</MenuItem>
+                                <MenuItem value="NOT_RELEVANT">Not_Relevant</MenuItem>
+                                <MenuItem value="ALL">All</MenuItem>
+                            </Select>
+                            </FormControl>
                     </ListItem>
                 ); 
         default: return;
@@ -454,32 +577,33 @@ React.useEffect(() => {
         )
     } else return
   }
+// <ListItemText id={labelId} primary={`${value}`} />
 
   return (
-      
-    <List className={classes.root}>
+      <Container id="query-container">
+        <List className={classes.root}>
 
-    {/*Debug Statement*/}
-    {console.log(state.queryValues)}
-      {["StateStatus", "ContractStateType", "StateRef", "Notary",
-      "TimeCondition", "Relevancy Status", "Participants"].map(value => {
-        const labelId = `list-label-${value}`;
-        const divKey = `${value}-div`
+        {/*Debug Statement*/}
+        {console.log(state.queryValues)}
+        {["StateStatus", "ContractStateType", "StateRef", "Notary",
+         "Relevancy Status", "Participants"].map(value => {
+            const labelId = `list-label-${value}`;
+            const divKey = `${value}-div`
 
-        return (
-            
-        <div key={divKey}>
-            <ListItem key={value} >
-                <ListItemText id={labelId} primary={`${value}`} />
-                <ListItemSecondaryAction>
-                </ListItemSecondaryAction>
+            return (
                 
-            </ListItem>
-            {contents(value)}
-            <p></p>
-        </div>
-        );
-      })}
-    </List>
+            <div key={divKey}>
+                <ListItem key={value} >
+                    <ListItemSecondaryAction>
+                    </ListItemSecondaryAction>
+                    
+                </ListItem>
+                {contents(value)}
+                <p></p>
+            </div>
+            );
+        })}
+        </List>
+    </Container>
   );
 }
