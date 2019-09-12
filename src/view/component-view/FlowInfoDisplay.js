@@ -200,9 +200,10 @@ export default class FlowInfoDisplay extends React.Component {
                         {this.state.flowParams[this.state.selectedFlow] && this.state.flowParams[this.state.selectedFlow].map((input,index) => { 
                             const val = this.state.flowValues[this.state.selectedFlow] &&  this.state.flowValues[this.state.selectedFlow][input.first.match(re)[0] + index] ? this.state.flowValues[this.state.selectedFlow][input.first.match(re)[0] + index] : ""
                             return(<Autosuggest
+                                    key={this.state.selectedNode + this.state.selectedFlow + ":" + index}
                                     suggestions={this.state.suggestions}
                                     onSuggestionsFetchRequested={(e) =>{
-                                    this.onSuggestionsFetchRequested(e, input.first.match(re)[0])
+                                    this.onSuggestionsFetchRequested(e, input.first.match(re)[0].toLowerCase())
                                     }}
                                     onSuggestionsClearRequested={this.onSuggestionsClearRequested}
                                     getSuggestionValue={this.getSuggestionValue}

@@ -8,7 +8,6 @@ import NodeSelector from "./NodeSelector";
 
 import SnackBarWrapper from "./SnackBarWrapper";
 import Grid from '@material-ui/core/Grid';
-const matchAll = require("match-all");
 
 
 
@@ -25,7 +24,9 @@ export default class FlowExplorerIndex extends React.Component {
             transactionMap: null,
             client: null,
             messages : [],
-            options : {}
+            options : {
+                'boolean' : [{"value" : "true","label":"true"}, {"value": "false", "label":"false"}]
+            }
         }
      
         let re = /(?<=O=)[^,]*/g;
@@ -33,10 +34,10 @@ export default class FlowExplorerIndex extends React.Component {
         let _this = this;
         var defaultSettings = JSON.parse(document.getElementById('nodeDefaults').innerHTML);
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
-        this.state.options.Party = []
+        this.state.options.party = []
         this.state.allNodes.forEach(function(node) {
             if(!node.notary){
-                _this.state.options.Party.push({"value": node.name.match(re)[0], "label" : node.name.match(re)[0]})
+                _this.state.options.party.push({"value": node.name.match(re)[0], "label" : node.name.match(re)[0]})
                 _this.state.connections[node.name] = {
                     host: node.rpcSettings.address,
                     cordappDir: node.cordappDir   
@@ -135,13 +136,12 @@ export default class FlowExplorerIndex extends React.Component {
                 })
                 break;
             case "getStateNames":
-                this.state.options.ContractState = []
+                this.state.options.contractstate = []
                 var _this = this
                 content.forEach(function(state){
-                    _this.state.options.ContractState.push({"value" :state, "label": state})
+                    _this.state.options.contractstate.push({"value" :state, "label": state})
                 })
             
-                console.log("Options " + JSON.stringify(this.state.options.ContractState));
                 this.setState(this.state.options)
                 break;
             case "startFlow":
@@ -308,7 +308,11 @@ export default class FlowExplorerIndex extends React.Component {
        }
 
        if(this.state.transactionMap){
-           DisplayVaultTransactions = <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
+           DisplayVaultTransactions = 
+           <div>
+               <h3>The Vault (UNCONSUMED States)</h3>
+               <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
+            </div>
        }
        return (
             <div>
@@ -325,6 +329,7 @@ export default class FlowExplorerIndex extends React.Component {
                     <Grid item sm={6}>{DisplayFlowList}</Grid>
                 </Grid>
                 <Grid container justify = "center" alignitems="center" spacing={2}>
+                    
                     <Grid item sm={12}> {DisplayVaultTransactions} </Grid>
                 </Grid>
                 {this.state.messages.map((message, index) => { 

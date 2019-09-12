@@ -116,7 +116,7 @@ export default class VaultTransactionDisplay extends React.Component {
         this.sortTable(this.state.transactionMap, this.state.asc);
         return(
             <div >
-              <h3>The Vault</h3>
+              
                 <Table size="small" id="vault-info-display-table">
                   <TableHead>
                     <TableRow>

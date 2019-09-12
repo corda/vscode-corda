@@ -24,6 +24,7 @@ import net.corda.core.messaging.FlowHandle;
 import net.corda.core.node.NodeInfo;
 import net.corda.core.node.services.Vault;
 import net.corda.core.node.services.vault.*;
+import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static net.corda.core.node.services.vault.QueryCriteriaUtils.DEFAULT_PAGE_SIZE;
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
@@ -141,7 +144,6 @@ public class NodeRPCClient {
         registeredFlowParams = new HashMap<>();
         File dir = new File(jarPath);
         List<File> jarFiles = new ArrayList<>();
-        List<File> retryFiles;
         File[] filesList = dir.listFiles();
         for (File file : filesList) {
             if (file.getName().contains(".jar")) {
@@ -269,6 +271,13 @@ public class NodeRPCClient {
         return stateNames;
     }
 
+    public TransactionState getStateFromRef(StateRef stateRef){
+        QueryCriteria stateRefCriteria = new QueryCriteria.VaultQueryCriteria()
+                .withStateRefs(Arrays.asList(stateRef));
+        Vault.Page<ContractState> result = proxy.vaultQueryByCriteria(stateRefCriteria, ContractState.class);
+        return result.getStates().get(0).getState();
+    }
+
     public List<StateAndRef<ContractState>> getStatesInVault() { return statesAndMeta.getStates(); }
 
     public List<Vault.StateMetadata> getStatesMetaInVault() { return statesAndMeta.getStatesMetadata(); }
@@ -345,16 +354,27 @@ public class NodeRPCClient {
 
                         Party p = proxy.partiesFromName(currArg, true).iterator().next();
                         finalParams.add(p);
-                    } else if (currArg.equals("true") | currArg.equals("false")) { // BOOLEAN
-                        finalParams.add(Boolean.parseBoolean(currArg));
+                    } else if (currParam == Boolean.class){//currArg.equals("true") | currArg.equals("false")) { // BOOLEAN
+
+                        finalParams.add(Boolean.parseBoolean(currArg.toLowerCase()));
                     } else if (currParam == UniqueIdentifier.class) {
                         finalParams.add(new UniqueIdentifier(null, UUID.fromString(currArg)));
                     } else if (currParam == String.class) {  // STRING
                         finalParams.add(currArg);
-                    }else if (currParam == LocalDate.class){
+                    }else if (currParam == LocalDate.class) {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yy");
-                        LocalDate localDate = LocalDate.parse(currArg,formatter);
+                        LocalDate localDate = LocalDate.parse(currArg, formatter);
                         finalParams.add(localDate);
+                    }else if (currParam == StateAndRef.class){
+                        Pattern pattern = Pattern.compile("(.{64})\\((\\d*)\\)");
+                        Matcher matcher = pattern.matcher(currArg);
+                        TransactionState state;
+                        matcher.find();
+                        SecureHash txhash = SecureHash.parse(matcher.group(1));
+                        int index = Integer.parseInt(matcher.group(2));
+                        StateRef stateRef = new StateRef(txhash, index);
+                        state = getStateFromRef(stateRef);
+                        finalParams.add(new StateAndRef(state, stateRef));
                     } else {
                         finalParams.add(Integer.valueOf(currArg)); // INTEGER
                     }
@@ -673,9 +693,9 @@ public class NodeRPCClient {
     // main method for debugging
     public static void main(String[] args) throws Exception {
 
-         NodeRPCClient client = new NodeRPCClient("localhost:10005","user1","test", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\timesheet-example\\workflows-java\\build\\nodes\\Contractor\\cordapps");
+         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\negotiation-cordapp\\workflows-java\\build\\nodes\\PartyB\\cordapps");
 
-         String s = "{\"flow\":\"com.timesheet.flow.IssueInvoiceFlow$Initiator\",\"args\":[\"5\",\"12/12/92\",\"MegaCorp 1\"]}";
+         String s = "{\"flow\":\"net.corda.core.flows.ContractUpgradeFlow$Initiate\",\"args\":[\"0FDE61A6AF51FFE8B373C9BA0580E77483B8BD59C419EF8F6237AB83F68374F7(0)\",\"MegaCorp 1\"]}";
          HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
 
 //
