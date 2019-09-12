@@ -1,65 +1,67 @@
 # vscode-corda README
 
-This is the README for your extension "vscode-corda". After writing up a brief description, we recommend including the following sections.
+The vscode-corda extension provides tools for developing CorDapps on the [Corda](https://corda.net) platform.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+The following features are accessible through the command palette. <br/> ⇧⌘P (Windows, Linux Ctrl+Shift+P)
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Corda Clean project (remove previous build files)
+- Corda Build project (build the CorDapp using existing gradle)
+- Corda Run Tests (unit tests)
+- Corda Deploy Nodes (setup mock network from gradle file)
+- Corda Run Nodes (bring nodes online)
+- Corda Show Transaction Explorer
+    - See Node details
+    - View all states in a Node's vault by transaction including it's StateRef and property values.
+    - List all registered flows on the Node
+    - Run a flow with automatic detection of required parameters and autocomplete.
+- Corda Show Vault Query View
+    - Create custom queries on the selected Node's vault. Available criteria include:
+        - StateStatus
+        - ContractStateType
+        - StateRef
+        - Notary
+        - Time Condition (future feature with Core 4.3)
+        - Relevancy Status
+        - Participants
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- NodeJS 12+
+- Oracle JDK 8
+- Gradle 5.5+
+- Corda 4.0+
 
-## Extension Settings
+## Getting Started
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Clone the V2 branch from the extension repo https://github.com/corda/vscode-corda/tree/V2
+- From the local directory:
 
-For example:
+1. npm install
+2. open in vscode (or "code ." from terminal)
+3. Debug -> Start Debugging to run extension
 
-This extension contributes the following settings:
+## Design Notes
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+### Flow
+extension.ts -> webviews (transaction Explorer, vaultQuery) <-> websocket (ClientWebsocket) <-> CordaRPCOps (NodeRPCClient) <-> Mock Network
+
+### extension.ts (depends on parser.js)
+Typecript extension file. <br/>
+- Extension properties and contributed commands are defined in ./package.json
+- 
 
 ## Known Issues
 
 Calling out known issues can help limit users opening duplicate issues against your extension.
 
+---
+
+
+
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.1.0
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial pre-release of vscode-corda
