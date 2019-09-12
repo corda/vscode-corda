@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static net.corda.core.node.services.vault.QueryCriteriaUtils.DEFAULT_PAGE_SIZE;
@@ -105,6 +106,7 @@ public class NodeRPCClient {
         setFlowMaps(cordappDir, this.registeredFlows);
 
         if (debug) System.out.println("RPC Connection Established");
+
     }
 
     /**
@@ -377,9 +379,7 @@ public class NodeRPCClient {
         String sortAttribute = argsIn.get("sortAttribute");
         String sortDirection = argsIn.get("sortDirection");
 
-
         updateNodeData(); // make sure to update node info for stateNames etc.
-
 
         // Default arguments for Query with least restrictive query
         Vault.StateStatus stateStatus = Vault.StateStatus.ALL;
@@ -494,7 +494,6 @@ public class NodeRPCClient {
         }
 
         // TODO possibly add sort - right now will not use
-
 //        // default sort is DESC on RECORDED TIME
 //        SortAttribute.Standard sa;
 //        Sort.Direction sd = Sort.Direction.DESC;
@@ -523,6 +522,7 @@ public class NodeRPCClient {
         Vault.Page<ContractState> result = proxy.vaultQueryByWithPagingSpec(ContractState.class, userCriteria, ps);
 
         // TEMPORARY FILTER on Participants only run if some participants are chosen.
+        // Participants filtering is Union
         if (participants.size() > 0) {
             List<Vault.StateMetadata> vsm = new ArrayList<>();
             List<StateAndRef<ContractState>> vsr = new ArrayList<>();
@@ -530,15 +530,17 @@ public class NodeRPCClient {
             for (int i = 0; i < result.getStates().size(); i++) {
                 ContractState currentState = result.getStates().get(i).getState().getData();
 
-                System.out.println("here are the state participants: " + currentState.getParticipants());
-                System.out.println("here are the criteria participants: " + participants);
+                //if (new HashSet<>(participants).equals(new HashSet<>(currentState.getParticipants()))) {
+                Set<AbstractParty> intersection = participants.stream()
+                        .distinct()
+                        .filter(currentState.getParticipants()::contains)
+                        .collect(Collectors.toSet());
 
-                if (new HashSet<>(participants).equals(new HashSet<>(currentState.getParticipants()))) {
-                    System.out.println("made it inside the BRANCH");
+                if (intersection.size() > 0) {
+
                     vsm.add(result.getStatesMetadata().get(i));
                     vsr.add(result.getStates().get(i));
 
-                    System.out.println(vsm.size());
                 }
             }
             return createTransactionMap(vsm , vsr);
@@ -578,8 +580,7 @@ public class NodeRPCClient {
             case "getStateProperties":
                 return getStateProperties((String) args);
             case "userVaultQuery":
-                Gson gson = new GsonBuilder().create();
-                HashMap<String, Object> queryArgMap = gson.fromJson((String) args, HashMap.class);
+                HashMap<String, Object> queryArgMap = (HashMap<String, Object>) args;
                 Map<String, String> queryArgs = (Map<String, String>) queryArgMap.get("args");
                 Map<String, Object>  queryValues = (Map<String, Object>) queryArgMap.get("values");
                 return userVaultQuery(queryArgs, queryValues);
@@ -647,7 +648,21 @@ public class NodeRPCClient {
                 "[{ \"hash\":\"3CF0273A4C29374BC0E53F516A177A41B9DA62AC331F373D542833CDC40C86D9\",\"index\":\"0\"}] ,\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyA\",\"PartyB\"]}}";
 
 
-        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", t);
+        String u = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"" +
+                "values\":{\"" +
+                "stateStatus\":\"ALL\",\"" +
+                "contractStateType\":\"\",\"" +
+                "stateRefs\":\"\",\"" +
+                "notary\":\"\",\"" +
+                "timeCondition\":\"\",\"" +
+                "relevancyStatus\":\"ALL\",\"" +
+                "participants\":\"\"}}";
+
+        String v = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"CONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
+
+        String k = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"UNCONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyB\",\"PartyA\"]}}";
+
+        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", k);
 
         System.out.println("\n\n\n\nHere is the result : \n" + result);
         System.out.println("\n\n Quantity returned : " + result.size());
