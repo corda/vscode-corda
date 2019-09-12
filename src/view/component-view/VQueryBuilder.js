@@ -40,7 +40,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-// PROPS: notaries, contractStates, participants
+// PROPS: allNodes, contractStates
 export default function VQueryBuilder(props) {
   const classes = useStyles();
   //const [checked, setChecked] = React.useState("");
@@ -74,13 +74,15 @@ export default function VQueryBuilder(props) {
     const value = event.target.value;
 
     const currentIndex = state.queryValues[name].indexOf(value);
-    const newChecked = [...state.queryValues[name]];
+    var newChecked = [...state.queryValues[name]];
 
     if (currentIndex === -1) {
       newChecked.push(value);
     } else {
       newChecked.splice(currentIndex, 1);
     }
+
+    if (newChecked.length === 0) newChecked = ""; // reset to default
 
     setState({ 
         ...state,
@@ -101,8 +103,9 @@ export default function VQueryBuilder(props) {
                         <ListItemText primary={`ref: ${refs["hash"]} index: ${refs["index"]}`} />
                         <IconButton onClick={() => {
                                     const entryIndex = state.queryValues.stateRefs.indexOf(refs);
-                                    const newStateRefs = [...state.queryValues.stateRefs];
+                                    var newStateRefs = [...state.queryValues.stateRefs];
                                     newStateRefs.splice(entryIndex, 1);
+                                    if (newStateRefs.length === 0) newStateRefs = ""; // reset to default
 
                                     setState({ ...state,
                                         queryValues: {
@@ -199,6 +202,18 @@ export default function VQueryBuilder(props) {
     }
   }
 
+  const startUserVaultQuery = () => {
+        console.log("about to run startUserVaultQuery");
+        props.startUserVaultQuery(state.queryValues);
+    }
+
+// component replacement for lifecycle componentDidUpdate()
+React.useEffect(() => {
+    console.log("state update! here");
+    
+    startUserVaultQuery();
+}, [state.queryValues])
+
   const contents = (predicate) => {
     
     switch(predicate) {
@@ -223,21 +238,33 @@ export default function VQueryBuilder(props) {
                     </Select>
                 </ListItem>
             ); 
-        case "Notary":
+        case "Notary": // if value.notary exists
         case "ContractStateType":
         case "Participants":
             var inputs = "";
             var statePropName = "";
-            if (predicate === "Notary") {
-                inputs = props.notaries;
-                statePropName = "notary"
-            } else if (predicate === "Participants") {
-                inputs = props.participants;
-                statePropName = "participants"
-            }
-            else {
+            
+            if (predicate === "ContractStateType") {
                 inputs = props.contractStates;
                 statePropName = "contractStateType";
+            } else {
+
+                // filter allNodes to relevant predicate
+                if (predicate === "Notary") {
+                    statePropName = "notary"
+                    inputs = props.allNodes.filter(value => {
+                        return value.notary;
+                    })
+                } else if (predicate === "Participants") {
+                    statePropName = "participants"
+                    inputs = props.allNodes.filter(value => {
+                        return !value.notary;
+                    })
+                }
+                // convert the incoming input <Party> to String representation
+                inputs = inputs.map(value => {
+                    return value.name.match("O=(.*),L")[1];
+                })
             }
             return (
                 <React.Fragment>

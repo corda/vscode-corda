@@ -96,6 +96,7 @@ public class ClientWebSocket {
                     });
 
                     break;
+                case "userVaultQuery":
                 case "getStateProperties":
                     // custom message result can be added
                     retObj = client.run(msgCmd, content);
