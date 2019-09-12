@@ -30,18 +30,25 @@ export default class VaultQueryIndex extends React.Component {
         }
      
         let _this = this;
+        var defaultSettings = JSON.parse(document.getElementById('nodeDefaults').innerHTML);
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
-       // console.log("all nodes = " + JSON.stringify(this.state.allNodes))
+        
+        // console.log("all nodes = " + JSON.stringify(this.state.allNodes))
         this.state.allNodes.forEach(function(node) {
-            if(node.rpcUsers){
+            if(!node.notary){
                 _this.state.connections[node.name] = {
                     host: node.rpcSettings.address,
-                    username: node.rpcUsers.user,
-                    password: node.rpcUsers.password,
                     cordappDir: node.cordappDir   
                 }
+                if(node.rpcUsers){
+                    _this.state.connections[node.name].username = node.rpcUsers.user;
+                    _this.state.connections[node.name].password = node.rpcUsers.password;
+                    
+                }else{
+                    _this.state.connections[node.name].username = defaultSettings.rpcUsers.username;
+                    _this.state.connections[node.name].password = defaultSettings.rpcUsers.password;
+                }
             }
-          //  console.log("added node")
         });
        this.handleChange = this.handleChange.bind(this);
        this.startUserVaultQuery = this.startUserVaultQuery.bind(this);
