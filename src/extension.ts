@@ -14,7 +14,6 @@ if(process.platform.includes("win32") || process.platform.includes("win64")){
 var nodeConfig = [] as cordaNodeConfig;
 var nodeDefaults: cordaNodeDefaultConfig;
 var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
-var validNodes = [] as any; // names of valid nodes for referencing relative node dir
 var nodeCordappDir = new Map(); // cordapp dir for each node
 var hasRunBuild = false;
 var hasRunDeploy = false;
@@ -78,7 +77,19 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let cordaRunNodes = vscode.commands.registerCommand('extension.cordaRunNodes', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew cordaRunNodes', 4000);
-		runNodes();
+		var nodesAreRunning = false;
+		for (var i = 0; i < 10; i++) {
+			(function (i) {
+			  setTimeout(function () {
+				if(nodeLoaded){
+					if(!nodesAreRunning){
+						nodesAreRunning = true;
+						runNodes();
+					}
+				}
+			  }, 3000*i);
+			})(i);
+		  }
 	});
 	context.subscriptions.push(cordaRunNodes);
 
@@ -186,8 +197,8 @@ function launchViewBackend() {
 	for (var index in nodeConfig) {
 		var name = nodeConfig[index].name.match("O=(.*),L")![1];
 		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
-		validNodes[index] = name;
 	}
+
 
 	if (vscode.window.terminals.find((value) => {
 		return value.name === "Client Launcher";
@@ -240,6 +251,7 @@ function launchClient() {
  * @param logPort - address that the RPCClient sends log data
  */
 function runNode(name : string, port : string, logPort : string) {
+	console.log("It is trying")
 	var shellArgs = [] as any;
 	var cmd;
 	var path;
@@ -270,8 +282,8 @@ function runNodes() {
 	// TODO: Global boolean for hasRunBuild and hasRunDeploy. If false, build and deploy before we can run nodes
 	// (and set deploy false after build, set both false after clean)
 	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
-
-
+	//console.log("the node config");
+	console.log(nodeConfig);
 	var port = 5005;
 	var logPort = 7005;
 
@@ -282,9 +294,10 @@ function runNodes() {
 	}
 
 	// push new terminals
-	for (var i = 0; i < validNodes.length; i++) {
-		openTerminals.push(runNode(validNodes[i], (port++).toString(), (logPort++).toString()));
+	for(var index in nodeConfig){
+		openTerminals.push(runNode(nodeConfig[index].name.match("O=(.*),L")![1], (port++).toString(), (logPort++).toString()));
 	}
+	
 }
 
 
