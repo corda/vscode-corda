@@ -85,7 +85,6 @@ export default class FlowExplorerIndex extends React.Component {
 
 
     messageHandler(event) {
-        console.log(event.data)
         var evt = JSON.parse(event.data);
         var content = JSON.parse(evt.content);
 

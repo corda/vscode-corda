@@ -251,7 +251,6 @@ function launchClient() {
  * @param logPort - address that the RPCClient sends log data
  */
 function runNode(name : string, port : string, logPort : string) {
-	console.log("It is trying")
 	var shellArgs = [] as any;
 	var cmd;
 	var path;
@@ -283,7 +282,6 @@ function runNodes() {
 	// (and set deploy false after build, set both false after clean)
 	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
 	//console.log("the node config");
-	console.log(nodeConfig);
 	var port = 5005;
 	var logPort = 7005;
 
@@ -339,14 +337,12 @@ function scanGradleFile(fileName : String, last: boolean): any {
 	
 	gjs.parseFile(fileName).then(function (representation : cordaTaskConfig) {
 		// Pick up any other configuration we might need in this parse loop and assign it to our globals
-		console.log(representation);
 		if (representation.task !== undefined && representation.task.node !== undefined) {
 			if(representation.task.nodeDefaults){
 				nodeDefaults = representation.task.nodeDefaults as cordaNodeDefaultConfig;
 			}
 			nodeConfig = representation.task.node as cordaNodeConfig;
 			nodeDir = fileName.replace('build.gradle','');
-			console.log(nodeConfig);
 		}
 		
 		if(last){
