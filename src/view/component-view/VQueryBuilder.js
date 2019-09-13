@@ -20,6 +20,12 @@ import Fab from '@material-ui/core/Fab';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { FormControl, FormLabel } from '@material-ui/core';
 
+import Autosuggest from 'react-autosuggest';
+import match from 'autosuggest-highlight/match';
+import parse from 'autosuggest-highlight/parse';
+
+import VQueryAutosuggest from "./VQueryAutosuggest";
+
 
 
 const useStyles = makeStyles(theme => ({
@@ -48,14 +54,13 @@ const useStyles = makeStyles(theme => ({
 // PROPS: allNodes, contractStates
 export default function VQueryBuilder(props) {
   const classes = useStyles();
-  //const [checked, setChecked] = React.useState("");
   const [state, setState] = React.useState({
-    stateRef0: "",
-    stateRef1: "",
-    stateRef2: false,
+ 
     timeCondition0: "NONE",
     timeCondition1: "",
     timeCondition2: "",
+    stateRefOptions: [],
+    stateRefSuggestions: [],
 
     // commented out predicates are for future use
     queryValues: {
@@ -98,6 +103,27 @@ export default function VQueryBuilder(props) {
     });
   }
 
+  // dive down into transactionMap and fill StateRefOptions
+  const fillStateRefOptions = () => {
+      console.log("fillStateRefOptions")
+      console.log("BEFORE stateRefOptions " + JSON.stringify(state.stateRefOptions))
+      if (state.stateRefOptions.length === 0) {
+        var srefs = []
+        props.transactionMap.map((row) => {
+            JSON.parse(row.states).map((stateRow) => {
+                const sref = stateRow.second.stateRef;
+                console.log(JSON.stringify("single sref " + sref))
+                srefs.push(sref);
+            })
+        })
+        console.log("SREFS " + JSON.stringify(srefs))
+        setState({
+            ...state,
+            stateRefOptions: srefs
+            })
+    }
+  }
+
   const stateRefList = () => {
     if(state.queryValues.stateRefs.length > 0) {
         return (
@@ -132,64 +158,18 @@ export default function VQueryBuilder(props) {
    
       return (
             <div style={{display: 'inline-flex'}}>
-            <TextField
-                id="standard-with-placeholder"
-                label="Secure Hash"
-                placeholder="CABC3C3F980BDA8F20D5F06EFCA1A2516ADB248AD05529405D89D76C4C088E37"
-                className="input-field-text"
-                onChange={(event) => {
-                    setState({
-                        ...state,
-                        stateRef0: event.target.value
-                    })
-                }}
-               
-                margin="dense"
-                value={state.stateRef0}
-                error={state.stateRef0.length !== 64 && state.stateRef0.length !== 0} // hash must be correct length
-                InputLabelProps={{
-                    classes: {
-                        root: "input-field-label",
-                        focused: "input-field-label-focused",
-                        shrink: "input-field-label-focused"
-                        
-
-                    },
-                }}
-                InputProps={{
-                    classes: {
-                        root: "input-field"
-                    },
-                }}
-                
-            />
-            <TextField
-                id="standard-with-placeholder"
-                label="Index"
-                placeholder="0"
-                className="input-field-text"
-            
-                onChange={(event) => {
-                    setState({
-                        ...state,
-                        stateRef1: event.target.value
-                    })
-                }}
-                margin="dense"
-                value={state.stateRef1}
-                error={isNaN(state.stateRef1)}
-                InputLabelProps={{
-                    classes: {
-                        root: "input-field-label",
-                        focused: "input-field-label-focused",
-                        shrink: "input-field-label-focused"
-                    },
-                }}
-                InputProps={{
-                    classes: {
-                        root: "input-field"
-                    },
-                }}
+           <VQueryAutosuggest stateRefOptions={state.stateRefOptions} setStateRefState={(hash, index) => {
+                setState({
+                    ...state,
+                    queryValues: {
+                        ...state.queryValues,
+                        stateRefs: [...state.queryValues.stateRefs, {
+                            "hash": hash,
+                            "index": index
+                        }]
+                    }
+                })
+            }}
             />
             </div>
         
@@ -244,9 +224,9 @@ export default function VQueryBuilder(props) {
 // component replacement for lifecycle componentDidUpdate()
 React.useEffect(() => {
     console.log("state update! here");
-    
     startUserVaultQuery();
-}, [state.queryValues])
+    //fillStateRefOptions();
+}, [state.queryValues]) // only if the following states are changed
 
   const contents = (predicate) => {
     
@@ -364,24 +344,10 @@ React.useEffect(() => {
             )
         case "StateRef":
             console.log(state.stateRef2)
-            if ( // check when valid stateRef is entered via both fields
-                state.stateRef0.length === 64 &&
-                !isNaN(state.stateRef1) &&
-                state.stateRef1.length > 0 &&
-                state.stateRef2 === false
-                ) {
-                  setState({
-                      ...state,
-                      stateRef2: true
-                  })
-                }
             return (
                 <React.Fragment>
                     <ListItem>
-    
                         {stateRefEntry()}
-                        {addButton()}
-                        
                     </ListItem>
                     {stateRefList()}
                 </React.Fragment>
@@ -552,38 +518,13 @@ React.useEffect(() => {
       
   }
 
-  const addButton = () => {
-    if(state.stateRef2) {
-        return (
-            <Fab size='small' color="primary" aria-label="add" className={classes.fab}>
-                <AddIcon onClick={() => {
-                    const hash = state.stateRef0;
-                    const index = state.stateRef1;
-                    setState({
-                        ...state,
-                        stateRef0: "", // clear stateRef field
-                        stateRef1: "", // clear stateRef field
-                        stateRef2: false, // remove add button
-                        queryValues: {
-                            ...state.queryValues,
-                            stateRefs: [...state.queryValues.stateRefs, {
-                                "hash": hash,
-                                "index": index
-                            }]
-                        }
-                    })
-                }} />
-            </Fab>
-        )
-    } else return
-  }
-// <ListItemText id={labelId} primary={`${value}`} />
-
   return (
       <Container id="query-container">
         <List className={classes.root}>
 
         {/*Debug Statement*/}
+        {fillStateRefOptions()}
+        {console.log("current stateRefOptions" + JSON.stringify(state.stateRefOptions))}
         {console.log(state.queryValues)}
         {["StateStatus", "ContractStateType", "StateRef", "Notary",
          "Relevancy Status", "Participants"].map(value => {
