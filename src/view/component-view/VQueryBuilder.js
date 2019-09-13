@@ -56,6 +56,8 @@ export default function VQueryBuilder(props) {
     timeCondition0: "NONE",
     timeCondition1: "",
     timeCondition2: "",
+    stateRefOptions: [],
+    stateRefSuggestions: [],
 
     // commented out predicates are for future use
     queryValues: {
@@ -98,6 +100,36 @@ export default function VQueryBuilder(props) {
     });
   }
 
+  // dive down into transactionMap and fill StateRefOptions
+  const fillStateRefOptions = () => {
+      var srefs = []
+      props.transactionMap.map((row) => {
+          row.states.map((stateRow) => {
+              const sref = stateRow.second.stateRef;
+              srefs.push(sref);
+          })
+      })
+      setState({
+        ...state,
+        stateRefOptions: sref
+        })
+  }
+
+  const onSuggestionsFetchRequested = (value) => {
+
+  }
+
+  const getSuggestions = (value) => {
+   
+    const inputValue = value.trim().toUpperCase();
+    const inputLength = inputValue.length;
+    return inputLength === 0 // no input then no suggestion, else
+      ? []
+      : this.state.options.filter(
+          item => item.toLowerCase().slice(0, inputLength) === inputValue
+        );
+  }
+
   const stateRefList = () => {
     if(state.queryValues.stateRefs.length > 0) {
         return (
@@ -132,7 +164,7 @@ export default function VQueryBuilder(props) {
    
       return (
             <div style={{display: 'inline-flex'}}>
-            <TextField
+            {/* <TextField
                 id="standard-with-placeholder"
                 label="Secure Hash"
                 placeholder="CABC3C3F980BDA8F20D5F06EFCA1A2516ADB248AD05529405D89D76C4C088E37"
@@ -162,7 +194,33 @@ export default function VQueryBuilder(props) {
                     },
                 }}
                 
-            />
+            /> */}
+            <Autosuggest
+                                    key={this.state.selectedNode + this.state.selectedFlow + ":" + index}
+                                    suggestions={getSuggestions()}
+                                    onSuggestionsFetchRequested={(e) =>{
+                                    this.onSuggestionsFetchRequested(e, input.first.match(re)[0].toLowerCase())
+                                    }}
+                                    onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+                                    getSuggestionValue={this.getSuggestionValue}
+                                    renderSuggestion={this.renderSuggestion}
+                                    
+                            
+                                    inputProps={{
+                                        className: "flow-param-input-field input-field-text",
+                                        label: input.second + ": " + input.first.match(re)[0],
+                                        value: val,
+                                        onChange: (e, { newValue }) => {this.onChange(e,this.state.selectedFlow, input.first.match(re)[0] + index, newValue )}
+                                    }}
+                                    renderInputComponent = {this.renderInputComponent}
+                                    theme={{
+                                        suggestionsContainerOpen : "menu-item-autosuggest",
+                                        suggestionsList: "menu-item-autosuggest-list",
+                                        container : "menu-item-autosuggest-container"
+
+                                    }}
+
+                                />
             <TextField
                 id="standard-with-placeholder"
                 label="Index"
@@ -244,9 +302,9 @@ export default function VQueryBuilder(props) {
 // component replacement for lifecycle componentDidUpdate()
 React.useEffect(() => {
     console.log("state update! here");
-    
     startUserVaultQuery();
-}, [state.queryValues])
+    fillStateRefOptions();
+}, [state.queryValues, props.transactionMap]) // only if the following states are changed
 
   const contents = (predicate) => {
     

@@ -218,7 +218,7 @@ export default class VaultQueryIndex extends React.Component {
            VaultQueryBuilder = 
            <div>
                <h3>Vault Query Builder</h3>
-               <VQueryBuilder allNodes={this.state.allNodes} contractStates={this.state.stateNames} startUserVaultQuery={this.startUserVaultQuery} />
+               <VQueryBuilder allNodes={this.state.allNodes} contractStates={this.state.stateNames} startUserVaultQuery={this.startUserVaultQuery} transactionMap = {this.state.transactionMap}/>
            </div>
        }
        if(this.state.transactionMap){
