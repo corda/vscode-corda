@@ -44,17 +44,88 @@ Clone the V2 branch from the extension repo https://github.com/corda/vscode-cord
 
 ## Design Notes
 
-### Flow
-extension.ts -> webviews (transaction Explorer, vaultQuery) <-> websocket (ClientWebsocket) <-> CordaRPCOps (NodeRPCClient) <-> Mock Network
+### Flow Of Communcation
+extension.ts -> webviews (transaction Explorer, vaultQuery) <-> websocket (ClientWebsocket) <-> CordaRPCops (NodeRPCClient) <-> Mock Network
 
-### extension.ts (depends on parser.js)
+#### extension.ts (depends on parser.js)
 Typecript extension file. <br/>
 - Extension properties and contributed commands are defined in ./package.json
-- 
+- Defines the extension properties and loads them into the vscode environment
+- Scans the gradle files in the active workspace to discover nodes and  passes this information to the views 
+- Loads the ClientWebSocket jar file
+- Launches the nodes associated with the current workspace
+- Loads the views
 
-## Known Issues
+#### webviews
+React JS and CSS files. <br/>
+- Create websockets to communicate with the ClientWebSocket
+- Passes the node details retrieved through the extension.ts file onto the client websocket where RPC connections are established
+- Uses these remote connections to post and get information from the RPCClients
+
+
+#### websocket (ClientWebSocket)
+Java server side code. <br/>
+- RPCClients are opened when connection requests come from the webviews.
+- Maintains knowledge of these RPCClients so that, when requests come from the views, the ClientWebSocket communicates with the correct RPCClient
+- Passes information between the views and the RPCClients
+
+#### CordaRPCops
+RPCClients that communicate with the nodes <br />
+- RPC interfaces defined in Corda that allow communicated with nodes via a message quieie protocol.
+- Responds to queries from the ClientWebSocket for retrieving information or running flows.
+
+#### Mock Network
+Network through which the nodes communicate
+
+### File Structure
+#### Views
+##### Flow Explorer
+The flow explorer allows a user to run flows from a chosen node through the web client. They can also see the unconsumed states currently in the selected nodes vault. 
+
+transactionExplorer.js -> FlowExplorerIndex.js -> (NodeInfo.js, FlowInfoDisplay.js, NodeSelector.js, SnackBarWrapper.js, VaultTransactionDisplay.js -> StateCard.js )
+
+- <b>transactionExplorer</b> is the uppermost react file. The other files are mounted onto this one.
+- <b> FlowExplorerIndex </b>is the main component for this webview. It keeps track of the node data, the websocket connections, and the data retrieved from the <em>ClientWebSocket</em> (sending this information down to other components as required). Start flow requests are also made from this component.
+- <b>FlowInfoDisplay </b>recieves information about the available flows and the parameters required for these flows from the <em>FlowExplorerIndex</em>. It allows users to choose and run these flow, passing the data back up to the <em>FlowExplorerIndex</em> to be run through the websocket.
+- <b>NodeInfo </b>recieves information about the currently selected node and displays it.
+- <b>NodeSelector</b> recieves the nodes available in the gradle from the <em>FlowExplorerIndex</em> and allows the user to choose one to communcate with. It passes the chosen node back up to the <em>FlowExplorerIndex</em> to establish the websocket.
+- <b>SnackBarWrapper</b> is the error/info/success display. When the <em>FlowExplorerIndex</em> recieves a message from the websocket that the user should be aware of (an error, a flow starting to run, a flow successfully finishing) this is passed to the SnackBarWrapper.
+- <b>VaultTransactionDisplay</b> is a table that displays transactions. It recieves a map of these transactions from the <em>FlowExplorerIndex</em> (only that contain UNCONSUMED states) and displays these along with the states that were output from the transaction.
+- <b>StateCard </b>is a component that displays state information recieved from the <em>VaultTransactionDisplay</em>. Each card represents one state.
+
+##### Vault Query
+The Vault Query view allows a user to explore the vault of a chosen node. They are able to run custom queries using a list of criteria options and can see the transactions returned from these queries in the table display.
+
+vaultQuery.js > VaultQueryIndex.js -> (NodeSelector.js, NodeInfo.js, VaultTransactionDisplay.js -> StateCard.js, VQueryBuilder.js, SnackBarWrapper.js)
+
+- <b>vaultQuery</b> is the uppermost file onto which the components are mounted.
+- <b>VaultQueryIndex </b> is the main component for this webview. It keeps track of the node data, the websocket connections, and the data retrieved from the <em>ClientWebSocket</em> (sending this information down to other components as required). 
+- <b>NodeInfo </b>recieves information about the currently selected node and displays it.
+- <b>NodeSelector</b> recieves the nodes available in the gradle from the <em>VaultQueryIndex</em> and allows the user to choose one to communcate with. It passes the chosen node back up to the <em>VaultQueryIndex</em> to establish the websocket.
+- <b>SnackBarWrapper</b> is the error/info/success display. When the <em>VaultQueryIndex</em> recieves a message from the websocket that the user should be aware of (an error, a flow starting to run, a flow successfully finishing) this is passed to the SnackBarWrapper.
+- <b> VQueryBuilder</b> contains options that allow a user to custom craft query criteria for a chosen node. Choices of participants, notaries, and ContractTypes are extracted from data loaded from the node. When options are selected, these are passed back up to <em>VaultQueryIndex</em> and the query is run through the websocket connection, changing the transactions displayed in the <em>VaultTransactionDisplay</em>.
+- <b>VaultTransactionDisplay</b> is a table that displays transactions. It recieves a map of these transactions from the <em>VaultQueryIndex</em> and displays these along with the states that were output from the transaction.
+- <b>StateCard </b>is a component that displays state information recieved from the <em>VaultTransactionDisplay</em>. Each card represents one state.
+
+#### Client
+The client is used to intermediate communcations between the RPCClients and the webviews.
+
+- <b> boundary/ClientWebSocket.java</b> handles all incoming and outgoing messages through the websocket. It uses a switch statement to change its behaviour depending on the incoming command, including handling connections (where it will establish RPCCLient connections). This file also handles VaultTracking (where messages are sent each time the nodes database is updated with a new transaction).
+ - <b> NodeRPCClient.java </b> contains the logic for handling most of the commands. It contains a map of possible commands that are associated with handler coder. 
+ - <b> entities/Message.java </b> this object defines the messages that are sent and recieved through the websocket.
+ - <b> entities/MessageDecoder.java </b> converts incoming messages from JSON strings to Message objects
+ - <b> entities/MessageEncoder.java </b> converts outgoing messages from Message objects to JSON strings.
+ - <b> entities/adapters/* </b> defines how various classes are handled when they are converted into JSON.
+ - <b> entities/customExceptions/* </b> defines custom errors that are thrown in the client code. 
+
+## Known Issues/ TODO
+
+- Can't currently define custom criteria using time 
+    - This is due to the type 'comparable' not being whitelisted in any version of Corda prior to version 4.3
+- Can only currently specify dates in the forms dd/MM/yy in flow     parameters.
 
 Calling out known issues can help limit users opening duplicate issues against your extension.
+
 
 ---
 

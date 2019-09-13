@@ -238,6 +238,7 @@ export default class VaultQueryIndex extends React.Component {
        }
        return (
             <div>
+                <h1>Vault Query Explorer</h1>
                 <Grid container spacing={4}>
                     <Grid item sm={6}>
                         <NodeSelector allNodes = {this.state.allNodes} handleChange = {this.handleChange} />

@@ -5,7 +5,7 @@ import * as path from 'path';
 
 var gjs = [] as any;
 
-
+//Import the parser used to scan the local gradle files
 if(process.platform.includes("win32") || process.platform.includes("win64")){
 	gjs =  require('..\\src\\parser');
 }else{
@@ -25,7 +25,11 @@ var gradleTerminal = null as any;
 var projectCwd = '';
 var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
-
+/** 
+ * loadScript is used to load the react files into the view html
+ * @param context - Container for the extensions context
+ * @param path - location of the react js files
+ */
 function loadScript(context: vscode.ExtensionContext, path: string) {
 	if(process.platform.includes("win32") || process.platform.includes("win64")){
 		path = path.replace(/\//g, "\\");
@@ -33,6 +37,11 @@ function loadScript(context: vscode.ExtensionContext, path: string) {
     return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource'}).toString()}"></script>`;
 }
 
+/**
+ * activate runs when the extension is first loaded. 
+ * It adds the custom commands to the command palette.
+ * @param context - Container for the extensions context
+ */
 export function activate(context: vscode.ExtensionContext) {
 	console.log('vscode-corda" is now active');
 
@@ -42,8 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// and initialize
 	vscode.window.setStatusBarMessage('Loading nodes from gradle', 4000);
 	updateWorkspaceFolders();
-	console.log("loaded?");
-	console.log(nodeLoaded);
 
 	let cordaClean = vscode.commands.registerCommand('extension.cordaClean', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew clean', 4000);
@@ -75,6 +82,10 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(cordaRunNodes);
 
+	/**
+	 * Ensure that all of the node details have been read from the gradle file before allowing the 
+	 * user to run the extensions for the Vault Query view and the Flow view.
+	 */
 	let cordaShowVaultQuery = vscode.commands.registerCommand('extension.cordaShowVaultQuery', () =>{
 		vscode.window.setStatusBarMessage('Displaying Corda Vault Query View', 5000);
 		var viewIsLaunched = false;
@@ -124,6 +135,11 @@ export function activate(context: vscode.ExtensionContext) {
 	
 }
 
+/**
+ * launchView creates the HTML file that the react code will be hooked into. 
+ * @param context - Context of the extension
+ * @param view - Name of the view being loaded 
+ */
 function launchView(context: any, view: string){
 	// LAUNCH BACKEND
 	launchViewBackend();
@@ -140,10 +156,6 @@ function launchView(context: any, view: string){
 	}else{
 		locationOfView =  'out/' + view + '.js';
 	}
-
-	//console.log("Node config has " + JSON.stringify(nodeConfig) );
-	// console.log(nodeConfig[0]);
-
 
 	panel.webview.html = `
 		<!DOCTYPE html>
@@ -165,6 +177,9 @@ function launchView(context: any, view: string){
 	`;
 }
 
+/**
+ * launchViewBackend runs the server used by the views.
+ */
 function launchViewBackend() {
 
 	// update cordapp dirs on nodes in node config
@@ -184,6 +199,9 @@ function launchViewBackend() {
 	}
 }
 
+/**
+ * launchClient runs the server jar that is packaged with the extension
+ */
 function launchClient() {
 	var shellArgs = [] as any;
 	var cmd = "";
@@ -215,6 +233,12 @@ function launchClient() {
 	return terminal;
 }
 
+/**
+ * 
+ * @param name - name of the node being run
+ * @param port - address that the RPCClient is listening to for connections
+ * @param logPort - address that the RPCClient sends log data
+ */
 function runNode(name : string, port : string, logPort : string) {
 	var shellArgs = [] as any;
 	var cmd;
@@ -238,7 +262,9 @@ function runNode(name : string, port : string, logPort : string) {
 	return terminal;
 }
 
-
+/**
+ * runNodes goes through the list of valid nodes collected from the gradle and runs them one by one.
+ */
 function runNodes() {
 	// DONE use nodeConfig to set see which nodes to run, which ports and all that instead of hard coding
 	// TODO: Global boolean for hasRunBuild and hasRunDeploy. If false, build and deploy before we can run nodes
@@ -288,6 +314,14 @@ function gradleRun(param : string) {
 }
 
 
+/**
+ * scanGradleFile uses the imported parser to scan through a passed in file. 
+ * If it detects that the parse has returned attributes that we'd expect in the gradle file that defines the nodes, 
+ * it will load the contents of that file into the nodeConfig variable (which will then be used to 
+ * pass connection information up to the views).
+ * @param fileName - location of the file to parse
+ * @param last - boolean that indicates whether this is the last file that needs to be scanned
+ */
 function scanGradleFile(fileName : String, last: boolean): any {
 	
 	gjs.parseFile(fileName).then(function (representation : cordaTaskConfig) {
@@ -308,6 +342,10 @@ function scanGradleFile(fileName : String, last: boolean): any {
 	});
 }
 
+ 
+/**
+ * updateWorkspaceFolders looks through the currently active workspace for gradle files and then passes these to be scanned.
+ */ 
 function updateWorkspaceFolders(): any {
 	if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length < 1) {
 		// no active workspace folders, abort
