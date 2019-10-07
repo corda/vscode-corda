@@ -2,15 +2,29 @@ import * as vscode from 'vscode';
 import { fileSync } from 'find';
 import * as path from 'path';
 
+var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
+//Import the parser used to scan the local gradle files and set platform specific paths
+//-- Begin platform handling
 var gjs = [] as any;
-
-//Import the parser used to scan the local gradle files
+var winPlatform = false;
+var locationOfViews = '';
+var ext = vscode.extensions.getExtension("R3.vscode-corda"); // stored for undefined check
+var jarDir = ext ? ext.extensionPath : null;
+var shellExecPath = '';
 if(process.platform.includes("win32") || process.platform.includes("win64")){
+	winPlatform = true;
 	gjs =  require('..\\src\\parser');
+	locationOfViews = 'out\\';
+	jarDir = jarDir ? jarDir.replace(/\//g, "\\") : null;
+	shellExecPath = terminals.external.windowsExec;
 }else{
 	gjs =  require('../src/parser');
+	locationOfViews = 'out/';
+	shellExecPath = 'bash';
 }
+//-- End platform handling
+
 var nodeConfig = [] as cordaNodeConfig;
 var nodeDefaults: cordaNodeDefaultConfig;
 var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
@@ -22,7 +36,6 @@ var nodeLoaded = false;
 var gradleTerminal = null as any;
 
 var projectCwd = '';
-var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
 /** 
  * loadScript is used to load the react files into the view html
@@ -30,7 +43,7 @@ var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
  * @param path - location of the react js files
  */
 function loadScript(context: vscode.ExtensionContext, path: string) {
-	if(process.platform.includes("win32") || process.platform.includes("win64")){
+	if(winPlatform){
 		path = path.replace(/\//g, "\\");
 	}
     return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource'}).toString()}"></script>`;
@@ -42,7 +55,7 @@ function loadScript(context: vscode.ExtensionContext, path: string) {
  * @param context - Container for the extensions context
  */
 export function activate(context: vscode.ExtensionContext) {
-	console.log('vscode-corda" is now active');
+	console.log('vscode-corda is now active');
 
 	// monitor workspace folder changes so we can parse the corda gradle config
 	context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(e => updateWorkspaceFolders()));
@@ -112,9 +125,6 @@ export function activate(context: vscode.ExtensionContext) {
 			  }, 3000*i);
 			})(i);
 		  }
-		
-	
-
 	});
 	context.subscriptions.push(cordaShowVaultQuery);
 
@@ -132,17 +142,9 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			  }, 3000*i);
 			})(i);
-		  }
-		
-		
-		
-		
+		  }	
 	});
-	
 	context.subscriptions.push(cordaShowView);
-
-
-	
 	
 }
 
@@ -161,13 +163,6 @@ function launchView(context: any, view: string){
 		localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
 	});
 
-	var locationOfView; 
-	if(process.platform.includes("win32") || process.platform.includes("win64")){
-		locationOfView =  'out\\' + view + '.js';
-	}else{
-		locationOfView =  'out/' + view + '.js';
-	}
-
 	panel.webview.html = `
 		<!DOCTYPE html>
 		<html lang="en">
@@ -182,7 +177,7 @@ function launchView(context: any, view: string){
 			<div id="nodeDefaults" style="display:none">${JSON.stringify(nodeDefaults)}</div>
 			<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
 			<div id="root"></div>
-			${loadScript(context,locationOfView)}
+			${loadScript(context,locationOfViews + view + '.js') /* e.g /out/transactionExplorer.js */}
 		</body>
 		</html>
 	`;
@@ -198,7 +193,6 @@ function launchViewBackend() {
 		var name = nodeConfig[index].name.match("O=(.*),L")![1];
 		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
 	}
-
 
 	if (vscode.window.terminals.find((value) => {
 		return value.name === "Client Launcher";
@@ -216,29 +210,18 @@ function launchViewBackend() {
 function launchClient() {
 	var shellArgs = [] as any;
 	var cmd = "";
-	var path;
-	var jarDir;
-	var ext = vscode.extensions.getExtension("R3.vscode-corda");
-    if (ext !== undefined) {
-		jarDir = ext.extensionPath;
-     }
-	if(jarDir !== undefined){
-		if(terminals.integrated.shell.windows !== null){
-			if(process.platform.includes("win32") || process.platform.includes("win64")){
-				jarDir = jarDir.replace(/\//g, "\\");
-			}
-			path = terminals.integrated.shell.windows;
-			if(path.includes("powershell")){
-				cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar"; 
-			}else{
-				cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar";
-			}
+
+	if(winPlatform){
+		if(shellExecPath.includes("powershell")){
+			cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar"; 
 		}else{
-			path = 'bash';
-			cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar';
+			cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar";
 		}
+	}else{
+		cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar';
 	}
-	let terminal = vscode.window.createTerminal("Client Launcher", path, shellArgs);
+	
+	let terminal = vscode.window.createTerminal("Client Launcher", shellExecPath, shellArgs);
 	terminal.show(true);
 	terminal.sendText(cmd);
 	return terminal;
@@ -253,21 +236,18 @@ function launchClient() {
 function runNode(name : string, port : string, logPort : string) {
 	var shellArgs = [] as any;
 	var cmd;
-	var path;
 
 	//~TODO add jokila port to cmd string / function params
-	if(terminals.integrated.shell.windows !== null){
-		path = terminals.integrated.shell.windows;
-		if(path.includes("powershell")){
+	if(winPlatform){
+		if(shellExecPath.includes("powershell")){
 			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
 		}else{
 			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
 		}
 	}else{
-		path = 'bash';
 		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
 	}
-	let terminal = vscode.window.createTerminal(name, path, shellArgs);
+	let terminal = vscode.window.createTerminal(name, shellExecPath, shellArgs);
 	terminal.show(true);
 	terminal.sendText(cmd);
 	return terminal;
@@ -300,25 +280,21 @@ function runNodes() {
 
 
 function gradleRun(param : string) {
-	var path;
 	var cmd;
 	
-	if(terminals.integrated.shell.windows !== null){
-		path = terminals.integrated.shell.windows;
-		if(path.includes("powershell")){
+	if(winPlatform){
+		if(shellExecPath.includes("powershell")){
 			cmd = "cd \"" + projectCwd + "\" ; ./gradlew " + param;
 		}else{
 			cmd = "cd " + projectCwd + " && gradlew " + param;
 		}
-		 
 	}else{
-		path = 'bash';
 		cmd = 'cd ' + projectCwd + ' && ./gradlew ' + param;
 	}
 	if (gradleTerminal === null) {
 		var shellArgs = [] as any;
 		vscode.workspace.getConfiguration().get('terminal');
-		gradleTerminal = vscode.window.createTerminal('Gradle', path, shellArgs);
+		gradleTerminal = vscode.window.createTerminal('Gradle', shellExecPath, shellArgs);
 	}
 	gradleTerminal.show(true);
 	gradleTerminal.sendText(cmd);	
@@ -362,7 +338,7 @@ function updateWorkspaceFolders(): any {
 	}
 	//TODO Only supports one workspace folder for now, add support for multiple (named targets)
 	projectCwd = vscode.workspace.workspaceFolders[0].uri.path;
-	if(process.platform.includes("win32") || process.platform.includes("win64")){
+	if(winPlatform){
 		projectCwd = projectCwd.replace(/\//g, "\\").slice(1);
 	}
 	// Search for build.gradle files & scan them for node config's
@@ -375,14 +351,6 @@ function updateWorkspaceFolders(): any {
 	// 	scanGradleFile(element);
 	// });
 }
-
-// async function asyncForEach(array: any, callback: any) {
-// 	for (let index = 0; index < array.length; index++) {
-// 	  await callback(array[index], index, array);
-// 	}
-// 	return Promise.resolve();
-//   }
-  
    
 // tslint:disable-next-line: class-name
 interface cordaNodeConfig {
