@@ -15,14 +15,8 @@ import FormGroup from '@material-ui/core/FormGroup';
 
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
-import AddIcon from '@material-ui/icons/Add';
-import Fab from '@material-ui/core/Fab';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { FormControl, FormLabel } from '@material-ui/core';
-
-import Autosuggest from 'react-autosuggest';
-import match from 'autosuggest-highlight/match';
-import parse from 'autosuggest-highlight/parse';
 
 import VQueryAutosuggest from "./VQueryAutosuggest";
 
@@ -218,7 +212,7 @@ export default function VQueryBuilder(props) {
 
   const startUserVaultQuery = () => {
         console.log("about to run startUserVaultQuery");
-        props.startUserVaultQuery(state.queryValues);
+        props.startUserVaultQuery(props.client, state.queryValues);
     }
 
 // component replacement for lifecycle componentDidUpdate()

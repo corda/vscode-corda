@@ -20,10 +20,6 @@ export default class NodeInfo extends React.Component {
         }
     }
 
-
-
-   
-
     
     render() {
         

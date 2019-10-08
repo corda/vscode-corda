@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
-import FlowExplorerIndex from './component-view/FlowExplorerIndex';
+import CommonViewIndex from './component-view/CommonViewIndex';
 
 const theme = createMuiTheme({
     palette: {
@@ -12,7 +12,7 @@ const theme = createMuiTheme({
     }
 })
 ReactDOM.render(
-    <MuiThemeProvider theme = {theme}><FlowExplorerIndex /> </MuiThemeProvider>
+    <MuiThemeProvider theme = {theme}><CommonViewIndex viewType={"FlowExplorer"} /> </MuiThemeProvider>
     , 
 document.getElementById('root'));
 

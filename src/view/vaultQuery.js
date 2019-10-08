@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import VaultQueryIndex from './component-view/VaultQueryIndex';
+import CommonViewIndex from './component-view/CommonViewIndex';
 
 ReactDOM.render(
-    <VaultQueryIndex /> 
+    <CommonViewIndex viewType={"VaultQuery"} />
     , 
 document.getElementById('root'));

@@ -1,17 +1,10 @@
-import React, { Component } from "react";
+import React from "react";
 import "../component-style/FlowExplorerIndex.css";
+import * as clientrequest from "./ClientRequestHelper";
+import FlowExplorerView from "./flowexplorer/FlowExplorerView";
+import VaultQueryView from "./vquery/VaultQueryView";
 
-import FlowInfoDisplay from "./FlowInfoDisplay";
-import VaultTransactionDisplay from "./VaultTransactionDisplay";
-import NodeInfo from "./NodeInfo";
-import NodeSelector from "./NodeSelector";
-
-import SnackBarWrapper from "./SnackBarWrapper";
-import Grid from '@material-ui/core/Grid';
-
-
-
-export default class FlowExplorerIndex extends React.Component {
+export default class CommonViewIndex extends React.Component {
 
     constructor(props) {
        super(props)
@@ -19,6 +12,7 @@ export default class FlowExplorerIndex extends React.Component {
             selectedNode : "PartyA",
             connections: {},
             nodeInfo : null,
+            stateNames: null,
             flowNames: [],
             flowParams:null,
             transactionMap: null,
@@ -54,40 +48,38 @@ export default class FlowExplorerIndex extends React.Component {
         });
         
        this.handleChange = this.handleChange.bind(this);
-       this.startFlow = this.startFlow.bind(this);
+       //this.startFlow = this.startFlow.bind(this);
        this.messageHandler = this.messageHandler.bind(this);
        this.flushNode = this.flushNode.bind(this);
        this.removeSnack = this.removeSnack.bind(this);
        
        // wait for websocket server to go up - 4 second delay between tries
         (function wsCon() {
-        var ws = new WebSocket("ws://localhost:8080/session");
-            setTimeout(function() {
-                if (ws.readyState != 0 && ws.readyState != 1) {
-                    console.log("attempting connect");
-                    console.log(ws.readyState)
-                }
-                if (ws.readyState != 1) {
-                    wsCon();
-                } else {
-                    _this.setState({
-                        client: ws
-                    })
-                    //_this.state.client = ws;
-                    _this.state.client.onmessage = (event) => {
-                        _this.messageHandler(event);
+            var ws = new WebSocket("ws://localhost:8080/session");
+                setTimeout(function() {
+                    if (ws.readyState != 0 && ws.readyState != 1) {
+                        console.log("attempting connect");
+                        console.log(ws.readyState)
                     }
-                }
-            }, 4000)
-        })();
+                    if (ws.readyState != 1) {
+                        wsCon();
+                    } else {
+                        _this.setState({
+                            client: ws
+                        })
+                        //_this.state.client = ws;
+                        _this.state.client.onmessage = (event) => {
+                            _this.messageHandler(event);
+                        }
+                    }
+                }, 4000)
+            })();
   
     }
-
 
     messageHandler(event) {
         var evt = JSON.parse(event.data);
         var content = JSON.parse(evt.content);
-
         var result = JSON.parse(evt.result);
 
        
@@ -97,10 +89,10 @@ export default class FlowExplorerIndex extends React.Component {
 
        switch(evt.cmd){
            case "connect":
-                this.loadNodeInfo()
-                this.loadFlowInfo()
-                this.loadTransactionHistory()
-                this.loadStateNames()
+                clientrequest.loadNodeInfo(this.state.client)
+                clientrequest.loadFlowInfo(this.state.client)
+                clientrequest.loadTransactionHistory(this.state.client)
+                clientrequest.loadStateNames(this.state.client)
         
                 break;
            case "getNodeInfo":
@@ -120,28 +112,16 @@ export default class FlowExplorerIndex extends React.Component {
                 })
                 break;
             case "getTransactionMap":
+            case "userVaultQuery":
             case "vaultTrackResponse":
-               /* var re = /linearId.*:.*{".+":"(.+)"/gi
-                this.state.options.UUID = []
-                var stringContent = JSON.stringify(evt.content);
-                var linearID = matchAll(stringContent,re).toArray();
-                console.log("ID " + linearID);
-                linearID.forEach(function(match){
-                    this.state.options.UUID.push({"value" : match[1], "label":match[1]})      
-                }) 
-                console.log("the ids " + this.state.options.UUID)*/
                 this.setState({
                     transactionMap: Object.values(content)
                 })
                 break;
             case "getStateNames":
-                this.state.options.contractstate = []
-                var _this = this
-                content.forEach(function(state){
-                    _this.state.options.contractstate.push({"value" :state, "label": state})
+                this.setState({
+                    stateNames: content
                 })
-            
-                this.setState(this.state.options)
                 break;
             case "startFlow":
                 switch(result.result){
@@ -207,58 +187,6 @@ export default class FlowExplorerIndex extends React.Component {
         this.setState(this.state.messages);
     }
 
-    chosenNode(connection) {
-        
-        this.state.client.send(JSON.stringify({"cmd":"connect","content":JSON.stringify(
-            connection
-        )}));
-            
-    }
-
-    loadNodeInfo(){
-        this.state.client.send(JSON.stringify({"cmd":"getNodeInfo"}));
-    }
-
-    loadFlowInfo(){
-        this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlows"}))
-        this.state.client.send(JSON.stringify({"cmd": "getRegisteredFlowParams"}))
-    }
-
-    loadTransactionHistory(){
-        this.state.client.send(JSON.stringify({"cmd": "getTransactionMap"}))
-    }
-
-    loadStateNames(){
-        this.state.client.send(JSON.stringify({"cmd" : "getStateNames" }))
-    }
-
-    startFlow(flowName, paramValues){
-        var args;
-        
-        if(!paramValues){
-            args = []
-        }else{
-            var orderedParams = {}
-            var re = /\d+/g
-            Object.keys(paramValues).sort(function(a,b){
-                return(a.match(re) > b.match(re))
-            }).forEach(function(key) {
-                orderedParams[key] = paramValues[key];
-            });
-            args = Object.keys(orderedParams).map(function(key) {
-                return orderedParams[key];
-            });
-        }
-        var content = {
-          "flow" : flowName,
-          "args" : args
-        }
-        this.state.client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(           
-          content
-         )}));
-      }
-
-
     flushNode(){
         this.setState({
             nodeInfo : null,
@@ -268,21 +196,19 @@ export default class FlowExplorerIndex extends React.Component {
         })
        
     }
-    
 
     handleChange(value){
         this.setState({
             selectedNode: value
         })
         if (value){
-            this.chosenNode(this.state.connections[value])
-            
+            clientrequest.chosenNode(this.state.client, this.state.connections[value])
         }else{
             this.flushNode()
         }
    }
    
-   
+
    render() {
         if (this.state.client == null) {
             return (
@@ -294,51 +220,15 @@ export default class FlowExplorerIndex extends React.Component {
                 </div>
             )
         }
-
-       let DisplayNodeInfo = null;
-       let DisplayFlowList = null;
-       let DisplayVaultTransactions = null;
-       if(this.state.nodeInfo){
-           DisplayNodeInfo = <NodeInfo nodeInfo = {this.state.nodeInfo} />
-           
-       }
-       if(this.state.flowParams){
-           DisplayFlowList = <FlowInfoDisplay options = {this.state.options} selectedNode = {this.state.selectedNode} flowNames = {this.state.flowNames} flowParams = {this.state.flowParams} startFlow = {this.startFlow} />
-       }
-
-       if(this.state.transactionMap){
-           DisplayVaultTransactions = 
-           <div>
-               <h3>The Vault (UNCONSUMED States)</h3>
-               <VaultTransactionDisplay transactionMap = {this.state.transactionMap} />
-            </div>
-       }
-       return (
-            <div>
-                <h1>Transaction Explorer</h1>
-                <Grid container spacing={4}>
-                    <Grid item sm={6}>
-                        <NodeSelector allNodes = {this.state.allNodes} handleChange = {this.handleChange} />
-                    </Grid>
-                </Grid>
-                <Grid  container spacing={4}>
-                    <Grid item sm={4}> {DisplayNodeInfo} </Grid>
-                </Grid>
-                <Grid  container justify="center" alignitems="center" spacing={4}>
-                    <Grid item sm={6}>{DisplayFlowList}</Grid>
-                </Grid>
-                <Grid container justify = "center" alignitems="center" spacing={2}>
-                    
-                    <Grid item sm={12}> {DisplayVaultTransactions} </Grid>
-                </Grid>
-                {this.state.messages.map((message, index) => { 
-                   
-                    return ( <SnackBarWrapper key={"error" + index} message={message} remove={this.removeSnack}/>);
-                })}
-               
-            </div>
-                
-            
-    )
+        if (this.props.viewType === "FlowExplorer") {
+            return (
+                <FlowExplorerView state = {this.state} handleChange = {this.handleChange} removeSnack = {this.removeSnack} />
+            )
+        }
+        if (this.props.viewType === "VaultQuery") {
+            return (
+                <VaultQueryView state = {this.state} handleChange = {this.handleChange} removeSnack = {this.removeSnack} />
+            )
+        }
   }
 }

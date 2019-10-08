@@ -5,9 +5,8 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 
-export default class StateCard extends React.Component {
+export default class NodeSelector extends React.Component {
   
-
     constructor(props) {
         super(props);
         this.state = {
@@ -17,8 +16,6 @@ export default class StateCard extends React.Component {
         }
 
         this.handleChange = this.handleChange.bind(this)
-
-
     }
 
     static getDerivedStateFromProps(props){
@@ -37,11 +34,6 @@ export default class StateCard extends React.Component {
         handleChange(e.target.value)
         
    }
-
-
-
-   
-
     
     render() {
         let re = /(?<=O=)[^,]*/g;

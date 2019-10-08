@@ -14,7 +14,6 @@ import TablePagination from '@material-ui/core/TablePagination';
 import StateCard from './StateCard';
 export default class VaultTransactionDisplay extends React.Component {
   
-
     constructor(props) {
         super(props);
         this.state = {
@@ -72,26 +71,7 @@ export default class VaultTransactionDisplay extends React.Component {
 
         return sortedArray;
       
-      /* this.setState({
-         transactionMap: sortedArray,
-         asc : !this.state.asc
-       }) */
     } 
-
-/*
-    sortTable(){
-      var sortedArray  = this.state.transactionMap.sort((a,b) => {
-        return new Moment(a.timeStamp, 'DD-MM-YY HH:mm:ss').format('YYMMDDHHmmss') - new Moment(b.timeStamp, 'DD-MM-YY HH:mm:ss').format('YYMMDDHHmmss')}
-       )
-        if(this.state.asc){
-          sortedArray.reverse();
-        }
-      
-       this.setState({
-         transactionMap: sortedArray,
-         asc : !this.state.asc
-       })
-    } */
    
     sortTableHandler(array, direction){
       var sortedArray = this.sortTable(array,direction);

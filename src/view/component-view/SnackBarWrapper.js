@@ -31,8 +31,6 @@ export default class SnackBarWrapper extends React.Component {
 
     }
 
- 
-
     static getDerivedStateFromProps(props){
         return {
         }

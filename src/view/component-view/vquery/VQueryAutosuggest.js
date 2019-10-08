@@ -1,8 +1,6 @@
 import React from 'react';
 import Autosuggest from 'react-autosuggest';
-import match from 'autosuggest-highlight/match';
 import { TextField } from '@material-ui/core';
-import parse from 'autosuggest-highlight/parse';
 import MenuItem from '@material-ui/core/MenuItem';
 
 

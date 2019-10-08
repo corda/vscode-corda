@@ -36,8 +36,8 @@ export default class FlowInfoDisplay extends React.Component {
     }
 
     startFlow(flow){
-        const { startFlow } = this.props;
-        startFlow(flow, this.state.flowValues[flow]);
+        const { client, startFlow } = this.props;
+        startFlow(client, flow, this.state.flowValues[flow]);
     }
     changeParamHandler(flow,label, e){
         if(!this.state.flowValues[flow]){
