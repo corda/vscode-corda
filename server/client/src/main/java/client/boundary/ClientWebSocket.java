@@ -47,6 +47,7 @@ public class ClientWebSocket {
         sendResponse(response);
     }
 
+    @SuppressWarnings("unchecked")
     @OnMessage
     public void onMessage(Session session, Message message) {
         // debug
@@ -114,9 +115,7 @@ public class ClientWebSocket {
         try{
             if (retObj != null) sendResponse(message, retObj);
             else sendResponse(message);
-        } catch (EncodeException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (EncodeException | IOException e) {
             e.printStackTrace();
         }
 
@@ -136,6 +135,7 @@ public class ClientWebSocket {
 
     // starts the vaultTracking on ALL states
     // response sent for each state updated
+    @SuppressWarnings("unchecked")
     private void startVaultTracking() throws Exception {
         DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>> feed =
                 (DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>>) client.run("startVaultTrack");
@@ -167,17 +167,15 @@ public class ClientWebSocket {
 
         // set type adapter, and other options on Gson
         private static GsonBuilder gsonBuilder = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting();
-        private static Gson gson;
 
         public static String encode(Object obj) {
-            gson = gsonBuilder.registerTypeAdapter(Party.class, new PartyTypeAdapter())
+            Gson gson = gsonBuilder.registerTypeAdapter(Party.class, new PartyTypeAdapter())
                     .registerTypeAdapter(NodeInfo.class, new NodeInfoTypeAdapter())
                     .registerTypeAdapter(Class.class, new ClassTypeAdapter())
                     .registerTypeAdapter(Vault.StateMetadata.class, new StateMetadataTypeAdapter())
                     .registerTypeAdapter(NodeRPCClient.TransRecord.class, new TransRecordTypeAdapter())
                     .create();
-            String json = gson.toJson(obj);
-            return json;
+            return gson.toJson(obj);
         }
 
     }
