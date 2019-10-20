@@ -1,11 +1,13 @@
 package client.boundary;
 
 import client.NodeRPCClient;
+import client.NodeRPCHelper;
 import client.entities.Message;
 import client.entities.MessageDecoder;
 import client.entities.MessageEncoder;
 import client.entities.adapters.*;
 import client.entities.customExceptions.CommandNotFoundException;
+import client.entities.customExceptions.FlowsNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -141,7 +143,11 @@ public class ClientWebSocket {
                 (DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>>) client.run("startVaultTrack");
 
         feed.getUpdates().toBlocking().subscribe(update -> {
-            client.updateNodeData();
+            try {
+                client.updateNodeData();
+            } catch (FlowsNotFoundException e) {
+                e.printStackTrace();
+            }
             Message stateUpdate = new Message();
             stateUpdate.setCmd("vaultTrackResponse");
             try {
@@ -173,7 +179,7 @@ public class ClientWebSocket {
                     .registerTypeAdapter(NodeInfo.class, new NodeInfoTypeAdapter())
                     .registerTypeAdapter(Class.class, new ClassTypeAdapter())
                     .registerTypeAdapter(Vault.StateMetadata.class, new StateMetadataTypeAdapter())
-                    .registerTypeAdapter(NodeRPCClient.TransRecord.class, new TransRecordTypeAdapter())
+                    .registerTypeAdapter(NodeRPCHelper.TransRecord.class, new TransRecordTypeAdapter())
                     .create();
             return gson.toJson(obj);
         }

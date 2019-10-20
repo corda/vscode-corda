@@ -5,7 +5,6 @@ import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
 import client.entities.customExceptions.UnrecognisedParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import kotlin.Pair;
@@ -26,11 +25,7 @@ import net.corda.core.node.services.vault.QueryCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.lang.reflect.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -41,6 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static client.NodeRPCHelper.*;
 import static net.corda.core.node.services.vault.QueryCriteriaUtils.DEFAULT_PAGE_SIZE;
 import static net.corda.core.utilities.NetworkHostAndPort.parse;
 
@@ -52,23 +48,23 @@ import static net.corda.core.utilities.NetworkHostAndPort.parse;
 public class NodeRPCClient {
     private static final Logger logger = LoggerFactory.getLogger(NodeRPCClient.class);
 
-    private final CordaRPCClient client;
-    private CordaRPCOps proxy;
     private CordaRPCConnection connection;
-    private NodeInfo nodeInfo;
+    private CordaRPCOps proxy;
+
     private List<String> registeredFlows; // updates
     private Instant initialConnectTime; // time RPCClient is connected
+    private String cordappDir; // local directory of the node's corDapp jars
 
-    private Map<String, Class> registeredFlowClasses; // maps FQN to class
-    private Map<String, List<Pair<Class, String>>> registeredFlowParams; // maps FQN to required params
+    // maps FQN to class, e.g. bootcamp.InitiateFlow -> (Class)
+    private Map<String, Class> registeredFlowClasses;
 
-    //private Set<String> stateNames; // updates
+    // maps FQN to required params, e.g. bootcamp.InitiateFlow -> List<Pair<(Class), "argName">>
+    private Map<String, List<Pair<Class, String>>> registeredFlowParams;
+
     private Map<String, Class> stateNameToClass; // used for userVaultQuery
     private Vault.Page<ContractState> statesAndMeta;
 
     private Map<String, Callable> cmd; // maps incoming commands to methods
-
-    private static boolean debug = false;
 
     private void buildCommandMap(NodeRPCClient node) {
         cmd = new HashMap<>();
@@ -85,31 +81,25 @@ public class NodeRPCClient {
     }
 
     /**
-     * TODO: change hardcoded setFlowMaps param
      * NodeRPCClient constructor
      * @param nodeAddress is a host and port
      * @param rpcUsername login username
      * @param rpcPassword login password
+     * @param cordappDir local directory of Node corDapp jars
      */
-    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws FlowsNotFoundException, AuthenticationFailureException {
+    public NodeRPCClient(String nodeAddress, String rpcUsername, String rpcPassword, String cordappDir) throws AuthenticationFailureException, FlowsNotFoundException {
 
-        this.client = new CordaRPCClient(parse(nodeAddress));
         try {
-            this.connection = client.start(rpcUsername,rpcPassword);
+            this.connection = new CordaRPCClient(parse(nodeAddress)).start(rpcUsername, rpcPassword);
             this.proxy = connection.getProxy(); // start the RPC Connection
-            this.nodeInfo = proxy.nodeInfo(); // get nodeInfo
             this.initialConnectTime = proxy.currentNodeTime(); // set connection time
             this.stateNameToClass = new HashMap<>();
+            this.cordappDir = cordappDir;
         }catch(Exception e){
             throw new AuthenticationFailureException("Failed To Authenticate To The RPC Client " + nodeAddress);
         }
         buildCommandMap(this);
         updateNodeData();
-
-        // build maps for FQN->Class, FQN->List<Class> Params
-        setFlowMaps(cordappDir, this.registeredFlows);
-
-        if (debug) System.out.println("RPC Connection Established");
 
     }
 
@@ -117,10 +107,13 @@ public class NodeRPCClient {
      * Updates the basic node data (flows, states names, and states in vault)
      * also tracks all available flows and their required params
      */
-    public void updateNodeData() {
+    public void updateNodeData() throws FlowsNotFoundException {
         registeredFlows = proxy.registeredFlows(); // get registered flows
 
-        // static query of vault
+        // build maps for FQN->Class, FQN->List<Class> Params
+        setFlowMaps(cordappDir, this.registeredFlows);
+
+        // perform static query of vault
         statesAndMeta = proxy.vaultQuery(ContractState.class);
 
         // propagate stateNameToClass map
@@ -130,155 +123,61 @@ public class NodeRPCClient {
     }
 
     /**
-     * propagates the maps used to track flow classes, constructors and params.
-     * @param jarPath full path to the .jar files containing CorDapp flows
-     * @param registeredFlows list of registeredFlows on the Node
+     * @return vault track DataFeed
      */
-    private void setFlowMaps(String jarPath, List<String> registeredFlows) throws FlowsNotFoundException {
-        registeredFlowClasses = new HashMap<>();
-        registeredFlowParams = new HashMap<>();
-        File dir = new File(jarPath);
-        List<File> jarFiles = new ArrayList<>();
-        File[] filesList = dir.listFiles();
-        for (File file : filesList) {
-            if (file.getName().contains(".jar")) {
-                jarFiles.add(file);
-                System.out.println(file.getName());
-            }
-        }
-
-        // First add all of the necessary jar files to the class path so that they are available when loading classes
-        URLClassLoader sysClassLoader = (URLClassLoader) getClass().getClassLoader();
-        Method method = null;
-        try {
-            method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            for(File flowJarFile : jarFiles){
-                URL url = flowJarFile.toURI().toURL();
-                method.setAccessible(true);
-                method.invoke(sysClassLoader, url);
-                System.out.println("Loaded URL " );
-            }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-
-
-        for (File flowJarFile : jarFiles) {
-            // load the jar to extract the class
-            try {
-                URL url = flowJarFile.toURI().toURL();
-
-                URLClassLoader classLoader = new URLClassLoader(
-                        new URL[]{url},
-                        getClass().getClassLoader()
-                );
-
-
-
-                // iterate through all flows and add to flow -> class map
-                for (String flow : registeredFlows) {
-
-
-                    Class flowClass = null;
-                    try {
-                        flowClass = Class.forName(flow, true, classLoader);
-                        registeredFlowClasses.put(flow, flowClass);
-                        System.out.println(flow);
-                        System.out.println(flowClass);
-                        registeredFlowParams.put(flow, setFlowParams(flowClass));
-                    }catch(ClassNotFoundException e){
-
-                    }catch(Throwable t){
-
-                        t.printStackTrace();
-
-                    }
-
-                }
-
-                System.out.println("flows FOUND in file + " + flowJarFile.toString());
-                if(registeredFlowParams.isEmpty()){
-                    throw new FlowsNotFoundException("Could not find any flows in the node cordapps");
-                }
-            } catch (MalformedURLException e) {
-                //e.printStackTrace();
-                System.out.println("flows not found in file " + flowJarFile.toString());
-            }
-        }
-    }
-
-    /**
-     * setFlowParams - helper for setFlowMaps
-     * @param flowClass flow to extract paramTypes from
-     * @return list of Classes corresponding to each param of the input flow class
-     */
-    private List<Pair<Class,String>> setFlowParams(Class flowClass) {
-        List<Pair<Class,String>> params = new ArrayList<>();
-        List<Constructor> constructors = ImmutableList.copyOf(flowClass.getConstructors());
-        for (Constructor c : constructors) {
-            List<Parameter> paramNames = ImmutableList.copyOf(c.getParameters());
-            for(Parameter param: paramNames){
-                if(param.isNamePresent()){
-                    params.add(new Pair(param.getType(), param.getName()));
-                }else{
-                    params.add(new Pair(param.getType(), "UNKNOWN"));
-                }
-
-            }
-
-        }
-
-
-        return params;
-    }
-
     private DataFeed<Vault.Page<ContractState>, Vault.Update<ContractState>> startVaultTrack() {
         return proxy.vaultTrack(ContractState.class);
     }
 
     /**
-     *
      * @return uptime of RPCClient connection
      */
     private Duration getUptime() {
         return Duration.between(initialConnectTime, proxy.currentNodeTime());
     }
 
+    /**
+     * @return FQN to required params, e.g. bootcamp.InitiateFlow -> List<Pair<(Class), "argName">>
+     */
     private Map<String, List<Pair<Class,String>>> getRegisteredFlowParams() {
         return registeredFlowParams;
     }
 
+    /**
+     * @return NodeInfo - network addresses, legal identity, platform version, serial
+     */
     private NodeInfo getNodeInfo() {
-        return nodeInfo;
+        return proxy.nodeInfo();
     }
 
+    /**
+     * @return All flows (String) runnable on the current Node
+     */
     private List<String> getRegisteredFlows() {
         return registeredFlows;
     }
 
+    /**
+     * @return Set of the names of all state types currently in the Node's vault
+     */
     private Set<String> getStateNames() {
         return stateNameToClass.keySet();
     }
 
-    private TransactionState getStateFromRef(StateRef stateRef){
-        QueryCriteria stateRefCriteria = new QueryCriteria.VaultQueryCriteria()
-                .withStateRefs(Arrays.asList(stateRef));
-        Vault.Page<ContractState> result = proxy.vaultQueryByCriteria(stateRefCriteria, ContractState.class);
-        return result.getStates().get(0).getState();
-    }
-
+    /**
+     * @return all states currently in Node's vault
+     */
     private List<StateAndRef<ContractState>> getStatesInVault() { return statesAndMeta.getStates(); }
 
+    /**
+     * @return Metadata for all states currently in Node's vault
+     */
     private List<Vault.StateMetadata> getStatesMetaInVault() { return statesAndMeta.getStatesMetadata(); }
 
-    // Returns all the properties of a given ContractState
-    // params: e.g. "net.corda.yo.state.YoState"
+    /**
+     * @param contractState String version of FQN - e.g. "net.corda.yo.state.YoState"
+     * @return List of all properties of the state-type
+     */
     private List<String> getStateProperties(String contractState) {
         for (StateAndRef<ContractState> sr : getStatesInVault()) {
             // substring 6, removes 'class' prefix from FQN
@@ -296,38 +195,17 @@ public class NodeRPCClient {
         return null;
     }
 
-    private Map<SecureHash, TransRecord> createTransactionMap(List<Vault.StateMetadata> stateMeta, List<StateAndRef<ContractState>> states) {
-        Map<SecureHash, TransRecord> transMap = new HashMap<>();
-
-        for (int i = 0; i < states.size(); i++) {
-            SecureHash txHash = states.get(i).getRef().getTxhash();
-
-            TransRecord currTrans;
-
-            // create new Transrecord if not found in map
-            if (!transMap.containsKey(txHash)) {
-                Instant timeStamp = stateMeta.get(i).getRecordedTime();
-                currTrans = new TransRecord(txHash, timeStamp);
-                transMap.put(txHash, currTrans);
-            }
-
-            currTrans = transMap.get(txHash);
-            currTrans.addToStates(states.get(i).getState().getData(), stateMeta.get(i));
-
-            transMap.replace(txHash, currTrans);
-        }
-
-        return transMap;
-    }
-
+    /**
+     * @return a mapping from secureHash to a TransRecord object
+     */
     private Map<SecureHash, TransRecord> getTransactionMap() {
         return createTransactionMap(getStatesMetaInVault(), getStatesInVault());
     }
 
     /**
      * startFlow initiates a flow on the node via RPC
-     * - args array and registeredFlowParams are matched ordered sequences.
-     * each argument is put into form of its corresponding registeredFlowParam Class
+     * - params are matched ordered sequences.
+     * - each argument is instantiated to its corresponding registeredFlowParam Class
      * type and then added to the finalParams list which is passed to varargs param
      * of the startFlowDynamic call.
      * @param flow FQN of the flow
@@ -370,7 +248,7 @@ public class NodeRPCClient {
                         SecureHash txhash = SecureHash.parse(matcher.group(1));
                         int index = Integer.parseInt(matcher.group(2));
                         StateRef stateRef = new StateRef(txhash, index);
-                        state = getStateFromRef(stateRef);
+                        state = getStateFromRef(proxy, stateRef);
                         finalParams.add(new StateAndRef(state, stateRef));
                     } else {
                         finalParams.add(Integer.valueOf(currArg)); // INTEGER
@@ -385,61 +263,41 @@ public class NodeRPCClient {
         }else{
             return proxy.startFlowDynamic(flowClass);
         }
-
     }
 
     /**
-     * Note: softlockingType and constraintsType and constraints not implemented for use
-     * with VaultQueryCriteria
-     * @param //args: ?pageSpecification (int), ?pageSize (int),
-     *            ?sortAttribute (notary, contractStateClassName, recordedTime, consumedTime, lockId, constraintType)
-     *            ?sortDirection (ASC, DESC)
-     * @param //values JSON string { <predicateType>: "value", ... }
-     * @return
+     * Main userVaultQuery method for returning advanced searches on the vault states.
+     * Todo: add sortAttribute, sortDirection to UI
+     * Todo: implement TimeConditions - RELIES on Core 4.3 / Maven Repo is 4.0, bug fix for Comparable<*> Jira https://r3-cev.atlassian.net/browse/CORDA-2782
+     * Todo: implement QueryCriteria participant filter - PENDING BUG fix on Corda VaultQueryCriteria Jira #https://r3-cev.atlassian.net/browse/CORDA-3209
+     * @param argsIn arguments related to page and sort
+     * @param query the predicates of the actual query based on user selection
+     * @return Map<SecureHash, TransRecord>
      * @throws Exception
-     *
-     * If no [PageSpecification] is provided, a maximum of [DEFAULT_PAGE_SIZE] results will be returned.
-     * API users must specify a [PageSpecification] if they are expecting more than [DEFAULT_PAGE_SIZE] results
-     *
-     * JSON sample:
-     *
-     *     "args": {
-     *         "pageSpecification":"10",
-     *         "pageSize":"10",
-     *         "sortAttribute":"notary",
-     *         "sortDirection":"ASC"
-     *     }
-     *
-     *     "values": {
-     *         "status":"UNCONSUMED",
-     *         "contractStateType":"net.corda.core.contracts.ContractState",
-     *         "stateRefs":{
-     *             "hash":"0x...",
-     *             "index":"2"
-     *         },
-     *         "participants":"[PartyA,PartyB,PartyC]",
-     *         "notary":"[PartyA,PartyB,PartyC]",
-     *         "timeCondition":{
-     *             "type":"RECORDED",
-     *             "start":"2018-11-30T18:35:24.00Z",
-     *             "end":"2018-11-30T18:35:24.00Z"
-     *         },
-     *         "relevancyStatus":"RELEVANT"
-     *     }
-     *
      */
     private Map<SecureHash, TransRecord> userVaultQuery(Map<String, String> argsIn, Map<String, Object> query) throws Exception {
 
-        Gson gson = new GsonBuilder().create();
+        updateNodeData(); // make sure to update node info for current info; stateNames etc.
 
         String pageSpecification = argsIn.get("pageSpecification");
         String pageSize = argsIn.get("pageSize");
-        String sortAttribute = argsIn.get("sortAttribute");
-        String sortDirection = argsIn.get("sortDirection");
 
-        updateNodeData(); // make sure to update node info for stateNames etc.
+        // PageSpecification default is -1, DEFAULT_PAGE_SIZE
+        PageSpecification ps;
+        if (pageSpecification != null || pageSize != null) {
+            if (pageSpecification == null) {
+                ps = new PageSpecification(-1, Integer.parseInt(pageSize));
+            } else if (pageSize == null) {
+                ps = new PageSpecification(Integer.parseInt(pageSpecification), DEFAULT_PAGE_SIZE);
+            } else {
+                ps = new PageSpecification(Integer.parseInt(pageSpecification), Integer.parseInt(pageSize));
+            }
+        } else {
+            ps = new PageSpecification(); // default
+        }
 
-        // Default arguments for Query with least restrictive query
+        // BEGIN Create Default arguments ---------
+        // Default using MINIMAL restrictions (i.e. Return ALL)
         Vault.StateStatus stateStatus = Vault.StateStatus.ALL;
 
         Set<Class<ContractState>> contractStateTypes = new HashSet(); // all classes
@@ -451,30 +309,29 @@ public class NodeRPCClient {
         List<AbstractParty> participants = new ArrayList<>(); // no participant criteria
         //QueryCriteria.TimeCondition tc = null
         Vault.RelevancyStatus rs = Vault.RelevancyStatus.ALL; // all
+        // END Create Default arguments ----------
 
+        // Each provided predicate entry will override the corresponding default argument with the new value
         for (Map.Entry<String, Object> entry : query.entrySet()) {
             if (!entry.getValue().equals("")) {
                 String predicate = entry.getKey();
 
                 switch (predicate) {
-
-                    // value = <UNCONSUMED/CONSUMED/ALL>
+                    // <UNCONSUMED/CONSUMED/ALL>
                     case "stateStatus":
                         stateStatus = Vault.StateStatus.valueOf((String) entry.getValue());
                         break;
-
-                    // value = ['a','b','c']
+                    // ['a','b','c']
                     case "contractStateType":
-                        List<String> contractNames = (List) entry.getValue();
+                        List<String> contractStateNames = (List) entry.getValue();
                         contractStateTypes = new HashSet<>();
 
-                        // fill class set
-                        for (String c : contractNames) {
+                        // fill set with all contract classes corresponding to the names
+                        for (String c : contractStateNames) {
                             contractStateTypes.add(stateNameToClass.get(c));
                         }
                         break;
-
-                    // value = ['{ 'hash': '0x', 'index': '3' }, ... ]
+                    // ['{ 'hash': '0x', 'index': '3' }, ... ]
                     case "stateRefs":
                         List<Map<String, String>> stateRefInputs = (List<Map<String, String>>) entry.getValue();
                         stateRefs = new ArrayList<>();
@@ -490,8 +347,7 @@ public class NodeRPCClient {
                             stateRefs.add(stateRef);
                         }
                         break;
-
-                    // value = ['PartyA', 'PartyB', ...]
+                    // ['PartyA', 'PartyB', ...]
                     case "participants":
                     case "notary":
                         List<String> parties = (List<String>) entry.getValue();
@@ -509,9 +365,7 @@ public class NodeRPCClient {
                         } else { // predicate 'participants'
                             participants = partyList;
                         }
-
                         break;
-
                     // value = { 'type':'<RECORDED/CONSUMED>', 'start': <time>, 'end': <time> }
                     case "timeCondition":
 
@@ -525,50 +379,16 @@ public class NodeRPCClient {
                         tc = new QueryCriteria.TimeCondition(timeInstantType, timePred);
 
                         break;
-
                     // value = ALL/RELEVANT/NON_RELEVANT
                     case "relevancyStatus":
                         String relIn = (String) entry.getValue();
                         rs = Vault.RelevancyStatus.valueOf(relIn);
-
                         break;
-
-
                 }
             }
         }
 
-        // PageSpecification default is -1, DEFAULT_PAGE_SIZE
-        PageSpecification ps;
-        if (pageSpecification != null || pageSize != null) {
-            if (pageSpecification == null) {
-                ps = new PageSpecification(-1, Integer.parseInt(pageSize));
-            } else if (pageSize == null) {
-                ps = new PageSpecification(Integer.parseInt(pageSpecification), DEFAULT_PAGE_SIZE);
-            } else {
-                ps = new PageSpecification(Integer.parseInt(pageSpecification), Integer.parseInt(pageSize));
-            }
-        } else {
-           ps = new PageSpecification(); // default
-        }
-
-//        TODO possibly add sort - right now will not use
-//        // default sort is DESC on RECORDED TIME
-//        SortAttribute.Standard sa;
-//        Sort.Direction sd = Sort.Direction.DESC;
-//
-//        // sortDirection is optional to pair with sortAttribute
-//        if (sortAttribute != null) {
-//            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.valueOf(sortAttribute));
-//            if (sortDirection != null) {
-//                sd = Sort.Direction.valueOf(sortDirection);
-//            }
-//        } else { // default
-//            sa = new SortAttribute.Standard(Sort.VaultStateAttribute.RECORDED_TIME);
-//        }
-//
-//        Sort sort = new Sort(Arrays.asList(new Sort.SortColumn(sa, sd))); // build sort
-
+        // Build up QueryCriteria
         QueryCriteria userCriteria = new QueryCriteria.VaultQueryCriteria()
                 .withStatus(stateStatus)
                 .withContractStateTypes(contractStateTypes)
@@ -581,29 +401,10 @@ public class NodeRPCClient {
         System.out.println("Query is HERE : " + userCriteria.toString());
         Vault.Page<ContractState> result = proxy.vaultQueryByWithPagingSpec(ContractState.class, userCriteria, ps);
 
-        // TEMPORARY FILTER on Participants only run if some participants are chosen.
+        // TEMPORARY FILTER on Participants will only run if some participants are chosen.
         // Participants filtering is Union
         if (participants.size() > 0) {
-            List<Vault.StateMetadata> vsm = new ArrayList<>();
-            List<StateAndRef<ContractState>> vsr = new ArrayList<>();
-
-            for (int i = 0; i < result.getStates().size(); i++) {
-                ContractState currentState = result.getStates().get(i).getState().getData();
-
-                //if (new HashSet<>(participants).equals(new HashSet<>(currentState.getParticipants()))) {
-                Set<AbstractParty> intersection = participants.stream()
-                        .distinct()
-                        .filter(currentState.getParticipants()::contains)
-                        .collect(Collectors.toSet());
-
-                if (intersection.size() > 0) {
-
-                    vsm.add(result.getStatesMetadata().get(i));
-                    vsr.add(result.getStates().get(i));
-
-                }
-            }
-            return createTransactionMap(vsm , vsr);
+            return filterParticipantsFromQuery(result, participants);
         } else return createTransactionMap(result.getStatesMetadata(), result.getStates());
 
     }
@@ -614,7 +415,7 @@ public class NodeRPCClient {
      * @return
      * @throws Exception
      */
-    public Object run(String cmd) throws CommandNotFoundException, Exception {
+    public Object run(String cmd) throws Exception {
         Callable callable = this.cmd.get(cmd);
         if(callable == null){
             throw new CommandNotFoundException(cmd + " is not a registered command");
@@ -624,8 +425,14 @@ public class NodeRPCClient {
 
     }
 
-    public Object run(String cmd, Object args) throws CommandNotFoundException, UnrecognisedParameterException, Exception {
-
+    /**
+     * Overloaded run method for handling of commands with arguments
+     * @param cmd
+     * @param args
+     * @return
+     * @throws Exception
+     */
+    public Object run(String cmd, Object args) throws Exception {
         // parameterized methods
         switch (cmd) {
             case "startFlow":
@@ -657,57 +464,8 @@ public class NodeRPCClient {
         return null;
     }
 
-    public class TransRecord {
-        private List<Pair<ContractState,Vault.StateMetadata>> states;
-        private Instant timeStamp;
-        private SecureHash txHash;
-
-        void addToStates(ContractState c, Vault.StateMetadata m) {
-            states.add(new Pair(c, m));
-        }
-        public void setTxHash(SecureHash txHash) {
-            this.txHash = txHash;
-        }
-
-        TransRecord() {
-            this.states = new ArrayList<>();
-        }
-        TransRecord(SecureHash txHash, Instant timeStamp) {
-            this();
-            this.timeStamp = timeStamp;
-            this.txHash = txHash;
-        }
-
-        public Instant getTimeStamp() {
-            return timeStamp;
-        }
-
-        public SecureHash getTxHash() {
-            return txHash;
-        }
-
-        public List<Pair<ContractState, Vault.StateMetadata>> getStates() {
-            return states;
-        }
-
-        public String toString() {
-            return states.toString() + " " + timeStamp + " " + txHash;
-        }
-    }
-
     // main method for debugging
     public static void main(String[] args) throws Exception {
-
-
-//         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\negotiation-cordapp\\workflows-java\\build\\nodes\\PartyB\\cordapps");
-//
-//         String s = "{\"flow\":\"net.corda.core.flows.ContractUpgradeFlow$Initiate\",\"args\":[\"0FDE61A6AF51FFE8B373C9BA0580E77483B8BD59C419EF8F6237AB83F68374F7(0)\",\"MegaCorp 1\"]}";
-//         HashMap<String, String> content = new ObjectMapper().readValue(s, HashMap.class);
-//
-//
-//         FlowHandle corda = (FlowHandle) client.run("startFlow", content);
-
-//         NodeRPCClient client = new NodeRPCClient("localhost:10009","default","default", "C:\\Users\\Freya Sheer Hardwick\\Documents\\Developer\\Projects\\samples\\reference-states\\workflows-kotlin\\build\\nodes\\IOUPartyA\\cordapps");
         NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/TEST/bootcamp-cordapp/workflows-kotlin/build/nodes/PartyB/cordapps");
 
         Gson gson = new GsonBuilder().create();

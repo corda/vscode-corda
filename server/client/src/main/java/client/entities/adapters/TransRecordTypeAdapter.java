@@ -1,22 +1,21 @@
 package client.entities.adapters;
 
-import client.NodeRPCClient;
+import client.NodeRPCHelper;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
-
-import java.time.format.FormatStyle;
-import java.util.Locale;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import static client.boundary.ClientWebSocket.ObjEncoder.encode;
 
 public class TransRecordTypeAdapter extends TypeAdapter {
     @Override
     public void write(JsonWriter out, Object value) throws IOException {
-        NodeRPCClient.TransRecord tx = (NodeRPCClient.TransRecord) value;
+        NodeRPCHelper.TransRecord tx = (NodeRPCHelper.TransRecord) value;
 
         DateTimeFormatter formatter =
         DateTimeFormatter.ofPattern( "dd/MM/yy HH:mm:ss")
