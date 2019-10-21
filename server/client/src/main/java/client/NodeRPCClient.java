@@ -111,7 +111,9 @@ public class NodeRPCClient {
         registeredFlows = proxy.registeredFlows(); // get registered flows
 
         // build maps for FQN->Class, FQN->List<Class> Params
-        setFlowMaps(cordappDir, this.registeredFlows);
+        Pair<Map, Map> flowClasses_FlowParams = setFlowMaps(cordappDir, this.registeredFlows);
+        registeredFlowClasses = flowClasses_FlowParams.getFirst();
+        registeredFlowParams = flowClasses_FlowParams.getSecond();
 
         // perform static query of vault
         statesAndMeta = proxy.vaultQuery(ContractState.class);
@@ -466,36 +468,36 @@ public class NodeRPCClient {
 
     // main method for debugging
     public static void main(String[] args) throws Exception {
-        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "/Users/anthonynixon/Repo/TEST/bootcamp-cordapp/workflows-kotlin/build/nodes/PartyB/cordapps");
+        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "c:\\Users\\Anthony Nixon\\Repo\\samples\\obligation-cordapp\\kotlin-source\\build\\nodes\\PartyA\\cordapps");
 
-        Gson gson = new GsonBuilder().create();
-
-        String t = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":[\"bootcamp.states.TokenState\"],\"stateRefs\":" +
-                "[{ \"hash\":\"3CF0273A4C29374BC0E53F516A177A41B9DA62AC331F373D542833CDC40C86D9\",\"index\":\"0\"}] ,\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyA\",\"PartyB\"]}}";
-
-
-        String u = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"" +
-                "values\":{\"" +
-                "stateStatus\":\"ALL\",\"" +
-                "contractStateType\":\"\",\"" +
-                "stateRefs\":\"\",\"" +
-                "notary\":\"\",\"" +
-                "timeCondition\":" +
-                "{\"type\":\"RECORDED\",\"start\":\"2019-09-10T08:26:20.637Z\",\"end\":\"2019-09-12T08:26:20.637Z\"}," +
-                "relevancyStatus\":\"ALL\",\"" +
-                "participants\":\"\"}}";
-
-        String v = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"CONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
-
-        String k = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"UNCONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyB\",\"PartyA\"]}}";
-
-        String z = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":{\"type\":\"RECORDED\",\"start\":\"2017-05-24T10:30:30.00Z\",\"end\":\"2019-05-25T10:30:30.00Z\"},\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
-
-        Map<String, Object> uu = new ObjectMapper().readValue(z, HashMap.class);
-        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", uu);
-
-        System.out.println("\n\n\n\nHere is the result : \n" + result);
-        System.out.println("\n\n Quantity returned : " + result.size());
+//        Gson gson = new GsonBuilder().create();
+//
+//        String t = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":[\"bootcamp.states.TokenState\"],\"stateRefs\":" +
+//                "[{ \"hash\":\"3CF0273A4C29374BC0E53F516A177A41B9DA62AC331F373D542833CDC40C86D9\",\"index\":\"0\"}] ,\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyA\",\"PartyB\"]}}";
+//
+//
+//        String u = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"" +
+//                "values\":{\"" +
+//                "stateStatus\":\"ALL\",\"" +
+//                "contractStateType\":\"\",\"" +
+//                "stateRefs\":\"\",\"" +
+//                "notary\":\"\",\"" +
+//                "timeCondition\":" +
+//                "{\"type\":\"RECORDED\",\"start\":\"2019-09-10T08:26:20.637Z\",\"end\":\"2019-09-12T08:26:20.637Z\"}," +
+//                "relevancyStatus\":\"ALL\",\"" +
+//                "participants\":\"\"}}";
+//
+//        String v = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"CONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
+//
+//        String k = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"UNCONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyB\",\"PartyA\"]}}";
+//
+//        String z = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":{\"type\":\"RECORDED\",\"start\":\"2017-05-24T10:30:30.00Z\",\"end\":\"2019-05-25T10:30:30.00Z\"},\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
+//
+//        Map<String, Object> uu = new ObjectMapper().readValue(z, HashMap.class);
+//        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", uu);
+//
+//        System.out.println("\n\n\n\nHere is the result : \n" + result);
+//        System.out.println("\n\n Quantity returned : " + result.size());
 
     }
 }

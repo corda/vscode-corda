@@ -195,7 +195,11 @@ function launchViewBackend() {
 	// update cordapp dirs on nodes in node config
 	for (var index in nodeConfig) {
 		var name = nodeConfig[index].name.match("O=(.*),L")![1];
-		nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
+		if (winPlatform) {
+			nodeConfig[index].cordappDir = nodeDir + "build\\nodes\\" + name + "\\cordapps";
+		} else {
+			nodeConfig[index].cordappDir = nodeDir + "build/nodes/" + name + "/cordapps";
+		}
 	}
 
 	if (vscode.window.terminals.find((value) => {
