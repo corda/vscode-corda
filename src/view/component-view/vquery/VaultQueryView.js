@@ -44,12 +44,10 @@ export default function VaultQueryView(props) {
              <Grid  container spacing={4}>
                  <Grid item sm={4}> {DisplayNodeInfo} </Grid>
              </Grid>
-             <Grid container justify = "center" alignitems="center" >
+             <Grid container justify = "center" alignitems="center">
                  <Grid item sm={3} > {VaultQueryBuilder} </Grid>
-                 <Grid item sm={2}></Grid>
-                 <Grid item sm={5}> {DisplayVaultTransactions} </Grid>
-                 <Grid item sm={2}></Grid>
-
+                 <Grid item sm={1} > </Grid>
+                 <Grid item sm={8} > {DisplayVaultTransactions} </Grid>
              </Grid>
              {props.state.messages.map((message, index) => { 
                 

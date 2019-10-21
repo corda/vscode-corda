@@ -16,7 +16,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { FormControl, FormLabel } from '@material-ui/core';
+import { FormControl, FormLabel, Tooltip } from '@material-ui/core';
 
 import VQueryAutosuggest from "./VQueryAutosuggest";
 
@@ -125,8 +125,11 @@ export default function VQueryBuilder(props) {
                 console.log(refs)
                 return (
                     <ListItem key={refs["hash"]}>
-                        <ListItemText primary={`ref: ${refs["hash"]} index: ${refs["index"]}`} />
-                        <IconButton onClick={() => {
+                        <Tooltip title={`${refs["hash"]}`} >
+                            <ListItemText primary={`ref: ${refs["hash"].substring(0, 14)}... index: ${refs["index"]}`} />
+                        </Tooltip>
+                        
+                        <IconButton color="primary" onClick={() => {
                                     const entryIndex = state.queryValues.stateRefs.indexOf(refs);
                                     var newStateRefs = [...state.queryValues.stateRefs];
                                     newStateRefs.splice(entryIndex, 1);

@@ -41,7 +41,11 @@ export default class StateCard extends React.Component {
 
     copyToClipboard(e, property){
         var textArea = document.createElement("textarea");
-        textArea.value = this.state[property];
+        if(this.state[property].length > 0 && this.state[property].endsWith(')')){
+            textArea.value = this.state[property].substring(0, this.state[property].length-3);
+        }else{
+            textArea.value = this.state[property];
+        }
         textArea.style.width = "0px"
         textArea.style.height = "0px"
         this.stateCard.appendChild(textArea);
