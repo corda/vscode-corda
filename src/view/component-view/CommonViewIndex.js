@@ -27,6 +27,7 @@ export default class CommonViewIndex extends React.Component {
 
         let _this = this;
         var defaultSettings = JSON.parse(document.getElementById('nodeDefaults').innerHTML);
+        console.log(JSON.stringify(defaultSettings))
         this.state.allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
         this.state.options.party = []
         this.state.allNodes.forEach(function(node) {
@@ -41,7 +42,7 @@ export default class CommonViewIndex extends React.Component {
                     _this.state.connections[node.name].password = node.rpcUsers.password;
                     
                 }else{
-                    _this.state.connections[node.name].username = defaultSettings.rpcUsers.username;
+                    _this.state.connections[node.name].username = defaultSettings.rpcUsers.user;
                     _this.state.connections[node.name].password = defaultSettings.rpcUsers.password;
                 }
             }
