@@ -280,7 +280,7 @@ function runNodes() {
 	}
 	console.log(path);
 	if (!fs.existsSync(path)) {
-		vscode.window.showInformationMessage("Cannot run nodes until they have been deployed - run Corda Deploy Nodes", 'Click to Deploy Nodes')
+		vscode.window.showInformationMessage("Cannot run nodes until they have been deployed - Deploy Nodes then try again.", 'Click to Deploy Nodes')
 			.then(selection => {
 				console.log(selection);
 				if (selection === 'Click to Deploy Nodes') {

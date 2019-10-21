@@ -96,7 +96,8 @@ public class NodeRPCClient {
             this.stateNameToClass = new HashMap<>();
             this.cordappDir = cordappDir;
         }catch(Exception e){
-            throw new AuthenticationFailureException("Failed To Authenticate To The RPC Client " + nodeAddress);
+            throw new AuthenticationFailureException("Unable to onnect To The RPC Client at " + nodeAddress
+                + ". Start nodes from command palette with Corda Run Nodes.");
         }
         buildCommandMap(this);
         updateNodeData();
