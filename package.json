@@ -160,6 +160,16 @@
 		"react-tooltip": "^3.10.0",
 		"stream": "0.0.2"
 	},
+	"extensionDependencies": [
+		"vscjava.vscode-java-debug",
+		"vscjava.vscode-java-dependency",
+		"vscjava.vscode-java-pack",
+		"vscjava.vscode-java-test",
+		"redhat.java",
+		"yzhang.markdown-all-in-one",
+		"vscjava.vscode-maven",
+		"visualstudioexptteam.vscodeintellicode"
+	],
 	"browserslist": {
 		"production": [
 			">0.2%",
