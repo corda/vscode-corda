@@ -62,7 +62,13 @@ export function activate(context: vscode.ExtensionContext) {
 	updateWorkspaceFolders();
 
 	let cordaClean = vscode.commands.registerCommand('extension.cordaClean', () => {		
+		console.log("Removing all existing node windows...");
+		// dispose any terminals if exist
+		disposeRunningNodes();
+		console.log("Execute 'Clean'...");
+
 		vscode.window.setStatusBarMessage('Running gradlew clean', 4000);
+		
 		gradleRun('clean');
 	});
 
@@ -312,10 +318,7 @@ function runNodes() {
 	} else {
 
 		// dispose if terminals exist
-		for (var j = 0; j < openTerminals.length; j++) {
-			openTerminals[j].dispose();
-			openTerminals[j] = null;
-		}
+		disposeRunningNodes();
 
 		// push new terminals
 		for(var index in nodeConfig){
@@ -337,9 +340,11 @@ function gradleRun(param : string) {
 	}else{
 		cmd = 'cd ' + projectCwd + ' && ./gradlew ' + param;
 	}
-	var shellArgs = [] as any;
-	vscode.workspace.getConfiguration().get('terminal');
-	gradleTerminal = vscode.window.createTerminal('Gradle', shellExecPath, shellArgs);
+	if (gradleTerminal === null) {
+		var shellArgs = [] as any;
+		vscode.workspace.getConfiguration().get('terminal');
+		gradleTerminal = vscode.window.createTerminal('Gradle', shellExecPath, shellArgs);
+	}
 	gradleTerminal.show(true);
 	gradleTerminal.sendText(cmd);	
 }
@@ -425,6 +430,13 @@ function updateWorkspaceFolders(): any {
 		}
 	} catch(err) {
 		console.error(err);
+	}
+}
+
+function disposeRunningNodes(){
+	for (var j = 0; j < openTerminals.length; j++) {
+		openTerminals[j].dispose();
+		openTerminals[j] = null;
 	}
 }
    
