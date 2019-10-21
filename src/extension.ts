@@ -28,7 +28,7 @@ if(process.platform.includes("win32") || process.platform.includes("win64")){
 var nodeConfig = [] as cordaNodeConfig;
 var nodeDefaults: cordaNodeDefaultConfig;
 var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
-var openTerminals = [] as any;
+var openTerminals = [] as any; // terminals holding run-node instances
 var nodeLoaded = false;
 var gradleTerminal = null as any;
 
@@ -95,10 +95,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let cordaRunNodes = vscode.commands.registerCommand('extension.cordaRunNodes', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew cordaRunNodes', 4000);
+
+		// TODO: give option to RE-RUN nodes by launching command twice.
+
 		var nodesAreRunning = false;
 		for (var i = 0; i < 10; i++) {
 			(function (i) {
-			  setTimeout(function () {
+			  setTimeout(function () { // timeout handles windows issue with async
 				if(nodeLoaded){
 					if(!nodesAreRunning){
 						nodesAreRunning = true;
@@ -273,6 +276,9 @@ function runNode(name : string, port : string, logPort : string) {
 	return terminal;
 }
 
+/**
+ * checks if nodes are already deployed
+ */
 function areNodesDeployed() {
 	const fs = require('fs');
 	let path = nodeDir + 'build/nodes/';
