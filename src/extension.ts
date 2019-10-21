@@ -28,9 +28,6 @@ if(process.platform.includes("win32") || process.platform.includes("win64")){
 var nodeConfig = [] as cordaNodeConfig;
 var nodeDefaults: cordaNodeDefaultConfig;
 var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
-var nodeCordappDir = new Map(); // cordapp dir for each node
-var hasRunBuild = false;
-var hasRunDeploy = false;
 var openTerminals = [] as any;
 var nodeLoaded = false;
 var gradleTerminal = null as any;
@@ -56,37 +53,33 @@ function loadScript(context: vscode.ExtensionContext, path: string) {
  */
 export function activate(context: vscode.ExtensionContext) {
 	console.log('vscode-corda is now active');
+	//vscode.window.showInformationMessage("Corda project detected - Features available in Command Palette");
 
 	// monitor workspace folder changes so we can parse the corda gradle config
-	context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(e => updateWorkspaceFolders()));
+	//context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(e => updateWorkspaceFolders()));
 
-	// and initialize
-	vscode.window.setStatusBarMessage('Loading nodes from gradle', 4000);
+	// initialize
 	updateWorkspaceFolders();
 
 	let cordaClean = vscode.commands.registerCommand('extension.cordaClean', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew clean', 4000);
 		gradleRun('clean');
 	});
-	context.subscriptions.push(cordaClean);
 
 	let cordaBuild = vscode.commands.registerCommand('extension.cordaBuild', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew build', 4000);
 		gradleRun('build');
 	});
-	context.subscriptions.push(cordaBuild);
 
 	let cordaTest = vscode.commands.registerCommand('extension.cordaTest', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew test', 4000);
 		gradleRun('test');
 	});
-	context.subscriptions.push(cordaTest);
 
 	let cordaDeployNodes = vscode.commands.registerCommand('extension.cordaDeployNodes', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew deployNodes', 4000);
 		gradleRun('deployNodes');
 	});
-	context.subscriptions.push(cordaDeployNodes);
 
 	let cordaRunNodes = vscode.commands.registerCommand('extension.cordaRunNodes', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew cordaRunNodes', 4000);
@@ -104,7 +97,6 @@ export function activate(context: vscode.ExtensionContext) {
 			})(i);
 		  }
 	});
-	context.subscriptions.push(cordaRunNodes);
 
 	/**
 	 * Ensure that all of the node details have been read from the gradle file before allowing the 
@@ -126,7 +118,6 @@ export function activate(context: vscode.ExtensionContext) {
 			})(i);
 		  }
 	});
-	context.subscriptions.push(cordaShowVaultQuery);
 
 	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowTransactionExplorer', () => {
 		vscode.window.setStatusBarMessage('Displaying Corda Transaction Explorer', 5000);
@@ -144,7 +135,20 @@ export function activate(context: vscode.ExtensionContext) {
 			})(i);
 		  }	
 	});
+
+	let cordaNoGradle = vscode.commands.registerCommand('extension.cordaNoGradle', () => {
+		vscode.window.showInformationMessage('Current folder does not contain a valid build.gradle for Corda.');
+	});
+
+	// Context Subscriptions
+	context.subscriptions.push(cordaClean);
+	context.subscriptions.push(cordaBuild);
+	context.subscriptions.push(cordaTest);
+	context.subscriptions.push(cordaDeployNodes);
+	context.subscriptions.push(cordaRunNodes);
+	context.subscriptions.push(cordaShowVaultQuery);
 	context.subscriptions.push(cordaShowView);
+	context.subscriptions.push(cordaNoGradle);
 	
 }
 
@@ -336,20 +340,52 @@ function updateWorkspaceFolders(): any {
 		// no active workspace folders, abort
 		return 0;
 	}
+
 	//TODO Only supports one workspace folder for now, add support for multiple (named targets)
+	let path = projectCwd + '/build.gradle'; // path for checking if corda project
 	projectCwd = vscode.workspace.workspaceFolders[0].uri.path;
 	if(winPlatform){
 		projectCwd = projectCwd.replace(/\//g, "\\").slice(1);
+		path = projectCwd + '\\build.gradle';
 	}
-	// Search for build.gradle files & scan them for node config's
-	let files = fileSync(/build.gradle$/, projectCwd);
-	
-	for(var i = 0; i < files.length; i++){
-		scanGradleFile(files[i], i === files.length - 1);
+
+	const fs = require('fs');
+	console.log(path);
+
+	// enable or disable corda commands based on whether build.gradle exists in workspace dir
+	// and whether the gradle is 'related' to a corda deploy (assessed by keyword 'corda')
+	var gradleIsCorda = false;
+	try {
+		if (fs.existsSync(path)) {
+			let contents = fs.readFileSync(path);
+			if (contents.includes('corda')) {
+				gradleIsCorda = true;
+				console.log("gradleIsCorda is True");
+			}
+		}
+	} catch(err) {
+		console.log(err);
 	}
-	// files.forEach(element => {
-	// 	scanGradleFile(element);
-	// });
+
+	try {
+		if (!gradleIsCorda) {
+			console.log("no gradle files found disabling corda commands");
+			vscode.workspace.getConfiguration('vscode-corda').update("isCordaProject", false, true);
+			return 1;
+		} else {
+			// Search for build.gradle files & scan them for node config's
+			let files = fileSync(/build.gradle$/, projectCwd);
+			for(var i = 0; i < files.length; i++){
+				scanGradleFile(files[i], i === files.length - 1);
+			}
+			console.log("gradle file found enabling corda commands");
+			vscode.window.setStatusBarMessage('Loading nodes from gradle', 4000);
+			vscode.workspace.getConfiguration('vscode-corda').update("isCordaProject", true, true);
+			vscode.window.setStatusBarMessage("Corda-Project"); // identify project as Corda
+		}
+	} catch(err) {
+		console.error(err);
+	}
 }
    
 // tslint:disable-next-line: class-name

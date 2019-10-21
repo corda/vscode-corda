@@ -11,7 +11,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"workspaceContains:build.gradle"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -37,26 +37,67 @@
 				"title": "Corda Run Nodes"
 			},
 			{
-				"command": "extension.launchServer",
-				"title": "Launch the server"
+				"command": "extension.cordaShowTransactionExplorer",
+				"title": "Corda Show Transaction Explorer"
 			},
 			{
 				"command": "extension.cordaShowVaultQuery",
 				"title": "Corda Show Vault Query View"
 			},
 			{
-				"command": "extension.cordaShowTransactionExplorer",
-				"title": "Corda Show Transaction Explorer"
-			},
-			{
-				"command": "extension.launchClient",
-				"title": "Launch the client"
-			},
-			{
-				"command": "extension.investigateNode",
-				"title": "Investigate the nodes"
+				"command": "extension.cordaNoGradle",
+				"title": "Corda (Current workspace has no build.gradle)"
 			}
-		]
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "extension.cordaClean",
+					"when": "config.vscode-corda.isCordaProject"
+				},
+				{
+					"command": "extension.cordaBuild",
+					"when": "config.vscode-corda.isCordaProject"
+				},
+				{
+					"command": "extension.cordaTest",
+					"when": "config.vscode-corda.isCordaProject"
+				},
+				{
+					"command": "extension.cordaDeployNodes",
+					"when": "config.vscode-corda.isCordaProject"
+				},
+				{
+					"command": "extension.cordaRunNodes",
+					"when": "config.vscode-corda.isCordaProject"
+				},
+				{
+					"command": "extension.cordaShowTransactionExplorer",
+					"when": "config.vscode-corda.isCordaProject"
+				},
+				{
+					"command": "extension.cordaShowVaultQuery",
+					"when": "config.vscode-corda.isCordaProject"
+				},
+				{
+					"command": "extension.cordaNoGradle",
+					"when": "!config.vscode-corda.isCordaProject"
+				}
+			]
+		},
+		"configuration": {
+			"type": "object",
+			"title": "VS-Code Corda Extension",
+			"properties": {
+				"vscode-corda.isCordaProject": {
+					"title": "My title.",
+					"description": "The Workspace has build.gradle",
+					"type": "boolean",
+					"default": false,
+					"pattern": "(true|false)"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
