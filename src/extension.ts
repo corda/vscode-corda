@@ -244,12 +244,12 @@ function runNode(name : string, port : string, logPort : string) {
 	//~TODO add jokila port to cmd string / function params
 	if(winPlatform){
 		if(shellExecPath.includes("powershell")){
-			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd \"" + nodeDir + "build\\nodes\\" + name + "\"; java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + nodeDir + "build\\nodes\\" + name + "\\corda.jar\"";
 		}else{
-			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + projectCwd + "\\workflows-java\\build\\nodes\\" + name + "\\corda.jar\"";
+			cmd = "cd " + nodeDir + "build\\nodes\\" + name + " && java -Dcapsule:jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=" + port + "-javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=" + logPort + ",logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=" + name + " -jar \"" + nodeDir + "build\\nodes\\" + name + "\\corda.jar\"";
 		}
 	}else{
-		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + projectCwd + '/workflows-java/build/nodes/' + name + '/corda.jar'; // ; exit
+		cmd = 'cd ' + nodeDir + 'build/nodes/' + name + ' && java -Dcapsule.jvm.args=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=' + port + ' -javaagent:drivers/jolokia-jvm-1.6.0-agent.jar=port=' + logPort + ',logHandlerClass=net.corda.node.JolokiaSlf4jAdapter -Dname=' + name + ' -jar ' + nodeDir + 'build/nodes/' + name + '/corda.jar'; // ; exit
 	}
 	let terminal = vscode.window.createTerminal(name, shellExecPath, shellArgs);
 	terminal.show(true);
@@ -259,27 +259,44 @@ function runNode(name : string, port : string, logPort : string) {
 
 /**
  * runNodes goes through the list of valid nodes collected from the gradle and runs them one by one.
+ * Requires: deployNodes must have been run at least once - checked by presence of relative nodes directory!
  */
 function runNodes() {
-	// DONE use nodeConfig to set see which nodes to run, which ports and all that instead of hard coding
-	// TODO: Global boolean for hasRunBuild and hasRunDeploy. If false, build and deploy before we can run nodes
-	// (and set deploy false after build, set both false after clean)
-	// DONE use global vars to see if terminals are already running, if so kill existing processes/terminals first
 	//console.log("the node config");
 	var port = 5005;
 	var logPort = 7005;
 
-	// dispose if terminals exist
-	for (var j = 0; j < openTerminals.length; j++) {
-		openTerminals[j].dispose();
-		openTerminals[j] = null;
+	// check condition that deployNodes has been run at some point
+	// if not, offer to deploy or do nothing.
+	// else continue running nodes.
+	const fs = require('fs');
+	let path = nodeDir + 'build/nodes/';
+	if (winPlatform) {
+		path = nodeDir + 'build\\nodes\\';
 	}
+	console.log(path);
+	if (!fs.existsSync(path)) {
+		vscode.window.showInformationMessage("Cannot run nodes until they have been deployed - run Corda Deploy Nodes", 'Click to Deploy Nodes')
+			.then(selection => {
+				console.log(selection);
+				if (selection === 'Click to Deploy Nodes') {
+					vscode.commands.executeCommand('extension.cordaDeployNodes');
+				}
+			});
+		
+	} else {
 
-	// push new terminals
-	for(var index in nodeConfig){
-		openTerminals.push(runNode(nodeConfig[index].name.match("O=(.*),L")![1], (port++).toString(), (logPort++).toString()));
+		// dispose if terminals exist
+		for (var j = 0; j < openTerminals.length; j++) {
+			openTerminals[j].dispose();
+			openTerminals[j] = null;
+		}
+
+		// push new terminals
+		for(var index in nodeConfig){
+			openTerminals.push(runNode(nodeConfig[index].name.match("O=(.*),L")![1], (port++).toString(), (logPort++).toString()));
+		}
 	}
-	
 }
 
 
