@@ -78,7 +78,19 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let cordaDeployNodes = vscode.commands.registerCommand('extension.cordaDeployNodes', () => {		
 		vscode.window.setStatusBarMessage('Running gradlew deployNodes', 4000);
-		gradleRun('deployNodes');
+		if (areNodesDeployed()) {
+			vscode.window.showInformationMessage("Nodes are already deployed, Re-Deploy?", 'Yes', 'No')
+			.then(selection => {
+				console.log(selection);
+				if (selection === 'No') {
+					return 0;
+				} else if (selection === 'Yes') {
+					gradleRun('deployNodes');
+				}
+			});
+		} else {
+			gradleRun('deployNodes');
+		}
 	});
 
 	let cordaRunNodes = vscode.commands.registerCommand('extension.cordaRunNodes', () => {		
@@ -261,6 +273,15 @@ function runNode(name : string, port : string, logPort : string) {
 	return terminal;
 }
 
+function areNodesDeployed() {
+	const fs = require('fs');
+	let path = nodeDir + 'build/nodes/';
+	if (winPlatform) {
+		path = nodeDir + 'build\\nodes\\';
+	}
+	return fs.existsSync(path);
+}
+
 /**
  * runNodes goes through the list of valid nodes collected from the gradle and runs them one by one.
  * Requires: deployNodes must have been run at least once - checked by presence of relative nodes directory!
@@ -273,13 +294,7 @@ function runNodes() {
 	// check condition that deployNodes has been run at some point
 	// if not, offer to deploy or do nothing.
 	// else continue running nodes.
-	const fs = require('fs');
-	let path = nodeDir + 'build/nodes/';
-	if (winPlatform) {
-		path = nodeDir + 'build\\nodes\\';
-	}
-	console.log(path);
-	if (!fs.existsSync(path)) {
+	if (!areNodesDeployed()) {
 		vscode.window.showInformationMessage("Cannot run nodes until they have been deployed - Deploy Nodes then try again.", 'Click to Deploy Nodes')
 			.then(selection => {
 				console.log(selection);
