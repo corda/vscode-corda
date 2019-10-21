@@ -337,11 +337,9 @@ function gradleRun(param : string) {
 	}else{
 		cmd = 'cd ' + projectCwd + ' && ./gradlew ' + param;
 	}
-	if (gradleTerminal === null) {
-		var shellArgs = [] as any;
-		vscode.workspace.getConfiguration().get('terminal');
-		gradleTerminal = vscode.window.createTerminal('Gradle', shellExecPath, shellArgs);
-	}
+	var shellArgs = [] as any;
+	vscode.workspace.getConfiguration().get('terminal');
+	gradleTerminal = vscode.window.createTerminal('Gradle', shellExecPath, shellArgs);
 	gradleTerminal.show(true);
 	gradleTerminal.sendText(cmd);	
 }
