@@ -384,8 +384,8 @@ function updateWorkspaceFolders(): any {
 	}
 
 	//TODO Only supports one workspace folder for now, add support for multiple (named targets)
-	let path = projectCwd + '/build.gradle'; // path for checking if corda project
 	projectCwd = vscode.workspace.workspaceFolders[0].uri.path;
+	let path = projectCwd + '/build.gradle'; // path for checking if corda project
 	if(winPlatform){
 		projectCwd = projectCwd.replace(/\//g, "\\").slice(1);
 		path = projectCwd + '\\build.gradle';
