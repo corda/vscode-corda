@@ -6,4 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-- Initial release
+## [0.0.1] - 2019-10-22
+### Initial Release
+- Launch gradle tasks: clean, build, deployNodes, and runNodes
+- View transactions and initiate flows with auto complete on parameters through transaction view
+- Query the vault of node through vault query view
