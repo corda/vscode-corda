@@ -333,6 +333,9 @@ function runNodes() {
 
 
 function gradleRun(param : string) {
+	//dispose any running terminals
+	disposeRunningNodes();
+
 	var cmd;
 	
 	if(winPlatform){
@@ -369,6 +372,8 @@ function scanGradleFile(fileName : String, last: boolean): any {
 		if (representation.task !== undefined && representation.task.node !== undefined) {
 			if(representation.task.nodeDefaults){
 				nodeDefaults = representation.task.nodeDefaults as cordaNodeDefaultConfig;
+			}else{
+				nodeDefaults = {rpcUsers : {} };
 			}
 			nodeConfig = representation.task.node as cordaNodeConfig;
 			nodeDir = fileName.replace('build.gradle','');
