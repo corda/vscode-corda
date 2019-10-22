@@ -329,6 +329,9 @@ function runNodes() {
 
 
 function gradleRun(param : string) {
+	//dispose any running terminals
+	disposeRunningNodes();
+
 	var cmd;
 	
 	if(winPlatform){
