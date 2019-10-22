@@ -1,15 +1,30 @@
 {
 	"name": "vscode-corda",
-	"displayName": "vscode-corda",
+	"displayName": "VSCode-Corda",
 	"publisher": "R3",
-	"description": "Corda Tools",
+	"description": "A tool for Corda developers.",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.36.0"
 	},
+	"galleryBanner": {
+        "color": "#9C5656",
+        "theme": "dark"
+    },
 	"categories": [
-		"Other"
+        "Debuggers", "Programming Languages", "Other"
 	],
+	"keywords": ["corda","blockchain","java","kotlin","testing"],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/corda/vscode-corda.git"
+	},
+	"bugs": {
+		"url": "https://github.com/corda/vscode-corda/issues",
+		"email": "devrel@r3.com"
+	},
+	"icon": "vscode-corda.png",
+	"homepage": "https://www.corda.net/develop/",
 	"activationEvents": [
 		"*"
 	],
