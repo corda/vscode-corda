@@ -8,13 +8,21 @@
 		"vscode": "^1.36.0"
 	},
 	"galleryBanner": {
-        "color": "#9C5656",
-        "theme": "dark"
-    },
+		"color": "#9C5656",
+		"theme": "dark"
+	},
 	"categories": [
-        "Debuggers", "Programming Languages", "Other"
+		"Debuggers",
+		"Programming Languages",
+		"Other"
 	],
-	"keywords": ["corda","blockchain","java","kotlin","testing"],
+	"keywords": [
+		"corda",
+		"blockchain",
+		"java",
+		"kotlin",
+		"testing"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/corda/vscode-corda.git"

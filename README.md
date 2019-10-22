@@ -33,7 +33,34 @@ The following features are accessible through the command palette. <br/> ⇧⌘P
 - Gradle 5.5+
 - Corda 4.0+
 
-## Getting Started
+## Using the Extension
+
+The vscode-corda extension works will activate when you open a Corda project as your root folder in the ide. In order for the project to be detected you must have a valid build.gradle file present in the project folder. When detected, an indication is shown on the status bar.
+
+![Status](images/corda-project-status.png)
+
+Available commands are accessible through the command palette. ⇧⌘P (Windows, Linux Ctrl+Shift+P)
+
+![CordaCommands](images/corda-command-palette.png)
+
+Corda Run Nodes requires that nodes have previously been deployed. If this is not the case, you will be prompted to automatically deploy. When your nodes are running they reside in individual terminal instances in vscode. This allows both monitoring and shell interaction if desired. It may take a few moments for each node to launch.
+
+![CordaRunNodes](images/corda-run-nodes.png)
+
+
+Show Transaction Explorer and Show Vault Query View allow interaction with your running nodes. (Quick tip: It is also possible to connect to nodes you have deployed outside the IDE as long as the nodes address/ports match those in your build.gradle).
+
+Each interactive view lets you select a node to interact with from you mock network. You will be presented with a drop down list off available running nodes. Choosing a node will provide information about the node and expose the interface. You can change nodes at anytime.
+
+The transaction explorer allows you to choose flows from any CorDapp on the node and run them. Required parameters will automatically be displayed and auto-completes based on network data will be available.
+
+![TransactionView](images/transaction-view.png)
+
+The vault query view shows all the transactions hashes and states in the vault of the selected node. It allows you to filter by QueryCriteria by choosing selections on the query builder. Selecting a transaction entry will open up additional data. Filter options are automatically generated based on available nodes on your network. For the StateRef criteria there is autocomplete functionality. The 'Party' filter is a UNION (e.g. selecting PartyA and PartyB will show all transactions involving either).
+
+![QueryView](images/vaultquery-view.png)
+
+## Getting Started with Contributing
 
 Clone the V2 branch from the extension repo https://github.com/corda/vscode-corda/tree/V2
 - From the local directory:
