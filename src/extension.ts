@@ -31,6 +31,8 @@ var nodeDir = ''; // holds dir of build.gradle for referencing relative node dir
 var openTerminals = [] as any; // terminals holding run-node instances
 var nodeLoaded = false;
 var gradleTerminal = null as any;
+var clientTerminal = null as any;
+var webViewPanels = [] as any;
 
 var projectCwd = '';
 
@@ -206,6 +208,8 @@ function launchView(context: any, view: string){
 		</body>
 		</html>
 	`;
+
+	webViewPanels.push(panel); // store panel in global
 }
 
 /**
@@ -226,7 +230,7 @@ function launchViewBackend() {
 	if (vscode.window.terminals.find((value) => {
 		return value.name === "Client Launcher";
 	}) === undefined) {
-		launchClient();
+		clientTerminal = launchClient();
 		console.log("Client Launch successful");
 	} else {
 		console.log("Client already up");
@@ -434,10 +438,20 @@ function updateWorkspaceFolders(): any {
 }
 
 function disposeRunningNodes(){
-	for (var j = 0; j < openTerminals.length; j++) {
+	if (clientTerminal !== null) { // remove client terminal
+		clientTerminal.dispose();
+		clientTerminal = null;
+	}
+	for (var j = 0; j < openTerminals.length; j++) { // remove all running node terminals
 		openTerminals[j].dispose();
 		openTerminals[j] = null;
 	}
+	openTerminals = [] as any;
+	for (var i = 0; i < webViewPanels.length; i++) { // close open webview panels
+		webViewPanels[i].dispose();
+		webViewPanels[i] = null;
+	}
+	webViewPanels = [] as any;
 }
    
 // tslint:disable-next-line: class-name
