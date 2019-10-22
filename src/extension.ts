@@ -365,6 +365,7 @@ function scanGradleFile(fileName : String, last: boolean): any {
 		if (representation.task !== undefined && representation.task.node !== undefined) {
 			if(representation.task.nodeDefaults){
 				nodeDefaults = representation.task.nodeDefaults as cordaNodeDefaultConfig;
+			}else{
 				nodeDefaults = {rpcUsers : {} };
 			}
 			nodeConfig = representation.task.node as cordaNodeConfig;
