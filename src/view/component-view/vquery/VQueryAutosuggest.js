@@ -60,6 +60,17 @@ import MenuItem from '@material-ui/core/MenuItem';
       
     }
 
+    static getDerivedStateFromProps(props, state) {
+      if(props.stateRefOptions !== state.stateRefOptions) {
+        return {
+          stateRefOptions: props.stateRefOptions,
+        };
+      }
+
+      // Return null if the state hasn't changed
+      return null;
+    }
+
     renderInputComponent(inputProps) {
         const { classes, inputRef = () => {}, ref, ...other } = inputProps;
       

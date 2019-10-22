@@ -101,7 +101,7 @@ export default function VQueryBuilder(props) {
   const fillStateRefOptions = () => {
       console.log("fillStateRefOptions")
       console.log("BEFORE stateRefOptions " + JSON.stringify(state.stateRefOptions))
-      if (state.stateRefOptions.length === 0) {
+      if (props.transactionMap.length > state.stateRefOptions.length) {
         var srefs = []
         props.transactionMap.map((row) => {
             JSON.parse(row.states).map((stateRow) => {
@@ -155,6 +155,7 @@ export default function VQueryBuilder(props) {
    
       return (
             <div style={{display: 'inline-flex'}}>
+            {fillStateRefOptions()}
            <VQueryAutosuggest stateRefOptions={state.stateRefOptions} setStateRefState={(hash, index) => {
                 setState({
                     ...state,
@@ -520,7 +521,6 @@ React.useEffect(() => {
         <List className={classes.root}>
 
         {/*Debug Statement*/}
-        {fillStateRefOptions()}
         {console.log("current stateRefOptions" + JSON.stringify(state.stateRefOptions))}
         {console.log(state.queryValues)}
         {["StateStatus", "ContractStateType", "StateRef", "Notary",
