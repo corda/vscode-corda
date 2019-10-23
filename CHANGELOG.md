@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.2] - 2019-10-23
+### Bugfix
+- Global flag on Corda-Project changed to workspace/folder level
+
 ## [0.0.1] - 2019-10-22
 ### Initial Release
 - Launch gradle tasks: clean, build, deployNodes, and runNodes
