@@ -3,7 +3,7 @@
 	"displayName": "VSCode-Corda",
 	"publisher": "R3",
 	"description": "A tool for Corda developers.",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.36.0"
 	},

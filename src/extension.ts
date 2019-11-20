@@ -424,7 +424,7 @@ function updateWorkspaceFolders(): any {
 	try {
 		if (!gradleIsCorda) {
 			console.log("no gradle files found disabling corda commands");
-			vscode.workspace.getConfiguration('vscode-corda').update("isCordaProject", false, true);
+			vscode.workspace.getConfiguration('vscode-corda').update("isCordaProject", false);
 			return 1;
 		} else {
 			// Search for build.gradle files & scan them for node config's
@@ -434,7 +434,7 @@ function updateWorkspaceFolders(): any {
 			}
 			console.log("gradle file found enabling corda commands");
 			vscode.window.setStatusBarMessage('Loading nodes from gradle', 4000);
-			vscode.workspace.getConfiguration('vscode-corda').update("isCordaProject", true, true);
+			vscode.workspace.getConfiguration('vscode-corda').update("isCordaProject", true);
 			vscode.window.setStatusBarMessage("Corda-Project"); // identify project as Corda
 		}
 	} catch(err) {
