@@ -59,7 +59,7 @@ public class NodeRPCClient {
     private Map<String, Class> registeredFlowClasses;
 
     // maps FQN to required params, e.g. bootcamp.InitiateFlow -> List<Pair<(Class), "argName">>
-    private Map<String, List<Pair<Class, String>>> registeredFlowParams;
+    private Map<String, Map<String, List<Pair<Class, String>>>> registeredFlowParams;
 
     private Map<String, Class> stateNameToClass; // used for userVaultQuery
     private Vault.Page<ContractState> statesAndMeta;
@@ -142,7 +142,7 @@ public class NodeRPCClient {
     /**
      * @return FQN to required params, e.g. bootcamp.InitiateFlow -> List<Pair<(Class), "argName">>
      */
-    private Map<String, List<Pair<Class,String>>> getRegisteredFlowParams() {
+    private Map<String, Map<String, List<Pair<Class,String>>>> getRegisteredFlowParams() {
         return registeredFlowParams;
     }
 
@@ -215,9 +215,10 @@ public class NodeRPCClient {
      * @param args array of args needed for the flow constructor
      * @return
      */
-    private FlowHandle startFlow(String flow, String[] args) throws UnrecognisedParameterException {
+    private FlowHandle startFlow(String flow, String constructor, String[] args) throws UnrecognisedParameterException {
         Class flowClass = registeredFlowClasses.get(flow);
-        List<Pair<Class,String>> paramTypes = registeredFlowParams.get(flow);
+        Map<String, List<Pair<Class,String>>> constructorToParams = registeredFlowParams.get(flow);
+        List<Pair<Class,String>> paramTypes = constructorToParams.get(constructor);
         String currArg;
         Class currParam;
 
@@ -441,10 +442,11 @@ public class NodeRPCClient {
             case "startFlow":
                 HashMap<String, Object> argMap = (HashMap<String, Object>) args;
                 String flow = (String) argMap.get("flow");
+                String constructor = (String) argMap.get("constructor");
                 List<Object> flowArgs = (ArrayList<Object>) argMap.get("args");
                 Object[] flowArgsAsString = flowArgs.toArray();
                 String[] argsArray = Arrays.copyOf(flowArgsAsString, flowArgsAsString.length, String[].class);
-                return startFlow(flow, argsArray);
+                return startFlow(flow, constructor, argsArray);
 
             case "getStateProperties":
                 return getStateProperties((String) args);
@@ -469,36 +471,16 @@ public class NodeRPCClient {
 
     // main method for debugging
     public static void main(String[] args) throws Exception {
-        NodeRPCClient client = new NodeRPCClient("localhost:10009","user1","test", "c:\\Users\\Anthony Nixon\\Repo\\samples\\obligation-cordapp\\kotlin-source\\build\\nodes\\PartyA\\cordapps");
+        NodeRPCClient client = new NodeRPCClient("localhost:10016","user1","test", "c:\\\\Users\\\\Anthony Nixon\\\\Downloads\\\\est\\\\est\\\\build\\\\nodes\\\\micobo\\\\cordapps");
 
-//        Gson gson = new GsonBuilder().create();
+        // data:String
+        HashMap<String, String> content = new ObjectMapper().readValue("{\"flow\":\"com.template.flows.CreateExampleEvolvableToken\",\"constructor\":\"data:String\",\"args\":[\"11/22/19\"]}", HashMap.class);
+        client.run("startFlow", content);
+
+        System.out.println("===============================");
+        System.out.println(client.getRegisteredFlowParams());
+        System.out.println(client.getNodeInfo());
 //
-//        String t = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":[\"bootcamp.states.TokenState\"],\"stateRefs\":" +
-//                "[{ \"hash\":\"3CF0273A4C29374BC0E53F516A177A41B9DA62AC331F373D542833CDC40C86D9\",\"index\":\"0\"}] ,\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyA\",\"PartyB\"]}}";
-//
-//
-//        String u = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"" +
-//                "values\":{\"" +
-//                "stateStatus\":\"ALL\",\"" +
-//                "contractStateType\":\"\",\"" +
-//                "stateRefs\":\"\",\"" +
-//                "notary\":\"\",\"" +
-//                "timeCondition\":" +
-//                "{\"type\":\"RECORDED\",\"start\":\"2019-09-10T08:26:20.637Z\",\"end\":\"2019-09-12T08:26:20.637Z\"}," +
-//                "relevancyStatus\":\"ALL\",\"" +
-//                "participants\":\"\"}}";
-//
-//        String v = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"CONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
-//
-//        String k = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"UNCONSUMED\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":\"\",\"relevancyStatus\":\"ALL\",\"participants\":[\"PartyB\",\"PartyA\"]}}";
-//
-//        String z = "{\"args\":{\"sortAttribute\":\"NOTARY_NAME\",\"sortDirection\":\"ASC\"},\"values\":{\"stateStatus\":\"ALL\",\"contractStateType\":\"\",\"stateRefs\":\"\",\"notary\":\"\",\"timeCondition\":{\"type\":\"RECORDED\",\"start\":\"2017-05-24T10:30:30.00Z\",\"end\":\"2019-05-25T10:30:30.00Z\"},\"relevancyStatus\":\"ALL\",\"participants\":\"\"}}";
-//
-//        Map<String, Object> uu = new ObjectMapper().readValue(z, HashMap.class);
-//        Map<SecureHash, TransRecord> result = (Map<SecureHash, TransRecord>) client.run("userVaultQuery", uu);
-//
-//        System.out.println("\n\n\n\nHere is the result : \n" + result);
-//        System.out.println("\n\n Quantity returned : " + result.size());
 
     }
 }

@@ -34,7 +34,7 @@ public class NodeRPCHelper {
      */
     public static Pair<Map, Map> setFlowMaps(String jarPath, List<String> registeredFlows) throws FlowsNotFoundException {
         Map<String, Class> registeredFlowClasses = new HashMap<>();
-        Map<String, List<Pair<Class, String>>> registeredFlowParams = new HashMap<>();
+        Map<String, Map<String, List<Pair<Class, String>>>> registeredFlowParams = new HashMap<>();
         File dir = new File(jarPath);
         List<File> jarFiles = new ArrayList<>();
         File[] filesList = dir.listFiles();
@@ -110,23 +110,40 @@ public class NodeRPCHelper {
      * @param flowClass flow to extract paramTypes from
      * @return list of Classes corresponding to each param of the input flow class
      */
-    private static List<Pair<Class,String>> setFlowParams(Class flowClass) {
-        List<Pair<Class,String>> params = new ArrayList<>();
-        List<Constructor> constructors = ImmutableList.copyOf(flowClass.getConstructors());
-        for (Constructor c : constructors) {
-            List<Parameter> paramNames = ImmutableList.copyOf(c.getParameters());
-            for(Parameter param: paramNames){
+    private static Map<String, List<Pair<Class,String>>> setFlowParams(Class flowClass) {
+
+        Map<String, List<Pair<Class,String>>> constructorToParams = new HashMap<>();
+        List<Pair<Class,String>> params = new ArrayList<>(); // Pair<paramType, name>
+        boolean defaultConstructorMarker; // sentinel for skipping kotlin default constructor
+        StringBuilder constructorID; // "arg0 arg1 ..."
+
+        // construct params List for each constructor
+        for (Constructor c : ImmutableList.copyOf(flowClass.getConstructors())) {
+            params.clear();
+            defaultConstructorMarker = false;
+            constructorID = new StringBuilder();
+
+            for(Parameter param: ImmutableList.copyOf(c.getParameters())){
                 if(param.isNamePresent()){
                     params.add(new Pair(param.getType(), param.getName()));
+                    if ((constructorID.length() == 0)) {
+                        constructorID.append(param.getName() + ":" + param.getType().getSimpleName());
+                    } else {
+                        constructorID.append(" ").append(param.getName() + ":" + param.getType().getSimpleName());
+                    }
                 }else{
-                    params.add(new Pair(param.getType(), "UNKNOWN"));
+                    defaultConstructorMarker = true;
                 }
-
             }
 
+            // skip if contains type: DefaultConstructorMarker
+            if (defaultConstructorMarker) continue;
+
+            // create constructor stringKey and place in Map
+            constructorToParams.putIfAbsent(constructorID.toString(), params);
         }
 
-        return params;
+        return constructorToParams;
     }
 
     /**
