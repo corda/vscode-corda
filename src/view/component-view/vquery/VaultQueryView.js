@@ -4,7 +4,6 @@ import VaultTransactionDisplay from "../VaultTransactionDisplay";
 import NodeInfo from "../NodeInfo";
 import NodeSelector from "../NodeSelector";
 
-import SnackBarWrapper from "../SnackBarWrapper";
 import Grid from '@material-ui/core/Grid';
 
 import VQueryBuilder from "./VQueryBuilder";
@@ -44,16 +43,10 @@ export default function VaultQueryView(props) {
              <Grid  container spacing={4}>
                  <Grid item sm={4}> {DisplayNodeInfo} </Grid>
              </Grid>
-             <Grid container justify = "center" alignitems="center">
-                 <Grid item sm={3} > {VaultQueryBuilder} </Grid>
-                 <Grid item sm={1} > </Grid>
-                 <Grid item sm={8} > {DisplayVaultTransactions} </Grid>
+             <Grid container direction="row" justify="center" alignItems="flex-start" spacing={2} wrap="nowrap">
+                 <Grid item sm="auto" zeroMinWidth> {VaultQueryBuilder} </Grid>
+                 <Grid item sm zeroMinWidth> {DisplayVaultTransactions} </Grid>
              </Grid>
-             {props.state.messages.map((message, index) => { 
-                
-                 return ( <SnackBarWrapper key={"error" + index} message={message} remove={props.removeSnack}/>);
-             })}
-            
          </div>
                
     )

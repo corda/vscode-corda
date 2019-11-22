@@ -7,13 +7,6 @@ body{
     min-width: 220px;
 }
 
-#query-container{
-    align-content: left;
-    border-width : 1px 1px 1px 0px;
-    border-style: solid;
-    border-color:var(--vscode-sideBarSectionHeader-background) 
-}
-
 .flow-param-input-field{
     margin-left: 5px !important;
     margin-right:5px !important;

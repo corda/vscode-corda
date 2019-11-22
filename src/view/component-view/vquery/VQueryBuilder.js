@@ -517,7 +517,6 @@ React.useEffect(() => {
   }
 
   return (
-      <Container id="query-container">
         <List className={classes.root}>
 
         {/*Debug Statement*/}
@@ -542,6 +541,5 @@ React.useEffect(() => {
             );
         })}
         </List>
-    </Container>
   );
 }
