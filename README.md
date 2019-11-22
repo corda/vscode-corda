@@ -151,15 +151,10 @@ The client is used to intermediate communcations between the RPCClients and the 
     - This is due to the type 'comparable' not being whitelisted in any version of Corda prior to version 4.3
 - Can only currently specify dates in the forms dd/MM/yy in flow     parameters.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-
 ---
 
 
 
 ## Release Notes
 
-### 0.1.0
-
-Initial pre-release of vscode-corda
+See CHANGELOG.md for details

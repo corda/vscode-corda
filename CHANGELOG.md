@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.0.3] - 2019-11-22
+### Incremental
+- Transaction Explorer now allows flows with overloaded constructors. User will be able to choose constructor via argument list.
+- UI scaling corrected on Vault Query View
+- Build artifacts removed from repo
+
 ## [0.0.2] - 2019-10-23
 ### Bugfix
 - Global flag on Corda-Project changed to workspace/folder level
