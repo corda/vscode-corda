@@ -49,7 +49,6 @@ export default function FlowExplorerView(props) {
                  <Grid item sm={12}> {DisplayVaultTransactions} </Grid>
              </Grid>
              {props.state.messages.map((message, index) => { 
-                
                  return ( <SnackBarWrapper key={"error" + index} message={message} remove={props.removeSnack}/>);
              })}
             

@@ -23,7 +23,7 @@ export function loadStateNames(client){
     client.send(JSON.stringify({"cmd" : "getStateNames" }))
 }
 
-export function startFlow(client, flowName, paramValues){
+export function startFlow(client, flowName, constructorName, paramValues){
     var args;
     
     if(!paramValues){
@@ -42,6 +42,7 @@ export function startFlow(client, flowName, paramValues){
     }
     var content = {
       "flow" : flowName,
+      "constructor": constructorName,
       "args" : args
     }
     client.send(JSON.stringify({"cmd": "startFlow", "content":JSON.stringify(           

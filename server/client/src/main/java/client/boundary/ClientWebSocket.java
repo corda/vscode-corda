@@ -6,7 +6,6 @@ import client.entities.Message;
 import client.entities.MessageDecoder;
 import client.entities.MessageEncoder;
 import client.entities.adapters.*;
-import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;

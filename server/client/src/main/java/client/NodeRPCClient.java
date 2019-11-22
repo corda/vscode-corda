@@ -5,8 +5,6 @@ import client.entities.customExceptions.CommandNotFoundException;
 import client.entities.customExceptions.FlowsNotFoundException;
 import client.entities.customExceptions.UnrecognisedParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import kotlin.Pair;
 import net.corda.client.rpc.CordaRPCClient;
 import net.corda.client.rpc.CordaRPCConnection;
@@ -254,6 +252,8 @@ public class NodeRPCClient {
                         StateRef stateRef = new StateRef(txhash, index);
                         state = getStateFromRef(proxy, stateRef);
                         finalParams.add(new StateAndRef(state, stateRef));
+                    } else if (currParam == Long.class) {
+                        finalParams.add(Long.valueOf(currArg));
                     } else {
                         finalParams.add(Integer.valueOf(currArg)); // INTEGER
                     }
@@ -469,18 +469,4 @@ public class NodeRPCClient {
         return null;
     }
 
-    // main method for debugging
-    public static void main(String[] args) throws Exception {
-        NodeRPCClient client = new NodeRPCClient("localhost:10016","user1","test", "c:\\\\Users\\\\Anthony Nixon\\\\Downloads\\\\est\\\\est\\\\build\\\\nodes\\\\micobo\\\\cordapps");
-
-        // data:String
-        HashMap<String, String> content = new ObjectMapper().readValue("{\"flow\":\"com.template.flows.CreateExampleEvolvableToken\",\"constructor\":\"data:String\",\"args\":[\"11/22/19\"]}", HashMap.class);
-        client.run("startFlow", content);
-
-        System.out.println("===============================");
-        System.out.println(client.getRegisteredFlowParams());
-        System.out.println(client.getNodeInfo());
-//
-
-    }
 }

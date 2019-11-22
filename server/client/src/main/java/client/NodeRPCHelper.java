@@ -113,13 +113,13 @@ public class NodeRPCHelper {
     private static Map<String, List<Pair<Class,String>>> setFlowParams(Class flowClass) {
 
         Map<String, List<Pair<Class,String>>> constructorToParams = new HashMap<>();
-        List<Pair<Class,String>> params = new ArrayList<>(); // Pair<paramType, name>
+        List<Pair<Class,String>> params; // Pair<paramType, name>
         boolean defaultConstructorMarker; // sentinel for skipping kotlin default constructor
         StringBuilder constructorID; // "arg0 arg1 ..."
 
         // construct params List for each constructor
         for (Constructor c : ImmutableList.copyOf(flowClass.getConstructors())) {
-            params.clear();
+            params = new ArrayList<>();
             defaultConstructorMarker = false;
             constructorID = new StringBuilder();
 
@@ -129,7 +129,7 @@ public class NodeRPCHelper {
                     if ((constructorID.length() == 0)) {
                         constructorID.append(param.getName() + ":" + param.getType().getSimpleName());
                     } else {
-                        constructorID.append(" ").append(param.getName() + ":" + param.getType().getSimpleName());
+                        constructorID.append(", ").append(param.getName() + ":" + param.getType().getSimpleName());
                     }
                 }else{
                     defaultConstructorMarker = true;
