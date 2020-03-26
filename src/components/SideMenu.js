@@ -36,12 +36,12 @@ const sideMenu = (props) => {
                     </div>
                     <span>Vault</span>
                 </li>
-                <li className={props.currentPage === 4? "active":""} onClick={() => props.changeScreen(4)}>
+                {/* <li className={props.currentPage === 4? "active":""} onClick={() => props.changeScreen(4)}>
                     <div>
                         <SettingsApplicationsIcon fontSize="large"></SettingsApplicationsIcon>
                     </div>
                     <span>Settings</span>
-                </li>
+                </li> */}
             </ul>
         </div>
     );

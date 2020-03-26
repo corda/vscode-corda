@@ -60,12 +60,8 @@
 				"title": "Corda Run Nodes"
 			},
 			{
-				"command": "extension.cordaShowTransactionExplorer",
-				"title": "Corda Show Transaction Explorer"
-			},
-			{
-				"command": "extension.cordaShowVaultQuery",
-				"title": "Corda Show Vault Query View"
+				"command": "extension.cordaShowNodeExplorer",
+				"title": "Corda Show Node Explorer"
 			},
 			{
 				"command": "extension.cordaNoGradle",
@@ -95,11 +91,7 @@
 					"when": "config.vscode-corda.isCordaProject"
 				},
 				{
-					"command": "extension.cordaShowTransactionExplorer",
-					"when": "config.vscode-corda.isCordaProject"
-				},
-				{
-					"command": "extension.cordaShowVaultQuery",
+					"command": "extension.cordaShowNodeExplorer",
 					"when": "config.vscode-corda.isCordaProject"
 				},
 				{
