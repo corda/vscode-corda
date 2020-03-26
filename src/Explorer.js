@@ -9,6 +9,7 @@ import * as ActionType from './store/Actions';
 import VaultExplorer from './screens/VaultExplorer';
 import Dashboard from './screens/Dashboard';
 import Settings from './screens/Settings';
+import Spinner from './spinner.svg';
 
 class Explorer extends Component {
 
@@ -29,7 +30,7 @@ class Explorer extends Component {
                         this.props.spinner? 
                         <div className="spinner">
                           <div>
-                              <img style={{width: 100}} src="spinner.svg" alt="Spinner"></img>
+                              <img style={{width: 100}} src={Spinner} alt="Spinner"></img>
                           </div>
                           </div>:null
                       }

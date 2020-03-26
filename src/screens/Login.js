@@ -4,6 +4,8 @@ import '../styles/Login.css';
 import * as ActionType from '../store/Actions';
 import { connect } from 'react-redux';
 import SplashScreen from '../components/Splash';
+import GlobalMap from './global-map.png';
+import CrdaLogo from './crda-logo.svg';
 
 class Login extends Component {
 
@@ -140,11 +142,11 @@ class Login extends Component {
 
             return (
                 <div style={{position: 'relative'}}>
-                    <img src="global-map.png" alt="Global Map" width="100%"></img>
+                    <img src={GlobalMap} alt="Global Map" width="100%"></img>
                     <div className="center-container">
                         <div>
                             <div>
-                                <img src="crda-logo.svg" alt="Corda Logo" width="250px"></img>
+                                <img src={CrdaLogo} alt="Corda Logo" width="250px"></img>
                                 <div className="explorer-text">Node Explorer</div>
                             </div>
                             <Grid container style={{marginTop: "20px"}} spacing={1}>

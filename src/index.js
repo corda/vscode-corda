@@ -30,7 +30,7 @@ const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(thunk
 
 ReactDOM.render(<Provider store={store}>
     <div style={{height: "100%"}}>
-        <Explorer/>
+        <Explorer />
         <ReduxToastr
             timeOut={3000}
             newestOnTop={false}

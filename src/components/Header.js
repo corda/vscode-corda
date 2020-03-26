@@ -3,6 +3,7 @@ import '../styles/Header.css';
 import { Button, Popper, Paper, Grow, ClickAwayListener, MenuList, MenuItem } from '@material-ui/core';
 import * as ActionType from '../store/Actions'
 import { connect } from 'react-redux';
+import CrdaLogo from './crda-logo.svg';
 
 const Header = (props) => {
 
@@ -36,7 +37,7 @@ const Header = (props) => {
     return(
       <div className="Header">
           <div>
-                <img src="crda-logo.svg" width="100%" alt="Corda Logo" className="Logo"/>
+                <img src={CrdaLogo} width="100%" alt="Corda Logo" className="Logo"/>
                 <div className="profile">
                   <Button variant="outlined" ref={anchorRef} onClick={handleToggle}>{props.profile.name}</Button>
                   <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>

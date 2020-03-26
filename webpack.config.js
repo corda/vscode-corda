@@ -3,8 +3,6 @@ const tsImportPlugin = require('ts-import-plugin');
 
 module.exports = {
     entry: {
-        // transactionExplorer: './src/view/transactionExplorer.js',
-        // vaultQuery: './src/view/vaultQuery.js'
         index: './src/index.js'
     },
     output: {
@@ -32,10 +30,15 @@ module.exports = {
                 test: /\.css$/,
                     use: ["style-loader", "css-loader"]
               },
-              {
-                test: /\.svg$/,
-                loader: "svg-inline-loader"
-              }
+              { test: /.(png|jpg|woff|woff2|eot|ttf|svg|gif)$/, loader: 'url-loader?limit=1024000' }
+              // {
+              //   test: /\.svg$/,
+              //   loader: "svg-inline-loader"
+              // },
+              // {
+              //   test: /\.(png|jpe?g|gif)$/i,
+              //   loader: 'file-loader?name=[path][name].[ext]'
+              // }
             ]
     },
     

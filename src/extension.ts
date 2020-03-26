@@ -184,32 +184,33 @@ function launchView(context: any, view: string){
 	// LAUNCH BACKEND
 	launchViewBackend();
 
-	// const panel = vscode.window.createWebviewPanel('reactView', "Corda View " + view, vscode.ViewColumn.Active, {
-	// 	enableScripts: true,
-	// 	retainContextWhenHidden: true,
-	// 	localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
-	// });
+	const panel = vscode.window.createWebviewPanel('reactView', "Corda View " + view, vscode.ViewColumn.Active, {
+		enableScripts: true,
+		retainContextWhenHidden: true,
+		localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
+	});
 
-	// panel.webview.html = `
-	// 	<!DOCTYPE html>
-	// 	<html lang="en">
-	// 	<head>
-	// 		<meta charset="utf-8">
-	// 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	// 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+	panel.webview.html = `
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+			<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
 			
-	// 		<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
-	// 	</head>
-	// 	<body>
-	// 		<div id="nodeDefaults" style="display:none">${JSON.stringify(nodeDefaults)}</div>
-	// 		<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
-	// 		<div id="root"></div>
-	// 		${loadScript(context,locationOfViews + view + '.js') /* e.g /out/transactionExplorer.js */}
-	// 	</body>
-	// 	</html>
-	// `;
+			<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+		</head>
+		<body>
+			<div id="nodeDefaults" style="display:none">${JSON.stringify(nodeDefaults)}</div>
+			<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
+			<div id="root"></div>
+			${loadScript(context,locationOfViews + 'index' + '.js') /* e.g /out/transactionExplorer.js */}
+			
+		</body>
+		</html>
+	`;
 
-	// webViewPanels.push(panel); // store panel in global
+	webViewPanels.push(panel); // store panel in global
 }
 
 /**
