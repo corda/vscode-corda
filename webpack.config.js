@@ -3,9 +3,9 @@ const tsImportPlugin = require('ts-import-plugin');
 
 module.exports = {
     entry: {
-        transactionExplorer: './src/view/transactionExplorer.js',
-        vaultQuery: './src/view/vaultQuery.js'
-
+        // transactionExplorer: './src/view/transactionExplorer.js',
+        // vaultQuery: './src/view/vaultQuery.js'
+        index: './src/index.js'
     },
     output: {
         path: path.resolve(__dirname, 'out'),
@@ -20,6 +20,11 @@ module.exports = {
                       loader: "babel-loader",
                       query: {
                         presets: ['@babel/preset-react', '@babel/preset-env'],
+                        plugins: [
+                          [
+                            "@babel/plugin-proposal-class-properties"
+                          ]
+                        ],
                       }
                     }
               },
