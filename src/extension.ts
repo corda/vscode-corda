@@ -125,25 +125,25 @@ export function activate(context: vscode.ExtensionContext) {
 	 * Ensure that all of the node details have been read from the gradle file before allowing the 
 	 * user to run the extensions for the Vault Query view and the Flow view.
 	 */
-	let cordaShowVaultQuery = vscode.commands.registerCommand('extension.cordaShowVaultQuery', () =>{
-		vscode.window.setStatusBarMessage('Displaying Corda Vault Query View', 5000);
-		var viewIsLaunched = false;
-		for (var i = 0; i < 10; i++) {
-			(function (i) {
-			  setTimeout(function () {
-				if(nodeLoaded){
-					if(!viewIsLaunched){
-						viewIsLaunched = true;
-						launchView(context, "vaultQuery");
-					}
-				}
-			  }, 3000*i);
-			})(i);
-		  }
-	});
+	// let cordaShowVaultQuery = vscode.commands.registerCommand('extension.cordaShowVaultQuery', () =>{
+	// 	vscode.window.setStatusBarMessage('Displaying Corda Vault Query View', 5000);
+	// 	var viewIsLaunched = false;
+	// 	for (var i = 0; i < 10; i++) {
+	// 		(function (i) {
+	// 		  setTimeout(function () {
+	// 			if(nodeLoaded){
+	// 				if(!viewIsLaunched){
+	// 					viewIsLaunched = true;
+	// 					launchView(context, "vaultQuery");
+	// 				}
+	// 			}
+	// 		  }, 3000*i);
+	// 		})(i);
+	// 	  }
+	// });
 
-	let cordaShowView = vscode.commands.registerCommand('extension.cordaShowTransactionExplorer', () => {
-		vscode.window.setStatusBarMessage('Displaying Corda Transaction Explorer', 5000);
+	let cordaShowNodeExplorerView = vscode.commands.registerCommand('extension.cordaShowNodeExplorer', () => {
+		vscode.window.setStatusBarMessage('Displaying Corda Node Explorer', 5000);
 		var viewIsLaunched = false;
 		for (var i = 0; i < 10; i++) {
 			(function (i) {
@@ -151,7 +151,7 @@ export function activate(context: vscode.ExtensionContext) {
 				if(nodeLoaded){
 					if(!viewIsLaunched){
 						viewIsLaunched = true;
-						launchView(context, "transactionExplorer");
+						launchView(context, "Node Explorer");
 					}
 				}
 			  }, 3000*i);
@@ -169,8 +169,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(cordaTest);
 	context.subscriptions.push(cordaDeployNodes);
 	context.subscriptions.push(cordaRunNodes);
-	context.subscriptions.push(cordaShowVaultQuery);
-	context.subscriptions.push(cordaShowView);
+	//context.subscriptions.push(cordaShowVaultQuery);
+	context.subscriptions.push(cordaShowNodeExplorerView);
 	context.subscriptions.push(cordaNoGradle);
 	
 }
@@ -204,7 +204,8 @@ function launchView(context: any, view: string){
 			<div id="nodeDefaults" style="display:none">${JSON.stringify(nodeDefaults)}</div>
 			<div id="nodeList" style="display:none">${JSON.stringify(nodeConfig)}</div>
 			<div id="root"></div>
-			${loadScript(context,locationOfViews + view + '.js') /* e.g /out/transactionExplorer.js */}
+			${loadScript(context,locationOfViews + 'index' + '.js') /* e.g /out/transactionExplorer.js */}
+			
 		</body>
 		</html>
 	`;
@@ -246,12 +247,12 @@ function launchClient() {
 
 	if(winPlatform){
 		if(shellExecPath.includes("powershell")){
-			cmd = "cd \"" + jarDir + "\\src\"; java -jar client-0.1.0.jar"; 
+			cmd = "cd \"" + jarDir + "\\server\\build\\libs\"; java -jar explorer-server-0.1.0.jar"; 
 		}else{
-			cmd = "cd " + jarDir + "\\src  && java -jar client-0.1.0.jar";
+			cmd = "cd " + jarDir + "\\server\\build\\libs  && java -jar explorer-server-0.1.0.jar";
 		}
 	}else{
-		cmd = 'cd ' + jarDir + '/src && java -jar client-0.1.0.jar';
+		cmd = 'cd ' + jarDir + '/server/build/libs && java -jar explorer-server-0.1.0.jar';
 	}
 	
 	let terminal = vscode.window.createTerminal("Client Launcher", shellExecPath, shellArgs);
