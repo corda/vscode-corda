@@ -14,7 +14,7 @@ class Login extends Component {
       port: "",
       username: "",
       password: "",
-
+      firstNodeSet: false,
         ssh: {
             //hostName: "",
             port: "",
@@ -33,6 +33,20 @@ class Login extends Component {
           sshPassword: false,
       },
     };
+
+    defaultNodeData = () => {
+        const firstNode = this.props.firstNode;
+        if (!this.state.firstNodeSet) {
+            const hostNameSplit = firstNode.host.split(":");
+            this.setState({
+                firstNodeSet: true,
+                hostName: hostNameSplit[0],
+                port: hostNameSplit[1],
+                username: firstNode.username,
+                password: firstNode.password
+            })
+        }
+    }
 
     handleBlur = field => evt => {
       this.setState({
@@ -83,6 +97,7 @@ class Login extends Component {
         let data = {...this.state};
         delete data.touched;
         delete data.sshChecked;
+        delete data.firstNodeSet;
         if (!this.state.sshChecked) delete data.ssh;
         this.props.onLoginAction(data);
       }
@@ -90,6 +105,7 @@ class Login extends Component {
 
     render() {
 
+        this.defaultNodeData();
         const errors = this.validate();
         const isDisabled = Object.keys(errors).some(x => errors[x]);
 
@@ -159,6 +175,7 @@ class Login extends Component {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <TextField label="Node Port" type="number"
+                                               value={this.state.port}
                                                onChange={e => this.setState({port: e.target.value})}
                                                error={this.shouldMarkError("port")}
                                                helperText={this.shouldMarkError("port") ? 'Please Enter Node Port Number' : ''}
@@ -166,6 +183,7 @@ class Login extends Component {
                                 </Grid>
                                 <Grid item xs={12}>
                                     <TextField label="RPC Username" fullWidth
+                                                value={this.state.username}
                                                 onChange={e => this.setState({username: e.target.value})}
                                                 error={this.shouldMarkError("username")}
                                                 helperText={this.shouldMarkError("username") ? 'Please Enter RPC Username' : ''}
@@ -173,6 +191,7 @@ class Login extends Component {
                                 </Grid>
                                 <Grid item xs={12}>
                                     <TextField label="RPC Password" type="password" fullWidth
+                                                value={this.state.password}
                                                 onInput={e => this.setState({password: e.target.value})}
                                                 error={this.shouldMarkError("password")}
                                                 helperText={this.shouldMarkError("password") ? 'Please Enter RPC Password' : ''}

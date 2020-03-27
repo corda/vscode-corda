@@ -267,7 +267,7 @@ export const updateSettings = (settings, type) => {
     axios.post("http://localhost:8080/settings/"+ type, settings)
     .then(({data}) => {
         if(data.status){
-            toastr.success("Settings updated successfully!");
+            //toastr.success("Settings updated successfully!");
         }else{
             errorHandler(data);
         }

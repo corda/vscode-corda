@@ -13,8 +13,51 @@ import Spinner from './spinner.svg';
 
 class Explorer extends Component {
 
+    state = {
+      cordappDirSet: false
+    }
+
     componentDidMount(){
         this.props.getApplicationState();
+    }
+
+    getNodeData = () => {
+      const defaultSettings = JSON.parse(document.getElementById('nodeDefaults').innerHTML);
+      const allNodes = JSON.parse(document.getElementById('nodeList').innerHTML);
+      
+      var connections = {}
+
+      allNodes.forEach(function(node) {
+          if(!node.notary){
+              connections[node.name] = {
+                  host: node.rpcSettings.address,
+                  cordappDir: node.cordappDir   
+              }
+              if(node.rpcUsers){
+                  connections[node.name].username = node.rpcUsers.user;
+                  connections[node.name].password = node.rpcUsers.password;
+                  
+              }else{
+                  connections[node.name].username = defaultSettings.rpcUsers.user;
+                  connections[node.name].password = defaultSettings.rpcUsers.password;
+              }
+          }
+      });
+
+      return connections[Object.keys(connections)[0]];
+    }
+
+    updateCordappDir = () => {
+      const firstNode = this.getNodeData();
+      const settings = {
+        cordappDirectory: firstNode.cordappDir,
+        dateFormat: "",
+        dateTimeFormat: ""
+      }
+      ActionType.updateSettings(settings, 'cordappDir');
+      this.setState({
+        cordappDirSet: true
+      })
     }
 
     render(){
@@ -22,6 +65,7 @@ class Explorer extends Component {
         <React.Fragment>
             {this.props.isLoggedIn ?
               <div>
+                  {this.state.cordappDirSet ? null : this.updateCordappDir()}
                   <Header/>
                   <SideMenu></SideMenu>
                   <div style={{marginLeft: 120}}>
@@ -46,7 +90,7 @@ class Explorer extends Component {
                   </div> 
               </div> 
               : 
-              <Login></Login>
+              <Login firstNode={this.getNodeData()}></Login>
             }
         </React.Fragment>
       );
