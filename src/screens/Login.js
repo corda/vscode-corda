@@ -16,7 +16,6 @@ class Login extends Component {
       password: "",
       firstNodeSet: false,
         ssh: {
-            //hostName: "",
             port: "",
             username: "",
             password: "",
@@ -27,14 +26,19 @@ class Login extends Component {
         port: false,
         username: false,
         password: false,
-          //sshHostName: false,
           sshPort: false,
           sshUsername: false,
           sshPassword: false,
       },
     };
 
-    defaultNodeData = () => {
+    // setDefaultNodeData if there is a node defined in build.gradle
+    componentWillUpdate() {
+        if (this.props.firstNode !== null) this.setDefaultNodeData();
+        if (this.state.firstNodeSet) this.doLogin();
+    }
+
+    setDefaultNodeData = () => {
         const firstNode = this.props.firstNode;
         if (!this.state.firstNodeSet) {
             const hostNameSplit = firstNode.host.split(":");
@@ -68,7 +72,6 @@ class Login extends Component {
                 port: this.state.port.length === 0,
                 username: this.state.username.length === 0,
                 password: this.state.password.length === 0,
-                //sshHostName: this.state.ssh.hostName.length === 0,
                 sshPort: this.state.ssh.port.length === 0,
                 sshUsername: this.state.ssh.username.length === 0,
                 sshPassword: this.state.ssh.password.length === 0
@@ -90,6 +93,7 @@ class Login extends Component {
       return hasError ? shouldShow : false;
     };
 
+    // excutes a login
     doLogin = () => {
       const errors = this.validate();
       const hasErrors = Object.keys(errors).some(x => errors[x]);
@@ -105,7 +109,6 @@ class Login extends Component {
 
     render() {
 
-        this.defaultNodeData();
         const errors = this.validate();
         const isDisabled = Object.keys(errors).some(x => errors[x]);
 
@@ -115,13 +118,6 @@ class Login extends Component {
                 return (
                     <div>
                     <Grid container>
-                        {/*<Grid item xs={6}>*/}
-                        {/*    <TextField label="ssh Hostname" value={this.state.ssh.hostName}*/}
-                        {/*               onChange={e => this.setState({ssh: {...this.state.ssh, hostName: e.target.value}})}*/}
-                        {/*               error={this.shouldMarkError("sshHostName")}*/}
-                        {/*               helperText={this.shouldMarkError("sshHostName") ? 'Please Enter ssh Hostname' : ''}*/}
-                        {/*               onBlur={this.handleBlur("sshHostName")}/>*/}
-                        {/*</Grid>*/}
                         <Grid item xs={6}>
                             <TextField label="SSH Port" type="number" value={this.state.ssh.port}
                                        onChange={e => this.setState({ssh: {...this.state.ssh, port: e.target.value}})}
@@ -150,12 +146,12 @@ class Login extends Component {
                 )
             }
         }
-
-        if (!this.props.isServerAwake) {
+        // Wait with splash screen for client to come up AND for connect to take place if there is a node set
+        if (!this.props.isServerAwake || this.state.firstNodeSet) {
             this.props.onLoadAction();
             return (<SplashScreen/>)
-        } else {
-
+        } 
+        else { // Show manual login screen
             return (
                 <div style={{position: 'relative'}}>
                     <img src={GlobalMap} alt="Global Map" width="100%"></img>

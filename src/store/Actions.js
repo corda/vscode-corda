@@ -29,11 +29,10 @@ export const server_awake = () => {
     return function(dispatch) {
         const retryClient = axios.create({ baseURL: 'http://localhost:8580' })
         axiosRetry(retryClient, { retries: 5, retryDelay: (retryCount) => {
-                return retryCount * 2000;
+                return retryCount * 1000;
             }});
         retryClient.get("/server_awake")
             .then(({data}) => {
-                //console.log(data);
                 if(data.status) {
                     dispatch({
                         type: SERVER_AWAKE,
