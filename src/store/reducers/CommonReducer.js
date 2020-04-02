@@ -6,12 +6,57 @@ const initialState = {
     currentPage: 1,
     loginProcessing: false,
     spinner: false,
-    profile: {}
+    profile: {},
+    gradleNodesList: {},
+    gradleNodesSet: false,
+    firstNode: {}
 };
 
+const getNodeData = () => {
+    const nodeDefaults = document.getElementById('nodeDefaults').innerHTML;
+    const nodeList = document.getElementById('nodeList').innerHTML;
+
+    // deployNodes needs to exist and be found in project build.gradle
+    if (nodeDefaults != 'undefined' && nodeList != '[]') {
+      const defaultSettings = JSON.parse(nodeDefaults);
+      const allNodes = JSON.parse(nodeList);
+
+      var connections = {}
+
+      allNodes.forEach(function(node) {
+          if(!node.notary){
+              connections[node.name] = {
+                  host: node.rpcSettings.address,
+                  cordappDir: node.cordappDir   
+              }
+              if(node.rpcUsers){
+                  connections[node.name].username = node.rpcUsers.user;
+                  connections[node.name].password = node.rpcUsers.password;
+                  
+              }else{
+                  connections[node.name].username = defaultSettings.rpcUsers.user;
+                  connections[node.name].password = defaultSettings.rpcUsers.password;
+              }
+          }
+      });
+      return connections;
+    }
+}
 
 const reducer = (state = initialState, action) => {
     switch ( action.type ) {
+        case ActionType.UPDATE_GRADLE_NODES_LIST:
+            // console.log("in the reducer " + action.payload[Object.keys(action.payload)[0]]);
+            const nodes = getNodeData();
+            if (nodes != undefined) {
+                const firstNode = nodes[Object.keys(nodes)[0]];
+                return {
+                    ...state,
+                    gradleNodesList: {...nodes},
+                    gradleNodesSet: true,
+                    firstNode: {...firstNode}
+                }
+            } else return state;
         case ActionType.SERVER_AWAKE:
             return {
                 ...state,
@@ -19,7 +64,13 @@ const reducer = (state = initialState, action) => {
             }
         case ActionType.LOGIN_SUCCESS:
             // sessionStorage.setItem('isLoggedIn', true);    
-            // sessionStorage.setItem('profile', JSON.stringify(action.payload));   
+            // sessionStorage.setItem('profile', JSON.stringify(action.payload)); 
+            const settings = {
+                    cordappDirectory: state.firstNode.cordappDir,
+                    dateFormat: "",
+                    dateTimeFormat: ""
+            }
+            ActionType.updateSettings(settings, 'cordappDir');   
             return {
                 ...state,
                 isLoggedIn: true,

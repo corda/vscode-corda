@@ -36,6 +36,7 @@ const Header = (props) => {
   
     return(
       <div className="Header">
+        {console.log(props.gradleNodes) /* for testing */}
           <div>
                 <img src={CrdaLogo} width="100%" alt="Corda Logo" className="Logo"/>
                 <div className="profile">
@@ -69,7 +70,8 @@ const Header = (props) => {
 
 const mapStateToProps = state => {
   return {
-    profile: state.common.profile
+    profile: state.common.profile,
+    gradleNodes: state.common.gradleNodesList
   }
 }
 

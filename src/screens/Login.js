@@ -34,12 +34,14 @@ class Login extends Component {
 
     // setDefaultNodeData if there is a node defined in build.gradle
     componentWillUpdate() {
-        if (this.props.firstNode !== null) this.setDefaultNodeData();
-        if (this.state.firstNodeSet) this.doLogin();
+        if (this.props.gradleNodesSet && !this.state.firstNodeSet) this.setDefaultNodeData()
+        else if (this.state.firstNodeSet) this.doLogin();
     }
 
+    // grad first node from gradleNodesList
     setDefaultNodeData = () => {
         const firstNode = this.props.firstNode;
+
         if (!this.state.firstNodeSet) {
             const hostNameSplit = firstNode.host.split(":");
             this.setState({
@@ -219,7 +221,10 @@ class Login extends Component {
 const mapStateToProps = state => {
     return {
         isServerAwake: state.common.isServerAwake,
-        loginProcessing: state.common.loginProcessing
+        loginProcessing: state.common.loginProcessing,
+        gradleNodesSet: state.common.gradleNodesSet,
+        gradleNodesList: state.common.gradleNodesList,
+        firstNode: state.common.firstNode
     }
 }
 
