@@ -47,7 +47,6 @@ Corda Run Nodes requires that nodes have previously been deployed. If this is no
 
 ![CordaRunNodes](https://raw.githubusercontent.com/corda/vscode-corda/master/images/corda-run-nodes.PNG)
 
-
 Show Transaction Explorer and Show Vault Query View allow interaction with your running nodes. (Quick tip: It is also possible to connect to nodes you have deployed outside the IDE as long as the nodes address/ports match those in your build.gradle).
 
 Each interactive view lets you select a node to interact with from you mock network. You will be presented with a drop down list off available running nodes. Choosing a node will provide information about the node and expose the interface. You can change nodes at anytime.

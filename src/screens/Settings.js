@@ -23,7 +23,7 @@ class Settings extends Component{
     }
 
     loadSettings = () => {
-        axios.get("http://localhost:8080/settings")
+        axios.get("http://localhost:8580/settings")
         .then(({data}) => {
             if(data.status){
                 const settings = data.data;

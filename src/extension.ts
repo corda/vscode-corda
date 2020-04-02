@@ -247,12 +247,12 @@ function launchClient() {
 
 	if(winPlatform){
 		if(shellExecPath.includes("powershell")){
-			cmd = "cd \"" + jarDir + "\\server\\build\\libs\"; java -jar explorer-server-0.1.0.jar"; 
+			cmd = "cd \"" + jarDir + "; java -jar explorer-server-0.1.0.jar"; 
 		}else{
-			cmd = "cd " + jarDir + "\\server\\build\\libs  && java -jar explorer-server-0.1.0.jar";
+			cmd = "cd " + jarDir + " && java -jar explorer-server-0.1.0.jar";
 		}
 	}else{
-		cmd = 'cd ' + jarDir + '/server/build/libs && java -jar explorer-server-0.1.0.jar';
+		cmd = 'cd ' + jarDir + ' && java -jar explorer-server-0.1.0.jar';
 	}
 	
 	let terminal = vscode.window.createTerminal("Client Launcher", shellExecPath, shellArgs);
