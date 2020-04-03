@@ -25,6 +25,7 @@ export const LOAD_NODE_DIAGNOSTIC = "LOAD_NODE_DIAGNOSTIC";
 export const LOAD_NETWORK_PARAMETERS = "LOAD_NETWORK_PARAMETERS";
 export const UPDATE_GRADLE_NODES_LIST = "UPDATE_GRADLE_NODES_LIST";
 export const USE_GRADLE_NODES = "USE_GRADLE_NODES";
+export const UPDATE_CURRENT_NODE = "UPDATE_CURRENT_NODE";
 
 export const server_awake = () => {
     // Sets flag notifying successful access to Spring server

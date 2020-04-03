@@ -42,12 +42,24 @@ const Header = (props) => {
         {Object.keys(props.gradleNodes).map(function(key, index) {
             const nodeName = key.match("O=(.*),L")[1];
             if (nodeName != props.profile.name)
-              return (<MenuItem>{nodeName}</MenuItem>)
+              return (<MenuItem onClick={() => onLogin(props.gradleNodes[key])}>{nodeName}</MenuItem>)
             else return null; // don't list CURRENT NODE
         })}
         <hr />
         </div>
       )
+    }
+
+    const onLogin = (node) => {
+      console.log(node);
+      const hostNameSplit = node.host.split(":");
+      const data = {
+        hostName: hostNameSplit[0],
+        port: hostNameSplit[1],
+        username: node.username,
+        password: node.password
+      }
+      props.updateCurrentNode(data);
     }
   
     return(
@@ -102,6 +114,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
       onLogout: () => dispatch({type: ActionType.LOGOUT}),
+      updateCurrentNode:(data) => dispatch({type: ActionType.UPDATE_CURRENT_NODE, payload: data})
   }
 }
 

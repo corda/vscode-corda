@@ -32,30 +32,6 @@ class Login extends Component {
       },
     };
 
-    // setDefaultNodeData if there is a node defined in build.gradle
-    componentWillUpdate() {
-        if (!this.props.remoteLogin) {
-            if (this.props.gradleNodesSet && !this.state.currentNodeSet) this.setDefaultNodeData()
-            else if (this.state.currentNodeSet) this.doLogin();
-        }
-    }
-
-    // grad first node from gradleNodesList
-    setDefaultNodeData = () => {
-        const currentNode = this.props.currentNode;
-
-        if (!this.state.currentNodeSet) {
-            const hostNameSplit = currentNode.host.split(":");
-            this.setState({
-                currentNodeSet: true,
-                hostName: hostNameSplit[0],
-                port: hostNameSplit[1],
-                username: currentNode.username,
-                password: currentNode.password
-            })
-        }
-    }
-
     handleBlur = field => evt => {
       this.setState({
         touched: { ...this.state.touched, [field]: true }
@@ -154,11 +130,14 @@ class Login extends Component {
             }
         }
         // Wait with splash screen for client to come up AND for connect to take place if there is a node set
-        if (!this.props.isServerAwake || this.state.currentNodeSet) {
+        if (!this.props.isServerAwake || this.props.loginProcessing) {
             this.props.onLoadAction();
             return (<SplashScreen/>)
         } 
         else { // Show manual login screen
+            if (!this.props.remoteLogin && this.props.currentNodeChanged) {
+                this.props.onLoginAction(this.props.currentNode);
+            }
             return (
                 <div style={{position: 'relative'}}>
                     <img src={GlobalMap} alt="Global Map" width="100%"></img>
@@ -236,7 +215,8 @@ const mapStateToProps = state => {
         gradleNodesSet: state.common.gradleNodesSet,
         gradleNodesList: state.common.gradleNodesList,
         currentNode: state.common.currentNode,
-        remoteLogin: state.common.remoteLogin
+        remoteLogin: state.common.remoteLogin,
+        currentNodeChanged: state.common.currentNodeChanged
     }
 }
 
@@ -244,7 +224,8 @@ const mapDispatchToProps = dispatch => {
     return {
       onLoadAction:() => dispatch(ActionType.server_awake()),
       onLoginAction:(data) => dispatch(ActionType.login(data)),
-      useGradleNodes:() => dispatch({type: ActionType.USE_GRADLE_NODES})
+      useGradleNodes:() => dispatch({type: ActionType.USE_GRADLE_NODES}),
+      updateCurrentNode:(data) => dispatch({type: ActionType.UPDATE_CURRENT_NODE, payload: data})
     }
 }
 

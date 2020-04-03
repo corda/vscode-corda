@@ -63,6 +63,7 @@ const mapStateToProps = state => {
         isLoggedIn: state.common.isLoggedIn,
         currentPage: state.common.currentPage,
         spinner: state.common.spinner,
+        currentNodeChange: state.common.currentNodeChange
         // remoteLogin: state.common.remoteLogin
     }
 }
