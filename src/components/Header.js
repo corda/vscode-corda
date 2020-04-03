@@ -33,14 +33,17 @@ const Header = (props) => {
 
       prevOpen.current = open;
     }, [open]);
+
+    const serverLocation = (props.localNodes ? "Local Server" : "Remote Server");
   
     return(
       <div className="Header">
-        {console.log(props.gradleNodes) /* for testing */}
           <div>
                 <img src={CrdaLogo} width="100%" alt="Corda Logo" className="Logo"/>
                 <div className="profile">
-                  <Button variant="outlined" ref={anchorRef} onClick={handleToggle}>{props.profile.name}</Button>
+                  <Button variant="outlined" ref={anchorRef} onClick={handleToggle}>
+                    {props.profile.name} - ({serverLocation})
+                  </Button>
                   <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition disablePortal>
                       {({ TransitionProps, placement }) => (
                         <Grow
@@ -49,12 +52,22 @@ const Header = (props) => {
                         >
                           <Paper>
                             <div style={{padding: 10}}>
-                                <span style={{display: "block", paddingBottom: 3}}>{props.profile.name}</span>
+                                <span style={{display: "block", paddingBottom: 3}}>
+                                  {props.profile.name}
+                                </span>
                                 <span style={{fontSize: 12, display: "block"}}>{props.profile.city}, {props.profile.country}</span>
                             </div>
                             <hr style={{margin: 0}}/>
                             <ClickAwayListener onClickAway={handleClose}>
                               <MenuList autoFocusItem={open} id="menu-list-grow" onKeyDown={handleListKeyDown} style={{padding: 0}}>
+                                {Object.keys(props.gradleNodes).map(function(key, index) {
+
+                                    const nodeName = key.match("O=(.*),L")[1];
+                                    if (nodeName != props.profile.name)
+                                      return (<MenuItem>{nodeName}</MenuItem>)
+                                    else return null; // don't list CURRENT NODE
+                                })}
+                                <hr />
                                 <MenuItem onClick={props.onLogout}>Logout</MenuItem>
                               </MenuList>
                             </ClickAwayListener>
@@ -71,7 +84,9 @@ const Header = (props) => {
 const mapStateToProps = state => {
   return {
     profile: state.common.profile,
-    gradleNodes: state.common.gradleNodesList
+    gradleNodes: state.common.gradleNodesList,
+    localNodes: state.common.gradleNodesSet,
+    peers: state.explorer.netWorkMap.peers
   }
 }
 
