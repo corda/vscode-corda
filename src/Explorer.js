@@ -19,7 +19,6 @@ class Explorer extends Component {
 
     componentDidMount(){
         this.props.getApplicationState();
-        // if (this.state.cordappDirSet) this.updateCordappDir();
     }
 
     render(){
@@ -27,7 +26,7 @@ class Explorer extends Component {
         <React.Fragment>
             {this.props.isLoggedIn ?
               <div>
-                  {/* {console.log(this.props.gradleNodes) /* test print for structure */} */}
+                  {/* {console.log(this.props.remoteLogin)} */}
                   <Header/>
                   <SideMenu></SideMenu>
                   <div style={{marginLeft: 120}}>
@@ -64,6 +63,7 @@ const mapStateToProps = state => {
         isLoggedIn: state.common.isLoggedIn,
         currentPage: state.common.currentPage,
         spinner: state.common.spinner,
+        // remoteLogin: state.common.remoteLogin
     }
 }
 

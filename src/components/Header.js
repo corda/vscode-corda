@@ -34,10 +34,26 @@ const Header = (props) => {
       prevOpen.current = open;
     }, [open]);
 
-    const serverLocation = (props.localNodes ? "Local Server" : "Remote Server");
+    const serverLocation = (!props.localNodes ? "Gradle Node" : "Manual Node");
+
+    const localNodesList = () => {
+      return (
+        <div>
+        {Object.keys(props.gradleNodes).map(function(key, index) {
+            const nodeName = key.match("O=(.*),L")[1];
+            if (nodeName != props.profile.name)
+              return (<MenuItem>{nodeName}</MenuItem>)
+            else return null; // don't list CURRENT NODE
+        })}
+        <hr />
+        </div>
+      )
+    }
   
     return(
       <div className="Header">
+          {/* {console.log(props.remoteLogin)} */}
+
           <div>
                 <img src={CrdaLogo} width="100%" alt="Corda Logo" className="Logo"/>
                 <div className="profile">
@@ -60,14 +76,7 @@ const Header = (props) => {
                             <hr style={{margin: 0}}/>
                             <ClickAwayListener onClickAway={handleClose}>
                               <MenuList autoFocusItem={open} id="menu-list-grow" onKeyDown={handleListKeyDown} style={{padding: 0}}>
-                                {Object.keys(props.gradleNodes).map(function(key, index) {
-
-                                    const nodeName = key.match("O=(.*),L")[1];
-                                    if (nodeName != props.profile.name)
-                                      return (<MenuItem>{nodeName}</MenuItem>)
-                                    else return null; // don't list CURRENT NODE
-                                })}
-                                <hr />
+                                {props.localNodes ? null : localNodesList()}
                                 <MenuItem onClick={props.onLogout}>Logout</MenuItem>
                               </MenuList>
                             </ClickAwayListener>
@@ -85,7 +94,7 @@ const mapStateToProps = state => {
   return {
     profile: state.common.profile,
     gradleNodes: state.common.gradleNodesList,
-    localNodes: state.common.gradleNodesSet,
+    localNodes: state.common.remoteLogin,
     peers: state.explorer.netWorkMap.peers
   }
 }

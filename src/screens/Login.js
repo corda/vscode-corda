@@ -14,7 +14,7 @@ class Login extends Component {
       port: "",
       username: "",
       password: "",
-      firstNodeSet: false,
+      currentNodeSet: false,
         ssh: {
             port: "",
             username: "",
@@ -34,22 +34,24 @@ class Login extends Component {
 
     // setDefaultNodeData if there is a node defined in build.gradle
     componentWillUpdate() {
-        if (this.props.gradleNodesSet && !this.state.firstNodeSet) this.setDefaultNodeData()
-        else if (this.state.firstNodeSet) this.doLogin();
+        if (!this.props.remoteLogin) {
+            if (this.props.gradleNodesSet && !this.state.currentNodeSet) this.setDefaultNodeData()
+            else if (this.state.currentNodeSet) this.doLogin();
+        }
     }
 
     // grad first node from gradleNodesList
     setDefaultNodeData = () => {
-        const firstNode = this.props.firstNode;
+        const currentNode = this.props.currentNode;
 
-        if (!this.state.firstNodeSet) {
-            const hostNameSplit = firstNode.host.split(":");
+        if (!this.state.currentNodeSet) {
+            const hostNameSplit = currentNode.host.split(":");
             this.setState({
-                firstNodeSet: true,
+                currentNodeSet: true,
                 hostName: hostNameSplit[0],
                 port: hostNameSplit[1],
-                username: firstNode.username,
-                password: firstNode.password
+                username: currentNode.username,
+                password: currentNode.password
             })
         }
     }
@@ -95,6 +97,11 @@ class Login extends Component {
       return hasError ? shouldShow : false;
     };
 
+    useGradle = () => {
+        this.props.useGradleNodes();
+        // this.setDefaultNodeData();
+    }
+
     // excutes a login
     doLogin = () => {
       const errors = this.validate();
@@ -103,7 +110,7 @@ class Login extends Component {
         let data = {...this.state};
         delete data.touched;
         delete data.sshChecked;
-        delete data.firstNodeSet;
+        delete data.currentNodeSet;
         if (!this.state.sshChecked) delete data.ssh;
         this.props.onLoginAction(data);
       }
@@ -118,7 +125,6 @@ class Login extends Component {
             // user, password/key, host, port
             if (this.state.sshChecked) {
                 return (
-                    <div>
                     <Grid container>
                         <Grid item xs={6}>
                             <TextField label="SSH Port" type="number" value={this.state.ssh.port}
@@ -144,12 +150,11 @@ class Login extends Component {
                             </Grid>
                         </Grid>
                     </Grid>
-                    </div>
                 )
             }
         }
         // Wait with splash screen for client to come up AND for connect to take place if there is a node set
-        if (!this.props.isServerAwake || this.state.firstNodeSet) {
+        if (!this.props.isServerAwake || this.state.currentNodeSet) {
             this.props.onLoadAction();
             return (<SplashScreen/>)
         } 
@@ -163,7 +168,7 @@ class Login extends Component {
                                 <img src={CrdaLogo} alt="Corda Logo" width="250px"></img>
                                 <div className="explorer-text">Node Explorer</div>
                             </div>
-                            <Grid container style={{marginTop: "20px"}} spacing={1}>
+                            <Grid container style={{marginTop: "10px"}} spacing={1}>
                                 <Grid item xs={6}>
                                     <TextField label="Node Hostname" value={this.state.hostName}
                                                onChange={e => this.setState({hostName: e.target.value})}
@@ -195,7 +200,7 @@ class Login extends Component {
                                                 helperText={this.shouldMarkError("password") ? 'Please Enter RPC Password' : ''}
                                                 onBlur={this.handleBlur("password")}/>
                                 </Grid>
-                                <Grid item xs={12} style={{marginTop: "5px", textAlign: "left"}}>
+                                <Grid item xs={12} style={{marginTop: "4px", textAlign: "left"}}>
                                     <FormControlLabel control={
                                         <Checkbox
                                             checked={this.sshChecked}
@@ -205,10 +210,16 @@ class Login extends Component {
                                     } label={"Use SSH"} />
                                     {sshCredentials()}
                                 </Grid>
-                                <Grid item xs={12} style={{marginTop: "20px", textAlign: "right"}}>
-                                    <Button variant="contained" type="submit" color="primary" onClick={this.doLogin}
-                                            disabled={isDisabled || this.props.loginProcessing}>{this.props.loginProcessing? 'Please Wait...': 'Connect'}</Button>
-                                </Grid>
+                                <Grid container justify="center" spacing={3}>
+                                    <Grid item> 
+                                            <Button variant="contained" type="submit" color="primary" onClick={this.useGradle}
+                                                    disabled={!this.props.remoteLogin || this.props.loginProcessing}>{this.props.loginProcessing? 'Please Wait...': 'Use Gradle Nodes'}</Button>
+                                    </Grid>
+                                    <Grid item>
+                                            <Button variant="contained" type="submit" color="primary" onClick={this.doLogin}
+                                                    disabled={isDisabled || this.props.loginProcessing}>{this.props.loginProcessing? 'Please Wait...': 'Connect'}</Button>
+                                    </Grid>   
+                                </Grid>  
                             </Grid>
                         </div>
                     </div>
@@ -224,14 +235,16 @@ const mapStateToProps = state => {
         loginProcessing: state.common.loginProcessing,
         gradleNodesSet: state.common.gradleNodesSet,
         gradleNodesList: state.common.gradleNodesList,
-        firstNode: state.common.firstNode
+        currentNode: state.common.currentNode,
+        remoteLogin: state.common.remoteLogin
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
       onLoadAction:() => dispatch(ActionType.server_awake()),
-      onLoginAction:(data) => dispatch(ActionType.login(data))
+      onLoginAction:(data) => dispatch(ActionType.login(data)),
+      useGradleNodes:() => dispatch({type: ActionType.USE_GRADLE_NODES})
     }
 }
 

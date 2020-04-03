@@ -9,7 +9,8 @@ const initialState = {
     profile: {},
     gradleNodesList: {},
     gradleNodesSet: false,
-    firstNode: {}
+    currentNode: {},
+    remoteLogin: false
 };
 
 const getNodeData = () => {
@@ -44,17 +45,32 @@ const getNodeData = () => {
 }
 
 const reducer = (state = initialState, action) => {
+
+    const settings = {
+        cordappDirectory: state.currentNode.cordappDir,
+        dateFormat: "",
+        dateTimeFormat: ""
+    }
+
     switch ( action.type ) {
+       
+        case ActionType.USE_GRADLE_NODES:
+            ActionType.updateSettings(settings, 'cordappDir');  
+            return {
+                ...state,
+                isLoggedIn: true,
+                remoteLogin: false
+            }
         case ActionType.UPDATE_GRADLE_NODES_LIST:
             // console.log("in the reducer " + action.payload[Object.keys(action.payload)[0]]);
             const nodes = getNodeData();
             if (nodes != undefined) {
-                const firstNode = nodes[Object.keys(nodes)[0]];
+                const currentNode = nodes[Object.keys(nodes)[0]];
                 return {
                     ...state,
                     gradleNodesList: {...nodes},
                     gradleNodesSet: true,
-                    firstNode: {...firstNode}
+                    currentNode: {...currentNode}
                 }
             } else return state;
         case ActionType.SERVER_AWAKE:
@@ -65,11 +81,6 @@ const reducer = (state = initialState, action) => {
         case ActionType.LOGIN_SUCCESS:
             // sessionStorage.setItem('isLoggedIn', true);    
             // sessionStorage.setItem('profile', JSON.stringify(action.payload)); 
-            const settings = {
-                    cordappDirectory: state.firstNode.cordappDir,
-                    dateFormat: "",
-                    dateTimeFormat: ""
-            }
             ActionType.updateSettings(settings, 'cordappDir');   
             return {
                 ...state,
@@ -97,9 +108,11 @@ const reducer = (state = initialState, action) => {
             // sessionStorage.removeItem("isLoggedIn");
             // sessionStorage.removeItem("currentPage");
             return{
+                //initialState
                 ...state,
                 isLoggedIn: false,
-                currentPage: 0
+                currentPage: 1,
+                remoteLogin: true
             }    
         case ActionType.SET_LOGIN_PROCESSING_FLAG:
             return{
