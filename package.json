@@ -3,7 +3,7 @@
 	"displayName": "VSCode-Corda",
 	"publisher": "R3",
 	"description": "A tool for Corda developers.",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"engines": {
 		"vscode": "^1.36.0"
 	},
@@ -105,7 +105,7 @@
 			"title": "VS-Code Corda Extension",
 			"properties": {
 				"vscode-corda.isCordaProject": {
-					"title": "My title.",
+					"title": "Corda Project",
 					"description": "The Workspace has build.gradle",
 					"type": "boolean",
 					"default": false,
