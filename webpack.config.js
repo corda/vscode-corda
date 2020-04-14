@@ -1,5 +1,8 @@
+//@ts-check
+
+'use strict';
+
 const path = require('path');
-const tsImportPlugin = require('ts-import-plugin');
 
 module.exports = {
     entry: {
@@ -31,14 +34,6 @@ module.exports = {
                     use: ["style-loader", "css-loader"]
               },
               { test: /.(png|jpg|woff|woff2|eot|ttf|svg|gif)$/, loader: 'url-loader?limit=1024000' }
-              // {
-              //   test: /\.svg$/,
-              //   loader: "svg-inline-loader"
-              // },
-              // {
-              //   test: /\.(png|jpe?g|gif)$/i,
-              //   loader: 'file-loader?name=[path][name].[ext]'
-              // }
             ]
     },
     
