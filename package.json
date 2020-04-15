@@ -4,6 +4,7 @@
 	"publisher": "R3",
 	"description": "A tool for Corda developers.",
 	"version": "0.1.0",
+	"license": "Apache-2.0",
 	"engines": {
 		"vscode": "^1.36.0"
 	},
