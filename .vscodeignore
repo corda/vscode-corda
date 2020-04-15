@@ -1,7 +1,7 @@
 .vscode/**
 .vscode-test/**
-out/
-node_modules
+out/test/**
+# node_modules
 src/**
 server/
 .git

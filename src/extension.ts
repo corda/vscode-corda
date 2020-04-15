@@ -6,20 +6,19 @@ var terminals = vscode.workspace.getConfiguration().get('terminal') as any;
 
 //Import the parser used to scan the local gradle files and set platform specific paths
 //-- Begin platform handling
-var gjs = [] as any;
+var gjs = require('../parser');
 var winPlatform = false;
 var locationOfViews = '';
 var ext = vscode.extensions.getExtension("R3.vscode-corda"); // stored for undefined check
 var jarDir = ext ? ext.extensionPath : null;
 var shellExecPath = '';
+
 if(process.platform.includes("win32") || process.platform.includes("win64")){
 	winPlatform = true;
-	gjs =  require('..\\src\\parser');
 	locationOfViews = 'out\\';
 	jarDir = jarDir ? jarDir.replace(/\//g, "\\") : null;
 	shellExecPath = terminals.external.windowsExec;
 }else{
-	gjs =  require('../src/parser');
 	locationOfViews = 'out/';
 	shellExecPath = 'bash';
 }
