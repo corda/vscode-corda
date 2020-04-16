@@ -4,7 +4,16 @@ All notable changes to the "vscode-corda" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [0.1.0] - 2020-04-16
+### Beta Release
+- Performance enhancements; extension size reduced, dependency tuning.
+- Revamped UI
+- Transaction Explorer and Vault Query View are now integrated into a single dynamic WebView.
+- Two additional views added:
+  - Dashboard: with various node information
+  - Network: shows regional display of nodes available on network map.
+- Remote Node connection w/ SSH Tunnel
+
 
 ## [0.0.3] - 2019-11-22
 ### Incremental
