@@ -41,6 +41,10 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "extension.cordaAssemble",
+				"title": "Corda Assemble project"
+			},
+			{
 				"command": "extension.cordaClean",
 				"title": "Corda Clean project"
 			},
@@ -71,6 +75,10 @@
 		],
 		"menus": {
 			"commandPalette": [
+				{
+					"command": "extension.cordaAssemble",
+					"when": "config.vscode-corda.isCordaProject"
+				},
 				{
 					"command": "extension.cordaClean",
 					"when": "config.vscode-corda.isCordaProject"
