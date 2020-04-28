@@ -69,6 +69,10 @@
 				"title": "Corda Show Node Explorer"
 			},
 			{
+				"command": "extension.cordaStopRunningNodes",
+				"title": "Corda Stop Running Nodes"
+			},
+			{
 				"command": "extension.cordaNoGradle",
 				"title": "Corda (Current workspace has no build.gradle)"
 			}
@@ -104,6 +108,10 @@
 					"when": "config.vscode-corda.isCordaProject"
 				},
 				{
+					"command": "extension.cordaStopRunningNodes",
+					"when": "config.vscode-corda.nodesAreRunning"
+				},
+				{
 					"command": "extension.cordaNoGradle",
 					"when": "!config.vscode-corda.isCordaProject"
 				}
@@ -116,6 +124,13 @@
 				"vscode-corda.isCordaProject": {
 					"title": "Corda Project",
 					"description": "The Workspace has build.gradle",
+					"type": "boolean",
+					"default": false,
+					"pattern": "(true|false)"
+				},
+				"vscode-corda.nodesAreRunning": {
+					"title": "Corda Nodes Running",
+					"description": "The project is running deployed nodes",
 					"type": "boolean",
 					"default": false,
 					"pattern": "(true|false)"
