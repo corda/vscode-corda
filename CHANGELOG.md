@@ -13,6 +13,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   - Dashboard: with various node information
   - Network: shows regional display of nodes available on network map.
 - Remote Node connection w/ SSH Tunnel
+- Additional contextual notifications
+- Better themes support
+- Compatibility for JDT compiler
+- Auto-refresh of changes in deployNodes task
+- Various bug fixes
 
 
 ## [0.0.3] - 2019-11-22

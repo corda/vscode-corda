@@ -7,10 +7,12 @@ The vscode-corda extension provides tools for developing CorDapps on the [Corda]
 The following features are accessible through the command palette. <br/> ⇧⌘P (Windows, Linux Ctrl+Shift+P)
 
 - Corda Clean project (remove previous build files)
-- Corda Build project (build the CorDapp using existing gradle)
+- Corda Assemble project (build w/o test)
+- Corda Build project (build + test the CorDapp using existing gradle)
 - Corda Run Tests (unit tests)
 - Corda Deploy Nodes (setup mock network from gradle file)
 - Corda Run Nodes (bring nodes online)
+- Corda Stop Running Nodes (available when nodes are running)
 - Corda Show Node Explorer
 
 ## Requirements
