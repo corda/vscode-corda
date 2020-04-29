@@ -12,7 +12,7 @@ The following features are accessible through the command palette. <br/> ⇧⌘P
 - Corda Run Tests (unit tests)
 - Corda Deploy Nodes (setup mock network from gradle file)
 - Corda Run Nodes (bring nodes online)
-- Corda Stop Running Nodes (available when nodes are running)
+- Corda Stop Running Nodes (available when noddes are running)
 - Corda Show Node Explorer
 
 ## Requirements
@@ -142,8 +142,7 @@ Network through which the nodes communicate
 
 ## Known Issues/ TODO
 
-- Can't currently define custom criteria using time 
-    - This is due to the type 'comparable' not being whitelisted in any version of Corda prior to version 4.3
+- VSCode's Java TestRunner extension uses the Eclipse JDT compiler and requires a prefs file in .settings to pass the -parameters flag to the JVM. The extension will automatically create this prefs file if it does not exist. However, you may have to open the command-palette (Ctrl+Shift+P / Cmd+Shift+P) and select `Java: Clean the Java language server workspace` The first time after this change, if you receive problems with the TestRunner.
 
 ---
 
