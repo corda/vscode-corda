@@ -1,0 +1,6 @@
+[submodule "server"]
+	path = server
+	url = git@github.com:corda/node-server.git
+[submodule "src"]
+	path = src
+	url = git@github.com:corda/node-explorer.git

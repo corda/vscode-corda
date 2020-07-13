@@ -1,0 +1,13 @@
+node_modules
+out
+*.jar
+*bin*
+*.settings
+*.idea
+*.classpath
+*.project
+*~
+*.class
+.gradle
+build/
+.vscode
