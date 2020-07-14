@@ -20,7 +20,10 @@ cd vscode-corda
 // checkout this branch
 git checkout -t origin/logViewer
 
-// install dependencies
+// install dependencies defined in package.json
 npm install
+
+// install additional local dependencies
+npm install react react-dom
 ```
 

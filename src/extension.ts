@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -42,10 +43,14 @@ export function activate(context: vscode.ExtensionContext) {
 				'cordaLogViewer', // Identifies the type of the webview. Used internally
         		'Corda Log Viewer', // Title of the panel displayed to the user
         		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-        		{} // Webview options. More on these later.
+        		{
+					enableScripts: true,
+					retainContextWhenHidden: true,
+					localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out')) ]
+				} // Webview options. More on these later.
 			);
 
-			panel.webview.html = getReactLogWebViewContent();
+			panel.webview.html = getReactLogWebViewContent(context);
 		})
 	);
 }
@@ -68,7 +73,7 @@ function getStaticLogWebViewContent() {
 }
 
 // this function returns a React app to a webview
-function getReactLogWebViewContent() {
+function getReactLogWebViewContent(context: any) {
 	return `<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -77,9 +82,19 @@ function getReactLogWebViewContent() {
 		<title>Corda Log Viewer</title>
 	</head>
 	<body>
-		<p>React Component</ p>
+		<div id="root"></div>
+		${loadScript(context,path.normalize('out/') + 'index' + '.js') /* e.g /out/transactionExplorer.js */}
 	</body>
 	</html>`;
+}
+
+/** 
+ * loadScript is used to load the react files into the view html
+ * @param context - Container for the extensions context
+ * @param path - location of the react js files
+ */
+function loadScript(context: vscode.ExtensionContext, path: string) {
+    return `<script src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource'}).toString()}"></script>`;
 }
 
 // this method is called when your extension is deactivated
