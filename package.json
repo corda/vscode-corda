@@ -11,6 +11,7 @@
 	],
 	"activationEvents": [
 		"onCommand:cordalogviewer.showInfoMessage",
+		"onCommand:cordalogviewer.showStaticWebView",
 		"onCommand:cordalogviewer.showLogViewer"
 	],
 	"main": "./out/extension.js",
@@ -21,8 +22,12 @@
 				"title": "Corda - Show Info Message Test"
 			},
 			{
+				"command": "cordalogviewer.showStaticWebView",
+				"title": "Corda - Show Static WebView"
+			},
+			{
 				"command": "cordalogviewer.showLogViewer",
-				"title": "Corda - Show Log Viewer"
+				"title": "Corda - Show Log Viewer (React)"
 			}
 		]
 	},

@@ -24,15 +24,28 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('cordalogviewer.showLogViewer', () => {
+		vscode.commands.registerCommand('cordalogviewer.showStaticWebView', () => {
 			const panel = vscode.window.createWebviewPanel(
-				'logView', // Identifies the type of the webview. Used internally
-        		'Corda Node Log Viewer', // Title of the panel displayed to the user
+				'staticWebView', // Identifies the type of the webview. Used internally
+        		'Corda Static WebView', // Title of the panel displayed to the user
         		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
         		{} // Webview options. More on these later.
 			);
 
 			panel.webview.html = getStaticLogWebViewContent();
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('cordalogviewer.showLogViewer', () => {
+			const panel = vscode.window.createWebviewPanel(
+				'cordaLogViewer', // Identifies the type of the webview. Used internally
+        		'Corda Log Viewer', // Title of the panel displayed to the user
+        		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+        		{} // Webview options. More on these later.
+			);
+
+			panel.webview.html = getReactLogWebViewContent();
 		})
 	);
 }
@@ -44,7 +57,7 @@ function getStaticLogWebViewContent() {
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Log Viewer Static</title>
+		<title>A Static Webview</title>
 	</head>
 	<body>
 		<p>Corda, Corda, Corda.</ p>
@@ -56,7 +69,17 @@ function getStaticLogWebViewContent() {
 
 // this function returns a React app to a webview
 function getReactLogWebViewContent() {
-
+	return `<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Corda Log Viewer</title>
+	</head>
+	<body>
+		<p>React Component</ p>
+	</body>
+	</html>`;
 }
 
 // this method is called when your extension is deactivated
