@@ -1,10 +1,16 @@
 import * as fs from "fs";
 import * as util from "./util";
-import { file } from "find";
+import * as formats from "./formats";
+
 export enum LogStatus {
     INFO,
     WARN,
     ERROR
+}
+
+export interface LogBody {
+    message: string,
+    object: any
 }
 
 export interface LogEntry {
@@ -12,7 +18,7 @@ export interface LogEntry {
     date: Date,
     thread: string,
     source: string,
-    message: string
+    body: LogBody
 }
 
 /**
@@ -28,6 +34,14 @@ const stringToStatus = (string: string) => {
     }
 }
 
+const stringToLogBody = (text: string): LogBody => {
+    const object = formats.textToJson("{" + util.afterFirst(text, "{"));
+    if (Object.keys(object).length === 0) {
+        return {message: text, object: {}}
+    }
+    else return {message: util.beforeFirst(text, "{"), object}
+}
+
 /**
  * returns a `LogEntry` with all the properties filled in from `line`
  * 
@@ -35,13 +49,13 @@ const stringToStatus = (string: string) => {
  */
 const stringToLogEntry = (line: string): LogEntry => {
     const elements = util.elements(line, "[{1}] {2} [{3}] {4}. - {5}");
-    const [status, date, thread, source, message] = elements;
+    const [status, date, thread, source, body] = elements;
     return {
         logStatus: stringToStatus(status.trim()),
         date: new Date(util.beforeFirst(date, ",")), // gets the datetime before the timezone name
         thread,
         source,
-        message
+        body: stringToLogBody(body)
     }
 }
 

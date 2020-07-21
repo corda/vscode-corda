@@ -39,7 +39,7 @@ export const splitOnAny = (text: string, splitBy: Array<string>): Array<string> 
 /**
  * returns the substring of `line` that is after the first instance of `after`
  * 
- * returns `line` if `after` is empty, or is not present in `line`S
+ * returns `line` if `after` is empty, or is not present in `line`
  */
 export const afterFirst = (line: string, after: string) => {
     if (line.includes(after) && after !== "") return line.split(after)[1];
@@ -57,6 +57,13 @@ export const between = (line: string, before: string, after: string) => beforeFi
  * checks if `line` is an integer (whole number)
  */
 export const isIntegral = (line: string) => /^-{0,1}\d+$/.test(line)
+
+const isNotNullPojo = (object: any) => (object !== null && typeof object === "object")
+
+export const firstNotNullPojo = (...objects: any[]) => {
+    const filtered = objects.filter(obj => isNotNullPojo(obj));
+    return filtered.length === 0 ? {} : filtered[0];
+}
 
 /**
  * extracts substrings marked {1}, {2}, {3} etc. in `format`, where `format` otherwise matches up with `line`
