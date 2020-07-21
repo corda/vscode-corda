@@ -29,16 +29,16 @@ const stringToStatus = (string: string) => {
 }
 
 /**
- * takes a log entry as string, `line`
- * 
  * returns a `LogEntry` with all the properties filled in from `line`
+ * 
+ * **PROBLEM:** does not take timezones into account
  */
 const stringToLogEntry = (line: string): LogEntry => {
     const elements = util.elements(line, "[{1}] {2} [{3}] {4}. - {5}");
     const [status, date, thread, source, message] = elements;
     return {
         logStatus: stringToStatus(status.trim()),
-        date: new Date(date),
+        date: new Date(util.beforeFirst(date, ",")), // gets the datetime before the timezone name
         thread,
         source,
         message
