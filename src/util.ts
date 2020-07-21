@@ -1,8 +1,5 @@
-import { open } from "fs";
-import { setupMaster } from "cluster";
-
 /**
- * returns the substring of `line` that is before the first instance of `before`
+ * returns the substring of `line` that is (strictly) before the first instance of `before`
  * 
  * returns `line` if `before` is empty, or is not present in `line`
  */
@@ -11,6 +8,34 @@ export const beforeFirst = (line: string, before: string) => {
     return line;
 }
 
+
+const firstIdxOf = (text: string, toFinds: Array<string>): number => {
+    const indices = toFinds
+        .map((toFind: string) => text.indexOf(toFind))
+        .filter((i: number, _: any) => i != -1);
+    return indices.length === 0 ? -1 : Math.min(...indices);
+}
+
+/**
+ * returns `text` splitted by each of the elements in `splitBy` 
+ */
+export const splitOnAny = (text: string, splitBy: Array<string>): Array<string> => {
+    let i = firstIdxOf(text, splitBy);
+    if (i === -1)   return [text];
+    
+    const splitted = [text.substring(0, i)]
+    let deltaI = null;
+
+    while (deltaI !== 0) {
+        deltaI = 1 + firstIdxOf(text.substring(i + 1), splitBy);
+
+        const toPush = deltaI === 0 ? text.substring(i) : text.substring(i, i + deltaI);
+        if (toPush !== "") splitted.push(toPush);
+        i += deltaI;
+    }
+
+    return splitted;
+}
 /**
  * returns the substring of `line` that is after the first instance of `after`
  * 

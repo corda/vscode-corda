@@ -1,28 +1,14 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as reader from "./reader";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "cordalogviewer" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('cordalogviewer.showInfoMessage', () => {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('It works! This is an info message!');
-	});
-
-	context.subscriptions.push(disposable);
-
+	context.subscriptions.push(vscode.commands.registerCommand('cordalogviewer.showInfoMessage', () => {
+		vscode.window.showInformationMessage(`hey`);
+		const file = path.join(context.extensionPath, "biglogfile.log")
+		reader.lastLogEntries(file).then((entries: reader.LogEntry[]) => 
+			console.log(entries));
+	}));
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('cordalogviewer.showStaticWebView', () => {
@@ -32,8 +18,13 @@ export function activate(context: vscode.ExtensionContext) {
         		vscode.ViewColumn.One, // Editor column to show the new webview panel in.
         		{} // Webview options. More on these later.
 			);
-
-			panel.webview.html = getStaticLogWebViewContent();
+			/*linesFromFile(path.join(context.extensionPath, 'logfile.log'))
+				.then((lines: Array<string>) => {
+					console.log(lines.toString());
+					console.log(lines[0]);
+					panel.webview.html = getStaticLogWebViewContent(lines.toString())
+				});
+			*/
 		})
 	);
 
@@ -56,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this function returns static content to a webview
-function getStaticLogWebViewContent() {
+function getStaticLogWebViewContent(text: string) {
 	return `<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -65,7 +56,10 @@ function getStaticLogWebViewContent() {
 		<title>A Static Webview</title>
 	</head>
 	<body>
-		<p>Corda, Corda, Corda.</ p>
+		<p>Corda, Corda, Corda</ p>
+		<code>
+		${text}
+		</code>
 		<br />
 		<img src="https://miro.medium.com/max/700/1*x1_W4KVkL-jJTzV8aitoPQ.png" width="300" />
 	</body>
