@@ -2,56 +2,60 @@ import * as fs from "fs";
 import * as util from "./util";
 import * as formats from "./formats";
 
-export enum LogStatus {
+/**
+ * Marks if a log is INFO, WARN or ERROR
+ */
+export enum LogSeverity {
     INFO,
     WARN,
     ERROR
 }
 
+/**
+ * A human-readable `message` and an `object` of relevant code details (e.g output) that the log stores 
+ */
 export interface LogBody {
     message: string,
     object: any
 }
 
+/**
+ * A complete log entry: `severity`, `date`, `thread`, `source` and `body`
+ */
 export interface LogEntry {
-    logStatus: LogStatus,
+    severity: LogSeverity,
     date: Date,
     thread: string,
     source: string,
     body: LogBody
 }
 
-/**
- * returns the `LogStatus` status of the `string` passed. 
- * 
- * Defaults to `LogStatus.INFO`  
- */
-const stringToStatus = (string: string) => {
+const logSeverityFromString = (string: string) => {
     switch (string) {
-        case "WARN":    return LogStatus.WARN;
-        case "ERROR":   return LogStatus.ERROR;
-        default:        return LogStatus.INFO;
+        case "WARN":    return LogSeverity.WARN;
+        case "ERROR":   return LogSeverity.ERROR;
+        default:        return LogSeverity.INFO;
     }
 }
 
 const stringToLogBody = (text: string): LogBody => {
-    const object = formats.textToJson("{" + util.afterFirst(text, "{"));
-    if (Object.keys(object).length === 0) {
+    const attemptAtGettingObject = formats.parseVars("{" + util.afterFirst(text, "{"));
+    if (util.isEmptyObject(attemptAtGettingObject)) {
         return {message: text, object: {}}
     }
-    else return {message: util.beforeFirst(text, "{"), object}
+    else return {message: util.beforeFirst(text, "{"), object: attemptAtGettingObject}
 }
 
 /**
  * returns a `LogEntry` with all the properties filled in from `line`
  * 
- * **PROBLEM:** does not take timezones into account
+ * **PROBLEM**: does not take timezones into account
  */
 const stringToLogEntry = (line: string): LogEntry => {
     const elements = util.elements(line, "[{1}] {2} [{3}] {4}. - {5}");
     const [status, date, thread, source, body] = elements;
     return {
-        logStatus: stringToStatus(status.trim()),
+        severity: logSeverityFromString(status.trim()),
         date: new Date(util.beforeFirst(date, ",")), // gets the datetime before the timezone name
         thread,
         source,
@@ -59,7 +63,11 @@ const stringToLogEntry = (line: string): LogEntry => {
     }
 }
 
-
+/**
+ * **(async)** returns the `LogEntry`s from the file located at `file`, in order of most recent (i.e. from EOF to start of file)
+ * 
+ * limits the amount of entries by `maxEntries`, if it is provided
+ */
 export const lastLogEntries = async (file: fs.PathLike, maxEntries: number = Infinity) => {
     const tags = ["[INFO ]", "[WARN ]", "[ERROR]"];
     let entries = new Array<LogEntry>();
@@ -73,9 +81,9 @@ export const lastLogEntries = async (file: fs.PathLike, maxEntries: number = Inf
             end: endBytes,
             highWaterMark: bufferSize
         });
-        console.log(endBytes);
+
         for await (const chunk of fileStream) {
-            const splitted = util.splitOnAny(chunk.toString(), tags)
+            const splitted = util.splitByAll(chunk.toString(), tags)
                 .filter((splat: string) => splat.trim() !== "");
             const stringEntries = [
                 ...splitted.slice(1, splitted.length - 1),
@@ -90,7 +98,7 @@ export const lastLogEntries = async (file: fs.PathLike, maxEntries: number = Inf
                     .reverse(),
             ]
         }
-        endBytes = endBytes - bufferSize;
+        endBytes -= bufferSize;
     }
     return [...entries, stringToLogEntry(leftOver)];
 }

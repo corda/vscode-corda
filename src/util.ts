@@ -9,7 +9,7 @@ export const beforeFirst = (line: string, before: string) => {
 }
 
 
-const firstIdxOf = (text: string, toFinds: Array<string>): number => {
+const firstIndexOfAny = (text: string, toFinds: Array<string>): number => {
     const indices = toFinds
         .map((toFind: string) => text.indexOf(toFind))
         .filter((i: number, _: any) => i != -1);
@@ -19,15 +19,15 @@ const firstIdxOf = (text: string, toFinds: Array<string>): number => {
 /**
  * returns `text` splitted by each of the elements in `splitBy` 
  */
-export const splitOnAny = (text: string, splitBy: Array<string>): Array<string> => {
-    let i = firstIdxOf(text, splitBy);
+export const splitByAll = (text: string, splitBy: Array<string>): Array<string> => {
+    let i = firstIndexOfAny(text, splitBy);
     if (i === -1)   return [text];
     
     const splitted = [text.substring(0, i)]
     let deltaI = null;
 
     while (deltaI !== 0) {
-        deltaI = 1 + firstIdxOf(text.substring(i + 1), splitBy);
+        deltaI = 1 + firstIndexOfAny(text.substring(i + 1), splitBy);
 
         const toPush = deltaI === 0 ? text.substring(i) : text.substring(i, i + deltaI);
         if (toPush !== "") splitted.push(toPush);
@@ -37,7 +37,7 @@ export const splitOnAny = (text: string, splitBy: Array<string>): Array<string> 
     return splitted;
 }
 /**
- * returns the substring of `line` that is after the first instance of `after`
+ * returns the substring of `line` that is (strictly) after the first instance of `after`
  * 
  * returns `line` if `after` is empty, or is not present in `line`
  */
@@ -54,24 +54,29 @@ export const afterFirst = (line: string, after: string) => {
 export const between = (line: string, before: string, after: string) => beforeFirst(afterFirst(line, before), after);
 
 /**
- * checks if `line` is an integer (whole number)
+ * why are you reading this
  */
-export const isIntegral = (line: string) => /^-{0,1}\d+$/.test(line)
-
-const isNotNullPojo = (object: any) => (object !== null && typeof object === "object")
-
-export const firstNotNullPojo = (...objects: any[]) => {
-    const filtered = objects.filter(obj => isNotNullPojo(obj));
-    return filtered.length === 0 ? {} : filtered[0];
-}
+export const isInteger = (string: string) => /^-{0,1}\d+$/.test(string)
 
 /**
- * extracts substrings marked {1}, {2}, {3} etc. in `format`, where `format` otherwise matches up with `line`
+ * extracts from `line` the parts marked {1}, {2}, {3} etc. in `format``, where `format` otherwise matches up with `line`
+ * 
+ * e.g. `line` = `[INFO ] 2020/03/01 [main] blah`
+ * 
+ * `format` = `[{1} ] {2} [{3}] {4}`
+ * 
+ * extracts `[INFO, 2020/03/01, main, blah]` from `line`
  */
 export const elements = (line: string, format: string) => _elements(line, format, new Array<string>());
 
 /**
- * implementation of `elements` that takes an `Array<string>` to start with. Needed for recursion
+ * checks if `object` is the empty object, `{}`
+ */
+export const isEmptyObject = (object: any) => Object.keys(object).length === 0
+
+/**
+ * implementation of `elements` that takes an `Array<string>` to start with. 
+ * Necessary because I wrote this using recursion
  */
 const _elements = (line: string, format: string, els: Array<string>): Array<string> => {    
     let openCurlyIdx = 0;
@@ -79,7 +84,7 @@ const _elements = (line: string, format: string, els: Array<string>): Array<stri
     while (openCurlyIdx < format.length) {
         if (format[openCurlyIdx] === "{") {
             insideCurlies = beforeFirst(format.substring(openCurlyIdx + 1), "}")
-            if (isIntegral(insideCurlies)) {
+            if (isInteger(insideCurlies)) {
                 break;
             }
         }

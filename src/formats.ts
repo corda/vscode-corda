@@ -1,17 +1,20 @@
 import * as util from "./util";
 
 /**
- * if it can parse `text` as some variant of JSON, it returns the JSON
+ * tries to parse `text` first as json, then "equals json", then ...
  * 
- * otherwise, it defaults to the empty object
+ * if one of the parsing attempts works, it returns the parsed object, stopping there
+ * 
+ * if none of them work, it returns an empty object `{}`
  */
-export const textToJson = (text: string) => util.firstNotNullPojo(
-    parseJson(text),
-    parseEqualsJson(text),
-    {}
-)
+export const parseVars = (text: string) => parseJson(text) || parseListOfVars(text) || {};
 
-export const parseJson = (text: string) => {
+/**
+ * tries to parse `text` as json
+ * 
+ * returns `null` if it fails 
+ */
+const parseJson = (text: string) => {
     const withSlashes = text.replace(/\\/g,String.fromCharCode(92,92));
     if (withSlashes.includes("{") && withSlashes.includes("}")) {
         try {
@@ -25,13 +28,22 @@ export const parseJson = (text: string) => {
     
     return null;
 }
+/**
+ * tries to parse `text` as a "list of variables", i.e.
+ * 
+ * `param1 = hi, param2 = hello there, param3 = bacon` notation
+ * 
+ * returns `null` if it fails
+*/
+const parseListOfVars = (text: string) => parseJson(text
+    .replace(/"/g, `\\"`)   // converts "list of variables" to actual json first 
 
-const parseEqualsJson = (text: string) => parseJson(text
-    .replace(/"/g, "\\\"")
-    .replace(/{/g, "{\"")
-    .replace(/}/g, "\"}")
-    .replace(/=/g, "\": \"")
-    .replace(/, /g, "\", \"")) 
-    // PROBLEM: can't then manage commas w/o a space, 
-    //else it would overwrite itself.
-    // learn regex
+    .replace(/{/g, `{"`)    // using a bunch of `.replace()`s
+    .replace(/}/g, `"}`)    // then parses json and converts to object / null
+
+    .replace(/ = /g, `=`)
+    .replace(/=/g, `": "`)
+    
+    .replace(/, /g, `,`)
+    .replace(/,/g, `", "`)
+) 
