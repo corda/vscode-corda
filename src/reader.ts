@@ -52,10 +52,9 @@ const stringToLogBody = (text: string): LogBody => {
  * **PROBLEM**: does not take timezones into account
  */
 const stringToLogEntry = (line: string): LogEntry => {
-    const elements = util.elements(line, "[{1}] {2} [{3}] {4}. - {5}");
-    const [status, date, thread, source, body] = elements;
+    const [severity, date, thread, source, body] = util.extract(line, "[{1}] {2} [{3}] {4}. - {5}");
     return {
-        severity: logSeverityFromString(status.trim()),
+        severity: logSeverityFromString(severity.trim()),
         date: new Date(util.beforeFirst(date, ",")), // gets the datetime before the timezone name
         thread,
         source,

@@ -8,6 +8,15 @@ export const beforeFirst = (line: string, before: string) => {
     return line;
 }
 
+/**
+ * returns the substring of `line` that is (strictly) after the first instance of `after`
+ * 
+ * returns `line` if `after` is empty, or is not present in `line`
+ */
+export const afterFirst = (line: string, after: string) => {
+    if (line.includes(after) && after !== "") return line.split(after)[1];
+    return line;
+}
 
 const firstIndexOfAny = (text: string, toFinds: Array<string>): number => {
     const indices = toFinds
@@ -36,15 +45,6 @@ export const splitByAll = (text: string, splitBy: Array<string>): Array<string> 
 
     return splitted;
 }
-/**
- * returns the substring of `line` that is (strictly) after the first instance of `after`
- * 
- * returns `line` if `after` is empty, or is not present in `line`
- */
-export const afterFirst = (line: string, after: string) => {
-    if (line.includes(after) && after !== "") return line.split(after)[1];
-    return line;
-}
 
 /**
  * returns the substring of `line` that is between the first instance of `before` and the last instance of `after`
@@ -53,21 +53,7 @@ export const afterFirst = (line: string, after: string) => {
  */
 export const between = (line: string, before: string, after: string) => beforeFirst(afterFirst(line, before), after);
 
-/**
- * why are you reading this
- */
 export const isInteger = (string: string) => /^-{0,1}\d+$/.test(string)
-
-/**
- * extracts from `line` the parts marked {1}, {2}, {3} etc. in `format``, where `format` otherwise matches up with `line`
- * 
- * e.g. `line` = `[INFO ] 2020/03/01 [main] blah`
- * 
- * `format` = `[{1} ] {2} [{3}] {4}`
- * 
- * extracts `[INFO, 2020/03/01, main, blah]` from `line`
- */
-export const elements = (line: string, format: string) => _elements(line, format, new Array<string>());
 
 /**
  * checks if `object` is the empty object, `{}`
@@ -75,10 +61,23 @@ export const elements = (line: string, format: string) => _elements(line, format
 export const isEmptyObject = (object: any) => Object.keys(object).length === 0
 
 /**
- * implementation of `elements` that takes an `Array<string>` to start with. 
+ * extracts from `line` the parts marked {1}, {2}, {3} etc. in `format`, where `format` otherwise matches up with `line`
+ * 
+ * e.g. 
+ * 
+ * `line` = `[INFO ] 2020/03/01 [main] blah`
+ * 
+ * `format` = `[{1} ] {2} [{3}] {4}`
+ * 
+ * extracts `[INFO, 2020/03/01, main, blah]` from `line`
+ */
+export const extract = (line: string, format: string) => _extract(line, format, new Array<string>());
+
+/**
+ * implementation of `extract` that takes an `Array<string>` to start with. 
  * Necessary because I wrote this using recursion
  */
-const _elements = (line: string, format: string, els: Array<string>): Array<string> => {    
+const _extract = (line: string, format: string, els: Array<string>): Array<string> => {    
     let openCurlyIdx = 0;
     let insideCurlies = "";
     while (openCurlyIdx < format.length) {
@@ -102,5 +101,5 @@ const _elements = (line: string, format: string, els: Array<string>): Array<stri
     const element = between(line, before, after);
     
     els.push(element);
-    return _elements(afterFirst(line, element), afterFirst(format, identifier), els);
+    return _extract(afterFirst(line, element), afterFirst(format, identifier), els);
 }
