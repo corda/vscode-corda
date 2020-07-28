@@ -1,14 +1,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as reader from "./reader";
+import * as parser from "./stringParser";
 import * as formats from "./formats";
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('cordalogviewer.showInfoMessage', () => {
 		vscode.window.showInformationMessage(`hey`);
-		const file = path.join(context.extensionPath, "logfile.log")
-		reader.lastLogEntries(file).then((entries: reader.LogEntry[]) => 
-			console.log(entries));
+		console.log(formats.nestedObjectsWrapped("tan=O=1, C=2, L=3, bean=5500"))
 	}));
 
 	context.subscriptions.push(

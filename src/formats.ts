@@ -1,4 +1,5 @@
 import * as util from "./util";
+import * as parser from "./stringParser";
 
 /**
  * tries to parse `text` first as json, then "equals json", then ...
@@ -28,6 +29,8 @@ const parseJson = (text: string) => {
     
     return null;
 }
+
+
 /**
  * tries to parse `text` as a "list of variables", i.e.
  * 
@@ -35,7 +38,7 @@ const parseJson = (text: string) => {
  * 
  * returns `null` if it fails
 */
-const parseListOfVars = (text: string) => parseJson(text
+const parseListOfVars = (text: string) => parseJson(nestedObjectsWrapped(text)
     .replace(/"/g, `\\"`)   // converts "list of variables" to actual json first 
 
     .replace(/{/g, `{"`)    // using a bunch of `.replace()`s
@@ -47,3 +50,20 @@ const parseListOfVars = (text: string) => parseJson(text
     .replace(/, /g, `,`)
     .replace(/,/g, `", "`)
 ) 
+
+const nestedObjectsWrapped = (text: string, wrapped: string = ""): string => {
+    const vars = ["O", "C", "L"];
+    const startsOfVarList = vars.map((key: string) => `=${key}=`);
+    const start = util.firstIndexOfAny(text, startsOfVarList);
+    if (start === -1)  return wrapped + text;
+
+    wrapped += text.substring(0, start) + "={";
+    const assignmentsSplit = util.groupBy<string>(
+        text.substring(start + 1).split(", "), 
+        (equation: string) => vars.includes(parser.extract(equation, "{0}={1}")[0])
+    )[0];
+    const assignments = assignmentsSplit.join(", ");
+    wrapped += assignments + "}";
+    
+    return nestedObjectsWrapped(util.after(text, assignments), wrapped);
+}

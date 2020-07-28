@@ -1,34 +1,8 @@
 import * as fs from "fs";
 import * as util from "./util";
 import * as formats from "./formats";
-
-/**
- * Marks if a log is INFO, WARN or ERROR
- */
-export enum LogSeverity {
-    INFO,
-    WARN,
-    ERROR
-}
-
-/**
- * A human-readable `message` and an `object` of relevant code details (e.g output) that the log stores 
- */
-export interface LogBody {
-    message: string,
-    object: any
-}
-
-/**
- * A complete log entry: `severity`, `date`, `thread`, `source` and `body`
- */
-export interface LogEntry {
-    severity: LogSeverity,
-    date: Date,
-    thread: string,
-    source: string,
-    body: LogBody
-}
+import * as parser from "./stringParser";
+import { LogSeverity, LogBody, LogEntry } from "./types"
 
 const logSeverityFromString = (string: string) => {
     switch (string) {
@@ -39,11 +13,11 @@ const logSeverityFromString = (string: string) => {
 }
 
 const stringToLogBody = (text: string): LogBody => {
-    const attemptAtGettingObject = formats.parseVars("{" + util.afterFirst(text, "{"));
+    const attemptAtGettingObject = formats.parseVars("{" + util.after(text, "{"));
     if (util.isEmptyObject(attemptAtGettingObject)) {
         return {message: text, object: {}}
     }
-    else return {message: util.beforeFirst(text, "{"), object: attemptAtGettingObject}
+    else return {message: util.before(text, "{"), object: attemptAtGettingObject}
 }
 
 /**
@@ -52,14 +26,22 @@ const stringToLogBody = (text: string): LogBody => {
  * **PROBLEM**: does not take timezones into account
  */
 const stringToLogEntry = (line: string): LogEntry => {
-    const [severity, date, thread, source, body] = util.extract(line, "[{1}] {2} [{3}] {4}. - {5}");
-    return {
-        severity: logSeverityFromString(severity.trim()),
-        date: new Date(util.beforeFirst(date, ",")), // gets the datetime before the timezone name
-        thread,
-        source,
-        body: stringToLogBody(body)
+    const format = "[{0}] {1} [{2}] {3}. - {4}";
+    if (parser.matchesFormat(line, format)) {
+        const [severity, date, thread, source, body] = parser.extract(line, format);
+        return {
+            severity: logSeverityFromString(severity.trim()),
+            date: new Date(util.before(date, ",")), // gets the datetime before the timezone name
+            thread,
+            source,
+            body: stringToLogBody(body)
+        }
     }
+    
+    else throw new Error(`Could not parse line 
+        ${line} 
+        according to format 
+        ${format}`);
 }
 
 /**
