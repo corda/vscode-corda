@@ -15,14 +15,14 @@ export const before = (line: string, before: string) => {
  * returns `line` if `after` is empty, or is not present in `line`
  */
 export const after = (line: string, after: string) => {
-    if (line.includes(after) && after !== "") return line.split(after)[1];
+    if (line.includes(after) && after !== "") return line.split(after).slice(1).join(after);
     return line;
 }
 
 export const firstIndexOfAny = (text: string, toFinds: Array<string>): number => {
     const indices = toFinds
         .map((toFind: string) => text.indexOf(toFind))
-        .filter((i: number, _: any) => i != -1);
+        .filter((i: number) => i != -1);
     return indices.length === 0 ? -1 : Math.min(...indices);
 }
 
@@ -65,6 +65,8 @@ export const isEmptyObject = (object: any) => Object.keys(object).length === 0
 
 /**
  * groups `items` into a list of sequential items that match `condition`
+ * 
+ * this is a generic function. the type passed is the type of the elements that are in `items`
  */
 export const groupBy = <T>(items: T[], condition: (item: T) => boolean): T[][] => {
     let grouped = Array<T[]>();
