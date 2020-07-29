@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as util from "./util";
 import * as formats from "./formats";
 import * as parser from "./stringParser";
-import { LogSeverity, LogBody, LogEntry } from "./types"
+import { LogSeverity, LogBody, LogEntry } from "./types";
 
 const logSeverityFromString = (string: string) => {
     switch (string) {
@@ -41,7 +41,8 @@ const stringToLogEntry = (line: string): LogEntry => {
     else throw new Error(`Could not parse line 
         ${line} 
         according to format 
-        ${format}`);
+        ${format}`
+    );
 }
 
 /**
@@ -49,17 +50,21 @@ const stringToLogEntry = (line: string): LogEntry => {
  * 
  * limits the amount of entries by `maxEntries`, if it is provided
  */
-export const lastLogEntries = async (file: fs.PathLike, maxEntries: number = Infinity) => {
+export const lastLogEntries = async (file: fs.PathLike, maxEntries: number = Infinity) => 
+    lastLogEntriesBetweenBytes(file, 0, fs.statSync(file).size - 1, maxEntries);
+
+// generalised version of lastLogEntries
+const lastLogEntriesBetweenBytes = async (file: fs.PathLike, startAt: number, endAt: number, maxEntries: number = Infinity) => {
     const tags = ["[INFO ]", "[WARN ]", "[ERROR]"];
     let entries = new Array<LogEntry>();
-    let endBytes = fs.statSync(file).size - 1;
-    const bufferSize = Math.min(32 * 1024, endBytes + 1);
+    let end = endAt; //fs.statSync(file).size - 1;
+    const bufferSize = Math.min(32 * 1024, endAt + 1);
     let leftOver = "";
 
-    while (endBytes >= 0 && entries.length <= maxEntries) {
+    while (end >= 0 && entries.length <= maxEntries) {
         const fileStream = fs.createReadStream(file, {
-            start: Math.max(endBytes - bufferSize + 1, 0),
-            end: endBytes,
+            start: Math.max(end - bufferSize + 1, startAt),
+            end: end,
             highWaterMark: bufferSize
         });
 
@@ -75,11 +80,19 @@ export const lastLogEntries = async (file: fs.PathLike, maxEntries: number = Inf
             entries = [
                 ...entries,
                 ...stringEntries
-                    .map((stringEntry: string, _: number) => stringToLogEntry(stringEntry))
+                    .map((stringEntry: string) => stringToLogEntry(stringEntry))
                     .reverse(),
             ]
         }
-        endBytes -= bufferSize;
+        end -= bufferSize;
     }
     return [...entries, stringToLogEntry(leftOver)];
 }
+
+
+export const handleNewEntriesInFile = (file: fs.PathLike, onNewEntries: (entries: LogEntry[]) => void) => 
+    fs.watchFile(
+        file, 
+        async (curr: fs.Stats, prev: fs.Stats) => 
+            onNewEntries(await lastLogEntriesBetweenBytes(file, prev.size, curr.size))
+    )
