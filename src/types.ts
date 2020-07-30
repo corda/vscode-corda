@@ -1,7 +1,17 @@
-import "./util";
+/**
+ * A complete log entry: `severity`, `date`, `thread`, `source` and `body`
+ */
+export interface LogEntry {
+    severity: LogSeverity,
+    date: Date,
+    thread: string,
+    source: string,
+    body: LogBody
+}
+
 
 /**
- * Marks if a log is INFO, WARN or ERROR
+ * Marks if a log is `INFO`, `WARN` or `ERROR`
  */
 export enum LogSeverity {
     INFO,
@@ -17,13 +27,3 @@ export interface LogBody {
     object: any
 }
 
-/**
- * A complete log entry: `severity`, `date`, `thread`, `source` and `body`
- */
-export interface LogEntry {
-    severity: LogSeverity,
-    date: Date,
-    thread: string,
-    source: string,
-    body: LogBody
-}

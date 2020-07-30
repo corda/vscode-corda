@@ -1,3 +1,5 @@
+import { TreeItemCollapsibleState } from "vscode";
+
 /**
  * returns the substring of `line` that is (strictly) before the first instance of `before`
  * 
@@ -19,10 +21,19 @@ export const after = (line: string, after: string) => {
     return line;
 }
 
+
+export const firstIndexSuchThat = <T>(items: T[], condition: (item: T) => boolean) => 
+    items.some(condition) 
+        ? Array(...items.keys())
+            .filter(i => condition(items[i]))
+            [0] 
+        : -1
+
+
 export const firstIndexOfAny = (text: string, toFinds: Array<string>): number => {
     const indices = toFinds
-        .map((toFind: string) => text.indexOf(toFind))
-        .filter((i: number) => i != -1);
+        .map(toFind => text.indexOf(toFind))
+        .filter(i => i != -1);
     return indices.length === 0 ? -1 : Math.min(...indices);
 }
 

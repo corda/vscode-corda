@@ -2,7 +2,7 @@ import * as util from "./util";
 import * as parser from "./stringParser";
 
 /**
- * tries to parse `text` first as json, then "equals json", then ...
+ * tries to parse `text` first as json, then "list of variables", then ...
  * 
  * if one of the parsing attempts works, it returns the parsed object, stopping there
  * 
@@ -16,7 +16,7 @@ export const parseVars = (text: string) => parseJson(text) || parseListOfVars(te
  * returns `null` if it fails 
  */
 const parseJson = (text: string) => {
-    const withSlashes = text.replace(/\\/g,String.fromCharCode(92,92));
+    const withSlashes = text.replace(/\\/g, String.fromCharCode(92,92));
     if (withSlashes.includes("{") && withSlashes.includes("}")) {
         try {
             const object = JSON.parse(withSlashes)
@@ -38,6 +38,10 @@ const parseJson = (text: string) => {
  * 
  * returns `null` if it fails
 */
+
+// wraps nested objects in brackets, 
+// then converts "list of variables" to actual json, using a bunch of `.replace()`s,
+// finally parses json as object / null
 const parseListOfVars = (text: string) => parseJson(nestedObjectsWrapped(text)
     .replace(/"/g, `\\"`)   // converts "list of variables" to actual json first 
 
@@ -51,6 +55,7 @@ const parseListOfVars = (text: string) => parseJson(nestedObjectsWrapped(text)
     .replace(/,/g, `", "`)
 ) 
 
+// recursive
 const nestedObjectsWrapped = (text: string, wrapped: string = ""): string => {
     const vars = ["O", "C", "L"];
     const startsOfVarList = vars.map((key: string) => `=${key}=`);

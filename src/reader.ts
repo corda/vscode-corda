@@ -90,7 +90,7 @@ const lastLogEntriesBetweenBytes = async (file: fs.PathLike, startAt: number, en
 }
 
 
-export const handleNewEntriesInFile = (file: fs.PathLike, onNewEntries: (entries: LogEntry[]) => void) => 
+export const handleNewEntries = (file: fs.PathLike, onNewEntries: (entries: LogEntry[]) => void) => 
     fs.watchFile(
         file, 
         async (curr: fs.Stats, prev: fs.Stats) => 

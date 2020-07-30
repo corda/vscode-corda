@@ -1,13 +1,18 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as reader from "./reader";
-import * as parser from "./stringParser";
-import * as formats from "./formats";
+import * as handleLogs from "./handleLogs";
+import { LogEntry } from './types';
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('cordalogviewer.showInfoMessage', () => {
 		vscode.window.showInformationMessage(`hey`);
-		console.log(formats.nestedObjectsWrapped("tan=O=1, C=2, L=3, bean=5500"))
+		const file = path.join(context.extensionPath, 'logfile.log');
+		reader.lastLogEntries(file)
+			.then(entries => handleLogs.groupConsecutiveEntriesBy(entries, [
+				["internal.Node"],
+				["changelog.ChangeSet", "jvm.JdbcExecutor"]
+			])); 
 	}));
 
 	context.subscriptions.push(
