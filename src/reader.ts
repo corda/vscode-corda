@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as util from "./util";
-import * as formats from "./formats";
+import * as formats from "./backend/formats";
 import * as parser from "./stringParser";
 import { LogSeverity, LogBody, LogEntry } from "./types";
 
