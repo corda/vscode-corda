@@ -1,6 +1,6 @@
 import { LogBody, LogEntry, LogSeverity } from "./types"
 import * as util from "./util";
-import { groupEnd } from "console";
+
 
 /**
  * returns the `entries` with each `body` field replaced with `edit(body)` 
@@ -22,6 +22,8 @@ export const groupEntriesBySource = (entries: LogEntry[], sourceGroups: string[]
         (sources: string[]) => 
             entries.filter((entry: LogEntry) => sources.includes(entry.source))
     )
+
+
 /**
  * `entries` are grouped into consecutive rows that have their source in the same sourceGroup
  */

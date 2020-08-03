@@ -4,7 +4,7 @@ import * as path from 'path';
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('cordalogviewer.showStaticWebView', () => {
-			const panel = vscode.window.createWebviewPanel(
+			const panel = vscode.window.createWebviewPanel( 
 				'staticWebView', 
         		'Corda Static WebView',
         		vscode.ViewColumn.One, 
@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('cordalogviewer.showLogViewer', () => {
-			const panel = vscode.window.createWebviewPanel(
+			const panel = vscode.window.createWebviewPanel( 
 				'cordaLogViewer', 
         		'Corda Log Viewer', 
         		vscode.ViewColumn.One, 
@@ -34,8 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 const getStaticLogWebViewContent = (text: string) =>
 	`<!DOCTYPE html>
 	<html lang="en">
-	<head>
-		<meta charset="UTF-8">
+	<head> 
+		<meta charset="UTF-8"> 
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>A Static Webview</title>
 	</head>
