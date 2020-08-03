@@ -60,7 +60,7 @@ const getReactLogWebViewContent = (context: any) =>
 	</head>
 	<body>
 		<div id="root"></div>
-		${loadScript(context,path.normalize('out/') + 'index' + '.js') /* e.g /out/transactionExplorer.js */}
+		${loadScript(context,path.normalize('out/') + 'index' + '.js')}
 	</body>
 	</html>`
 
