@@ -4,7 +4,7 @@ import * as path from 'path';
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('cordalogviewer.showStaticWebView', () => {
-			const panel = vscode.window.createWebviewPanel(
+			const panel = vscode.window.createWebviewPanel( 
 				'staticWebView', 
         		'Corda Static WebView',
         		vscode.ViewColumn.One, 
