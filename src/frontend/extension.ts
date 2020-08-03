@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('cordalogviewer.showLogViewer', () => {
-			const panel = vscode.window.createWebviewPanel(
+			const panel = vscode.window.createWebviewPanel( 
 				'cordaLogViewer', 
         		'Corda Log Viewer', 
         		vscode.ViewColumn.One, 
