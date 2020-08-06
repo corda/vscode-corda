@@ -142,7 +142,7 @@ Network through which the nodes communicate
 
 ## Known Issues/ TODO
 
-- VSCode's Java TestRunner extension uses the Eclipse JDT compiler and requires a prefs file in .settings to pass the -parameters flag to the JVM. The extension will automatically create this prefs file if it does not exist. However, you may have to open the command-palette (Ctrl+Shift+P / Cmd+Shift+P) and select `Java: Clean the Java language server workspace` The first time after this change, if you receive problems with the TestRunner.
+- VSCode's Java TestRunner extension uses the Eclipse JDT compiler and requires a prefs file in .settings to pass the -parameters flag to the JVM. The extension will automatically create this prefs file if it does not exist. If you encounter issues, you may have to open the command-palette (Ctrl+Shift+P / Cmd+Shift+P) and select `Java: Clean the Java language server workspace`.
 
 ---
 

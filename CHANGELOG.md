@@ -4,6 +4,12 @@ All notable changes to the "vscode-corda" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.1.1] - 2020-08-06
+### Patch
+- Token auth added for sandboxing spring server to vscode instance
+- Fix: error launching runNodes from nested deployNodes
+- Fix: login options when transitioning between local and remote nodes
+
 ## [0.1.0] - 2020-04-16
 ### Beta Release
 - Performance enhancements; extension size reduced, dependency tuning.
