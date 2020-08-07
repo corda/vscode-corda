@@ -10,4 +10,3 @@ out
 *.class
 .gradle
 build/
-.vscode
