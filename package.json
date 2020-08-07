@@ -142,7 +142,7 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "npm-run-all compile:*",
 		"compile:extension": "tsc -p ./",
-		"compile:views": "webpack --mode development",
+		"compile:views": "webpack --mode production",
 		"compile:client": "node ./out/runCompile.js",
 		"nojar": "npm-run-all nojar:*",
 		"nojar:extension": "tsc -p ./",

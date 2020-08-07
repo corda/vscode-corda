@@ -6,6 +6,7 @@ src/**
 server/
 .git
 .gitignore
+.gitmodules
 **/.idea
 **/tsconfig.json
 **/tslint.json
