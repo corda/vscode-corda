@@ -1,5 +1,3 @@
-import { TreeItemCollapsibleState } from "vscode";
-
 /**
  * returns the substring of `line` that is (strictly) before the first instance of `before`
  * 

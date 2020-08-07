@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as util from "./util";
-import * as formats from "./backend/formats";
+import * as formats from "./formats";
 import * as parser from "./stringParser";
 import { LogSeverity, LogBody, LogEntry } from "./types";
 
@@ -26,7 +26,7 @@ const stringToLogBody = (text: string): LogBody => {
  * **PROBLEM**: does not take timezones into account
  */
 const stringToLogEntry = (line: string): LogEntry => {
-    const format = "[{0}] {1} [{2}] {3}. - {4}";
+    const format = "[{0}] {1} [{2}] {3} - {4}";
     if (parser.matchesFormat(line, format)) {
         const [severity, date, thread, source, body] = parser.extract(line, format);
         return {

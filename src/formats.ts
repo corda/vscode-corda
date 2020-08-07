@@ -1,5 +1,5 @@
-import * as util from "../util";
-import * as parser from "../stringParser";
+import * as util from "./util";
+import * as parser from "./stringParser";
 
 /**
  * tries to parse `text` first as json, then "list of variables", then ...

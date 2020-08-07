@@ -27,3 +27,11 @@ export interface LogBody {
     object: any
 }
 
+export enum MessageType {
+    NEW_LOG_ENTRIES
+}
+
+export interface WindowMessage {
+    messageType: MessageType,
+    payload: any
+}
