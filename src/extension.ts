@@ -41,6 +41,21 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		})
 	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand("cordalogviewer.listenToChanges", () => {
+			if (!panel) return;
+
+			const logfile = path.join(context.extensionPath, "smalllog.log");
+			reader.handleNewEntries(logfile, (entries: LogEntry[]) => {
+				console.log("processed!");
+				panel?.webview.postMessage(<WindowMessage>{
+					messageType: MessageType.NEW_LOG_ENTRIES,
+					payload: entries
+				})
+			});
+		})
+	);
 }
 
 

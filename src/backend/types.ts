@@ -20,7 +20,7 @@ export enum LogSeverity {
 }
 
 /**
- * A human-readable `message` and an `object` of relevant code details (e.g output) that the log stores 
+ * A human-readable `message` and an `object` of relevant code details (e.g code that caused error message) that the log stores 
  */
 export interface LogBody {
     message: string,

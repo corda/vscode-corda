@@ -1,16 +1,17 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { MessageType } from "../backend/types";
-import { SimpleTable } from "./SimpleTable";
+import { BlancasTable } from "./App1";
+import TableExample from "./Table";
 
 window.addEventListener("message", event => {
-    ReactDOM.render(
-        (<p> Message received and understood !!</p>), 
-        document.getElementById("root"));
     const message = event.data;
     switch (message.messageType) {
         case MessageType.NEW_LOG_ENTRIES:
-            ReactDOM.render(SimpleTable(message.payload), document.getElementById('root'));
+            ReactDOM.render(
+                <BlancasTable logentries={message.payload} />, 
+                document.getElementById('root')
+            );
             break;
     }
 });
