@@ -33,7 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 			const logfile = path.join(context.extensionPath, "smalllog.log");
 			reader.lastLogEntries(logfile).then((entries: LogEntry[]) => {
-				console.log("processed!");
 				panel?.webview.postMessage(<WindowMessage>{
 					messageType: MessageType.NEW_LOG_ENTRIES,
 					payload: entries
@@ -68,7 +67,7 @@ const getReactLogWebViewContent = (context: vscode.ExtensionContext) =>
 		<title>Corda Log Viewer</title>
 	</head>
 	<body>
-		<div id="root"></div>
+		<div id="root">   </div>
 		${loadScript(context,path.normalize('out/frontend/') + 'index' + '.js')}
 	</body>
 	</html>`

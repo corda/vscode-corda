@@ -1,11 +1,7 @@
 import * as React from "react";
 import { Column, Row } from 'simple-flexbox';
-import { LogEntry } from "../backend/types";
-import SimpleTable from "./SimpleTable";
-import TableExample from "./Table";
 
-
-export const BlancasTable = (props: {logentries: LogEntry[]}) => (
+export const WelcomeTable = () => (
   <Column flexGrow={1}>
     <Row horizontal='center'>
       <h1>LOG VIEWER</h1>
@@ -20,7 +16,5 @@ export const BlancasTable = (props: {logentries: LogEntry[]}) => (
         <span> A responsive table with some styling using CSS </span>
       </Column>
     </Row>
-    <SimpleTable logentries={props.logentries} />
-    <TableExample />
   </Column>
 );

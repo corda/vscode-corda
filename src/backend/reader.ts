@@ -34,7 +34,7 @@ const stringToLogEntry = (line: string): LogEntry => {
             date: new Date(util.before(date, ",")), // gets the datetime before the timezone name
             thread,
             source,
-            body: stringToLogBody(body)
+            body: stringToLogBody(body) // x = "hi", y = 15, 
         }
     }
     
