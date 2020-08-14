@@ -11,7 +11,6 @@ window.addEventListener("message", event => {
             ReactDOM.render( 
                 <>
                     <WelcomeTable />
-                    <EntriesLoader/>
                 </>,
                 document.getElementById('root')
             );

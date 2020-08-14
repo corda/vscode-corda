@@ -3,7 +3,6 @@ import * as path from 'path';
 import { MessageType, WindowMessage } from "./backend/types";
 import * as reader from "./backend/reader";
 import { LogEntry } from "./backend/types";
-import * as util from "./backend/util";
 
 export function activate(context: vscode.ExtensionContext) {
 	let panel: vscode.WebviewPanel | undefined = undefined;
@@ -32,6 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
 			if (!panel) return;
 
 			const logfile = path.join(context.extensionPath, "smalllog.log");
+			reader.entriesBetween(logfile, 1, 3).then(n => console.log(n));
+
 			reader.lastLogEntries(logfile).then((entries: LogEntry[]) => {
 				panel?.webview.postMessage(<WindowMessage>{
 					messageType: MessageType.NEW_LOG_ENTRIES,
@@ -39,6 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 				})
 			});
 		})
+		
 	);
 
 	context.subscriptions.push(
