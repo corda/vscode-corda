@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { MessageType } from '../backend/types';
-import { FlexTable } from './Table';
+import { EntriesLoader } from "./entriesLoader";
 import { WelcomeTable } from "./WelcomeTable"
 
 window.addEventListener("message", event => {
@@ -10,8 +10,8 @@ window.addEventListener("message", event => {
         case MessageType.NEW_LOG_ENTRIES:
             ReactDOM.render( 
                 <>
-                    <WelcomeTable/>
-                    <FlexTable logentries={message.payload} />
+                    <WelcomeTable />
+                    <EntriesLoader maxEntries = {100000} />
                 </>,
                 document.getElementById('root')
             );

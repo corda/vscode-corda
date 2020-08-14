@@ -9,7 +9,6 @@ export interface LogEntry {
     body: LogBody
 }
 
-
 /**
  * Marks if a log is `INFO`, `WARN` or `ERROR`
  */

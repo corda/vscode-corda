@@ -3,7 +3,7 @@ import './Table.css';
 import { LogEntry, LogSeverity } from "../backend/types";
 const { Table, Thead, Tbody, Tr, Th, Td } = require("react-super-responsive-table");
 
-export const FlexTable = (props: {logentries: LogEntry[]}) => (
+export const FlexTable = (props: {entries: LogEntry[]}) => (
   <Table>
     <Thead>
       <Tr>
@@ -16,7 +16,7 @@ export const FlexTable = (props: {logentries: LogEntry[]}) => (
       </Tr>
     </Thead>
     <Tbody>
-    {props.logentries.map(entry => (
+    {props.entries.map(entry => (
       <Tr key={JSON.stringify(entry)}>
         <Td>{severityToSymbol(entry.severity)}</Td>
         <Td>{entry.date}</Td>
