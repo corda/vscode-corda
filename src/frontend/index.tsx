@@ -11,7 +11,7 @@ window.addEventListener("message", event => {
             ReactDOM.render( 
                 <>
                     <WelcomeTable />
-                    <EntriesLoader maxEntries = {100000} />
+                    <EntriesLoader/>
                 </>,
                 document.getElementById('root')
             );

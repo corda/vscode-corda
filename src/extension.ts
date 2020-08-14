@@ -3,6 +3,7 @@ import * as path from 'path';
 import { MessageType, WindowMessage } from "./backend/types";
 import * as reader from "./backend/reader";
 import { LogEntry } from "./backend/types";
+import * as util from "./backend/util";
 
 export function activate(context: vscode.ExtensionContext) {
 	let panel: vscode.WebviewPanel | undefined = undefined;
@@ -22,7 +23,6 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 				);
 			}
-			
 			panel.webview.html = getReactLogWebViewContent(context);
 		})
 	);

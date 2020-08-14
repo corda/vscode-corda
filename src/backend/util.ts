@@ -97,3 +97,11 @@ export const groupBy = <T>(items: T[], condition: (item: T) => boolean): T[][] =
     }
     return grouped;
 }
+
+
+export const placeAt = <T>(list: T[], sublist: T[], startAt: number) => {
+    for (let i = 0; i < sublist.length; i++) {
+        list[startAt + i] = sublist[i];
+    }
+    return list;
+}
