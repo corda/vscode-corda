@@ -1,13 +1,4 @@
-/**
- * A complete log entry: `severity`, `date`, `thread`, `source` and `body`
- */
-export interface LogEntry {
-    severity: LogSeverity,
-    date: Date,
-    thread: string,
-    source: string,
-    body: LogBody
-}
+import { PathLike } from "fs";
 
 /**
  * Marks if a log is `INFO`, `WARN` or `ERROR`
@@ -26,11 +17,35 @@ export interface LogBody {
     object: any
 }
 
+/**
+ * A complete log entry: `severity`, `date`, `thread`, `source` and `body`
+ */
+export interface LogEntry {
+    severity: LogSeverity,
+    date: Date,
+    thread: string,
+    source: string,
+    body: LogBody
+}
+
+export const sampleLogEntry = (i: number) => <LogEntry>({
+    severity: LogSeverity.INFO,
+    date: new Date(),
+    thread: "main",
+    source: `sample #${i}`,
+    body: {
+        message: `hello from sample #${i}`,
+        object: {sampleNumber: i}
+    }
+})
+
+
 export enum MessageType {
     NEW_LOG_ENTRIES
 }
 
 export interface WindowMessage {
     messageType: MessageType,
-    payload: any
+    file: PathLike,
+    amount: number
 }

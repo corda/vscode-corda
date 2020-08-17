@@ -107,3 +107,6 @@ export const placeAt = <T>(list: T[], sublist: T[], startAt: number) => {
     }
     return list;
 }
+
+
+export const bound = (min: number, x: number, max: number) => Math.max(min, Math.min(x, max))

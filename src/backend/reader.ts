@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as util from "./util";
 import * as formats from "./formats";
 import * as parser from "./stringParser";
-import { LogSeverity, LogBody, LogEntry } from "./types";
+import { LogSeverity, LogBody, LogEntry, sampleLogEntry } from "./types";
 
 const logSeverityFromString = (string: string) => {
     switch (string) {
@@ -92,7 +92,7 @@ const lastLogEntriesBetweenBytes = async (file: fs.PathLike, startAt: number, en
 
 
 /** the amount of log entries in `file` */
-export const entriesInFile = async (file: fs.PathLike) => {
+export const countEntriesInFile = async (file: fs.PathLike) => {
     const tags = ["[INFO ]", "[WARN ]", "[ERROR]"];
     let linesSeen = 0;
     let leftOver = "";
@@ -108,21 +108,21 @@ export const entriesInFile = async (file: fs.PathLike) => {
 
 
 /**
- * `[startIdx, stopIdx)`
+ * returns the entries in the logfile sorted by newest, between `startIdx` (inc.) and `stopIdx` (exc.)
  */
-export const entriesBetween = async (file: fs.PathLike, startIdx: number, stopIdx: number, totalEntries?: number) => {
+export const entriesBetween = async (file: fs.PathLike, startIdx: number, stopIdx: number, totalEntries?: number) => {    
     if (totalEntries === undefined) {
-        totalEntries = await entriesInFile(file);
+        totalEntries = await countEntriesInFile(file);
     }
     
-    const startReadingAt = totalEntries - stopIdx; // factors in how [startIdx, stopIdx)
-    const amount = stopIdx - startIdx;
+    const startReadingAt = util.bound(0, totalEntries - stopIdx, totalEntries); // factors in how [startIdx, stopIdx)
+    const amount = util.bound(0, stopIdx - startIdx, totalEntries - startReadingAt);
     
     return (await excerptOfEntries(file, startReadingAt, amount)).reverse();
 }
 
 
-const excerptOfEntries = async (file: fs.PathLike, startReadingAt: number, amount: number) => {
+export const excerptOfEntries = async (file: fs.PathLike, startReadingAt: number, amount: number) => {
     const tags = ["[INFO ]", "[WARN ]", "[ERROR]"];
     let linesSeen = 0;
     let entries = new Array<LogEntry>();
@@ -137,7 +137,7 @@ const excerptOfEntries = async (file: fs.PathLike, startReadingAt: number, amoun
         
         if (linesSeen + splitted.length >= startReadingAt) {
             const start = haventAddedEntriesYet ? startReadingAt - linesSeen : 0;
-            let end = start + amount - entries.length;
+            let end = start + amount - entries.length - 1;
             
             readingUpToEOF = end === splitted.length - 1; // this will be accurate outside of for loop
             if (readingUpToEOF) {
