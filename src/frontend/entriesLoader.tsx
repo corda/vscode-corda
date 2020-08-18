@@ -4,16 +4,17 @@ import { LogEntry, sampleLogEntry } from "../backend/types";
 import { PathLike } from "fs";
 import * as util from "../backend/util";
 import * as reader from "../backend/reader";
+import * as newFs from "react-native-fs";
 
 
-export const EntriesLoader = (props: {file: PathLike, amountOfEntries: number}) => {
+export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}) => {
     let entries = new Array<LogEntry>();
 
     const isRowLoaded = ({index}: Index) => entries[index] !== undefined;
 
     // [startIndex, stopIndex)
     const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
-        const newEntries = await reader.entriesBetween(props.file, startIndex, stopIndex, props.amountOfEntries);
+        const newEntries = await reader.entriesBetweenLines(props.filepath, startIndex, stopIndex, props.amountOfEntries);
         entries = util.placeAt(entries, newEntries, startIndex);
     }
 

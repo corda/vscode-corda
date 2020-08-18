@@ -11,7 +11,7 @@ window.addEventListener("message", event => {
             ReactDOM.render( 
                 <>
                     <WelcomeTable />
-                    <EntriesLoader file={message.file} amountOfEntries={message.amount}/>
+                    <EntriesLoader filepath={message.filepath} amountOfEntries={message.amount}/>
                 </>,
                 document.getElementById('root')
             );

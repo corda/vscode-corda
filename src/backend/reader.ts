@@ -1,8 +1,11 @@
-import * as fs from "fs";
+import * as fsReact from "react-native-fs";
 import * as util from "./util";
 import * as formats from "./formats";
 import * as parser from "./stringParser";
 import { LogSeverity, LogBody, LogEntry, sampleLogEntry } from "./types";
+
+/** 1MB */
+const bufferSize = 10e6; 
 
 const logSeverityFromString = (string: string) => {
     switch (string) {
@@ -50,56 +53,17 @@ const stringToLogEntry = (line: string): LogEntry => {
  * 
  * limits the amount of entries by `maxEntries`, if it is provided
  */
-export const lastLogEntries = async (file: fs.PathLike, maxEntries: number = Infinity) => 
-    lastLogEntriesBetweenBytes(file, 0, fs.statSync(file).size - 1, maxEntries);
-
-// generalised version of lastLogEntries
-const lastLogEntriesBetweenBytes = async (file: fs.PathLike, startAt: number, endAt: number, maxEntries: number = Infinity) => {
-    const tags = ["[INFO ]", "[WARN ]", "[ERROR]"];
-    let entries = new Array<LogEntry>();
-    let end = endAt; //fs.statSync(file).size - 1;
-    const bufferSize = Math.min(32 * 1024, endAt + 1);
-    let leftOver = "";
-
-    while (end >= 0 && entries.length <= maxEntries) {
-        const fileStream = fs.createReadStream(file, {
-            start: Math.max(end - bufferSize + 1, startAt),
-            end: end,
-            highWaterMark: bufferSize
-        });
-
-        for await (const chunk of fileStream) {
-            const splitted = util.splitByAll(chunk.toString(), tags)
-                .filter((splat: string) => splat.trim() !== "");
-            const stringEntries = [
-                ...splitted.slice(1, splitted.length - 1),
-                splitted[splitted.length - 1] + leftOver
-            ]
-            leftOver = splitted[0];
-
-            entries = [
-                ...entries,
-                ...stringEntries
-                    .map(stringToLogEntry)
-                    .reverse(),
-            ]
-        }
-        end -= bufferSize;
-    }
-    return [...entries, stringToLogEntry(leftOver)];
-}
-
 
 
 /** the amount of log entries in `file` */
-export const countEntriesInFile = async (file: fs.PathLike) => {
+export const countEntriesInFile = async (file: string) => {
     const tags = ["[INFO ]", "[WARN ]", "[ERROR]"];
     let linesSeen = 0;
     let leftOver = "";
 
-    for await (const chunk of fs.createReadStream(file)) {
-        const strChunk: string = chunk.toString();
-        const splitted = util.splitByAll(leftOver + chunk.toString(), tags).filter(l => l.trim() !== "");
+    for (let startBytes = 0; startBytes <= (await sizeInBytes(file)); startBytes += bufferSize) {
+        const buffer = fsReact.read(file, bufferSize, startBytes);
+        const splitted = util.splitByAll(leftOver + buffer, tags).filter(l => l.trim() !== "");
         linesSeen += splitted.length - 1;
         leftOver = splitted[splitted.length - 1];
     }
@@ -110,19 +74,19 @@ export const countEntriesInFile = async (file: fs.PathLike) => {
 /**
  * returns the entries in the logfile sorted by newest, between `startIdx` (inc.) and `stopIdx` (exc.)
  */
-export const entriesBetween = async (file: fs.PathLike, startIdx: number, stopIdx: number, totalEntries?: number) => {    
+export const entriesBetweenLines = async (filepath: string, startIdx: number, stopIdx: number, totalEntries?: number) => {    
     if (totalEntries === undefined) {
-        totalEntries = await countEntriesInFile(file);
+        totalEntries = await countEntriesInFile(filepath);
     }
     
     const startReadingAt = util.bound(0, totalEntries - stopIdx, totalEntries); // factors in how [startIdx, stopIdx)
     const amount = util.bound(0, stopIdx - startIdx, totalEntries - startReadingAt);
     
-    return (await excerptOfEntries(file, startReadingAt, amount)).reverse();
+    return (await excerptOfEntries(filepath, startReadingAt, amount)).reverse();
 }
 
 
-export const excerptOfEntries = async (file: fs.PathLike, startReadingAt: number, amount: number) => {
+export const excerptOfEntries = async (filepath: string, startReadingAt: number, amount: number) => {
     const tags = ["[INFO ]", "[WARN ]", "[ERROR]"];
     let linesSeen = 0;
     let entries = new Array<LogEntry>();
@@ -130,9 +94,9 @@ export const excerptOfEntries = async (file: fs.PathLike, startReadingAt: number
     let haventAddedEntriesYet = true;
     let readingUpToEOF = false;
 
-    for await (const chunk of fs.createReadStream(file)) {
-        const strChunk: string = chunk.toString();
-        const splitted = util.splitByAll(leftOver + chunk.toString(), tags)
+    for (let startBytes = 0; startBytes <= (await sizeInBytes(filepath)); startBytes += bufferSize) {
+        const buffer = await fsReact.read(filepath, bufferSize, startBytes);
+        const splitted = util.splitByAll(leftOver + buffer, tags)
             .filter(line => line.trim() !== "")
         
         if (linesSeen + splitted.length >= startReadingAt) {
@@ -163,9 +127,4 @@ export const excerptOfEntries = async (file: fs.PathLike, startReadingAt: number
     return entries;
 }
 
-export const handleNewEntries = (file: fs.PathLike, onNewEntries: (entries: LogEntry[]) => void) => 
-    fs.watchFile(
-        file, 
-        async (curr: fs.Stats, prev: fs.Stats) => 
-            onNewEntries(await lastLogEntriesBetweenBytes(file, prev.size, curr.size))
-    )
+const sizeInBytes = async (file: string) => parseInt((await fsReact.stat(file)).size)

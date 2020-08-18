@@ -23,10 +23,17 @@ module.exports = {
         rules: [
               {
                 test: /\.(ts|tsx)$/,
-                    exclude: [/node_modules/, /MSSQL/],
-                    use: [{
-                      loader: "ts-loader"
-                    }]
+                exclude: [/node_modules/, /MSSQL/],
+                use: [{
+                  loader: "ts-loader"
+                }]
+              },
+              {
+                test: /\.(js|jsx)$/,
+                exclude: [/node_modules/, /MSSQL/],
+                use: [{
+                  loader: "babel-loader"
+                }]
               },
               {
                 test: /\.css$/,

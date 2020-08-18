@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 			reader.countEntriesInFile(logfile).then(amount => {
 				panel?.webview.postMessage(<WindowMessage> {
 					messageType: MessageType.NEW_LOG_ENTRIES,
-					file: logfile,
+					filepath: logfile,
 					amount
 				})
 			});

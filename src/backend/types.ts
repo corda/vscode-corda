@@ -1,5 +1,3 @@
-import { PathLike } from "fs";
-
 /**
  * Marks if a log is `INFO`, `WARN` or `ERROR`
  */
@@ -46,6 +44,6 @@ export enum MessageType {
 
 export interface WindowMessage {
     messageType: MessageType,
-    file: PathLike,
+    filepath: string,
     amount: number
 }

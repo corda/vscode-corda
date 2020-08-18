@@ -44,7 +44,7 @@ export const splitByAll = (text: string, splitBy: Array<string>): Array<string> 
     if (i === -1)   return [text];
     
     const splitted = [text.substring(0, i)]
-    let deltaI = null;
+    let deltaI = -1;
 
     while (deltaI !== 0) {
         deltaI = 1 + firstIndexOfAny(text.substring(i + 1), splitBy);
