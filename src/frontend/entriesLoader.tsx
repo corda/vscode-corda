@@ -14,7 +14,7 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
 
     // [startIndex, stopIndex)
     const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
-        const newEntries = await reader.entriesBetweenLines(props.filepath, startIndex, stopIndex, props.amountOfEntries);
+        const newEntries = await reader.entriesBetween(props.filepath, startIndex, stopIndex, props.amountOfEntries);
         entries = util.placeAt(entries, newEntries, startIndex);
     }
 
