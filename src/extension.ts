@@ -29,16 +29,16 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand("cordalogviewer.showAllEntries", () => {
 			if (!panel) return;
 
-			const logfile: PathLike = path.join(context.extensionPath, "smalllog.log");
-			reader.countEntriesInFile(logfile).then(amount => {
+			const filepath: PathLike = path.join(context.extensionPath, "smalllog.log");
+			
+			reader.countEntriesInFile(filepath).then(amount => {
 				panel?.webview.postMessage(<WindowMessage> {
 					messageType: MessageType.NEW_LOG_ENTRIES,
-					filepath: logfile,
+					filepath,
 					amount
 				})
 			});
 		})
-		
 	);
 
 	/*

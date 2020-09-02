@@ -1,10 +1,8 @@
 import * as React from "react";
 import { InfiniteLoader, List, IndexRange, Index, ListRowProps } from "react-virtualized";
 import { LogEntry, sampleLogEntry } from "../backend/types";
-import { PathLike } from "fs";
 import * as util from "../backend/util";
-import * as reader from "../backend/reader";
-import * as newFs from "react-native-fs";
+import axios from "axios";
 
 
 export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}) => {
@@ -14,7 +12,17 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
 
     // [startIndex, stopIndex)
     const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
-        const newEntries = await reader.entriesBetween(props.filepath, startIndex, stopIndex, props.amountOfEntries);
+        const newEntries = (await axios.post("http://localhost:8580/logReader/read", {
+            startIndex,
+            stopIndex,
+            components: props.filepath.replace(/\\/g, "/").split("/")
+        }))
+        .data.entries
+        .map((entry: any) => ({
+            ...entry, 
+            date: new Date(util.before(entry.date, ","))
+        }))
+
         entries = util.placeAt(entries, newEntries, startIndex);
     }
 
@@ -48,4 +56,9 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
             )}
         </InfiniteLoader>
     )
+}
+
+const filePathToComponents = (filePath: string) => {
+    const stdPath = filePath.replace(/\\/g, "/");
+    // components have to be relative to %HOME% or ~, but stdPath is absolute
 }
