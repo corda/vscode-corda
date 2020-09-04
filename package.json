@@ -1,35 +1,110 @@
 {
-	"name": "cordalogviewer",
-	"displayName": "CordaLogViewer",
-	"description": "A log viewer for Corda Nodes",
-	"version": "0.0.1",
+	"name": "vscode-corda",
+	"displayName": "VSCode-Corda",
+	"publisher": "R3",
+	"description": "A tool for Corda developers.",
+	"version": "0.1.1",
+	"license": "Apache-2.0",
 	"engines": {
 		"vscode": "^1.47.0"
 	},
+	"galleryBanner": {
+		"color": "#9C5656",
+		"theme": "dark"
+	},
 	"categories": [
+		"Debuggers",
+		"Programming Languages",
 		"Other"
 	],
+	"keywords": [
+		"corda",
+		"blockchain",
+		"java",
+		"kotlin",
+		"testing"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/corda/vscode-corda.git"
+	},
+	"bugs": {
+		"url": "https://github.com/corda/vscode-corda/issues",
+		"email": "devrel@r3.com"
+	},
+	"icon": "./media/vscode-corda.png",
+	"homepage": "https://www.corda.net/develop/",
 	"activationEvents": [
-		"onCommand:cordalogviewer.showAllEntries",
-		"onCommand:cordalogviewer.showLogViewer",
-		"onCommand:cordalogviewer.listenToChanges"
+		"onView:cordaTemplates",
+		"onView:cordaOperations",
+		"onView:cordaDependencies",
+		"onView:cordaFlows",
+		"onView:cordaContracts",
+		"onView:cordaStates",
+		"onView:cordaTools",
+		"onView:cordaSamples"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
-			{
-				"command": "cordalogviewer.showAllEntries",
-				"title": "Corda - Show all entries from file"
-			},
-			{
-				"command": "cordalogviewer.showLogViewer",
-				"title": "Corda - Show Log Viewer (React)"
-			},
-			{
-				"command": "cordalogviewer.listenToChanges",
-				"title": "Corda - Listen to changes in file"
-			}
-		]
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "corda",
+					"title": "Corda",
+					"icon": "media/corda-actBar.svg"
+				}
+			]
+		},
+		"views": {
+			"corda": [
+				{
+					"id": "cordaTemplates",
+					"name": "CorDapp Templates",
+					"visibility": "collapsed"
+				},
+				{
+					"id": "cordaOperations",
+					"name": "Operations",
+					"visibility": "collapsed"
+				},
+				{
+					"id": "cordaDependencies",
+					"name": "Dependencies",
+					"visibility": "collapsed"
+				},
+				{
+					"id": "cordaFlows",
+					"name": "Flows",
+					"visibility": "collapsed"
+				},
+				{
+					"id": "cordaContracts",
+					"name": "Contracts",
+					"visibility": "collapsed"
+				},
+				{
+					"id": "cordaStates",
+					"name": "States",
+					"visibility": "collapsed"
+				},
+				{
+					"id": "cordaTools",
+					"name": "Corda Tools",
+					"visibility": "collapsed"
+				},
+				{
+					"id": "cordaSamples",
+					"name": "CorDapp Samples",
+					"visibility": "collapsed"
+				}
+			]
+		},
+		"commands": [],
+		"menus": {
+			"commandPalette": [],
+			"view/title": [],
+			"view/item/context": []
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -65,11 +140,6 @@
 	"dependencies": {
 		"@material-ui/core": "^4.8.2",
 		"@material-ui/icons": "^4.9.1",
-		"@types/bootstrap": "^4.5.0",
-		"@types/react": "^16.9.44",
-		"@types/react-bootstrap": "^0.32.22",
-		"@types/react-native-fs": "^2.13.0",
-		"@types/react-virtualized": "^9.21.10",
 		"axios": "^0.19.1",
 		"axios-retry": "^3.1.2",
 		"bootstrap": "^4.5.2",
