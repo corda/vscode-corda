@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "react-bootstrap": "github:react-bootstrap/react-bootstrap-typescript/index.d.ts"
+  }
+}

@@ -3,7 +3,8 @@ import { InfiniteLoader, List, IndexRange, Index, ListRowProps } from "react-vir
 import { LogEntry, sampleLogEntry } from "../backend/types";
 import * as util from "../backend/util";
 import axios from "axios";
-
+import { EntryButton, LoadingEntry } from "./entry";
+import "./Table.css"
 
 export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}) => {
     let entries = new Array<LogEntry>();
@@ -28,8 +29,8 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
 
     const rowRenderer = ({key, index, style}: ListRowProps) => {
         const content = isRowLoaded({index}) ? 
-            `Entry from ${entries[index].source}` : 
-            " . . . . . . . . . .";
+            <EntryButton entry={entries[index]} key={key} /> :
+            <LoadingEntry key={key} />
         return (
             <div key = {key} style = {style}>
                 {content}
@@ -45,20 +46,15 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
         >
             {({ onRowsRendered, registerChild }) => (
                 <List
-                    height={200}
+                    height={1000}
                     onRowsRendered={onRowsRendered}
                     ref={registerChild}
                     rowCount={props.amountOfEntries}
-                    rowHeight={20}
+                    rowHeight={120}
                     rowRenderer={rowRenderer}
-                    width={300}
+                    width={2000}
                 />
             )}
         </InfiniteLoader>
     )
-}
-
-const filePathToComponents = (filePath: string) => {
-    const stdPath = filePath.replace(/\\/g, "/");
-    // components have to be relative to %HOME% or ~, but stdPath is absolute
 }
