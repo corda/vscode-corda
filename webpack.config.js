@@ -3,29 +3,37 @@
 const path = require('path');
 
 module.exports = {
-    entry: {
-        index: './src/index.js'
-    },
+    entry: "./src/frontend/index.tsx",
     output: {
-        path: path.resolve(__dirname, 'out'),
-        filename: "[name].js"
+        path: path.resolve(__dirname, 'out/frontend/'),
+        filename: "index.js",
+        libraryTarget: 'umd',
+      devtoolModuleFilenameTemplate: '../[resource-path]'
+    },
+    node: {
+      fs: "empty"
+    },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.json']
+    },
+    externals: {
+      vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
     },
     module: {
         rules: [
               {
-                test: /\.(js|jsx)?$/,
-                    exclude: [/node_modules/, /MSSQL/],
-                    use: {
-                      loader: "babel-loader",
-                      query: {
-                        presets: ['@babel/preset-react', '@babel/preset-env'],
-                        plugins: [
-                          [
-                            "@babel/plugin-proposal-class-properties"
-                          ]
-                        ],
-                      }
-                    }
+                test: /\.(ts|tsx)$/,
+                exclude: [/node_modules/, /MSSQL/],
+                use: [{
+                  loader: "ts-loader"
+                }]
+              },
+              {
+                test: /\.(js|jsx)$/,
+                exclude: [/node_modules/, /MSSQL/],
+                use: [{
+                  loader: "babel-loader"
+                }]
               },
               {
                 test: /\.css$/,

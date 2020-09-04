@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/react-bootstrap/react-bootstrap-typescript/master/index.d.ts",
+    "raw": "github:react-bootstrap/react-bootstrap-typescript/index.d.ts",
+    "typings": "https://raw.githubusercontent.com/react-bootstrap/react-bootstrap-typescript/master/index.d.ts"
+  }
+}
