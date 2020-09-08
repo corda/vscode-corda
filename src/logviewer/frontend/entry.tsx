@@ -1,52 +1,46 @@
 import * as React from 'react';
 import { LogEntry } from '../backend/types';
+import Collapsible from "react-collapsible";
+import dropdownImg from "../../../media/dropdown.png"; 
+import { isEmptyObject } from "../backend/util"
+import { Col } from 'react-bootstrap';
 
-export const EntryButton = (props: {entry: LogEntry, key: any}) => {
-    const toShow = {
-        expanded: {
-            content: 
-                <ul> 
-                    <li> {props.entry.body.message} </li>
-                    <li> Spawned at time {props.entry.date.toISOString()} </li>
-                    <li> From task {props.entry.source} running on thread {props.entry.thread} </li>
-                    <li> Generated info {JSON.stringify(props.entry.body.object)} </li>
-                </ul>,
-            buttonName: "(hide)"
-        } as ComponentsToShow,
-        overview: {
-            content: <div> {props.entry.severity} </div>,
-            buttonName: "(show)"
-        } as ComponentsToShow
-    };
+export const EntryButton = (props: {entry: LogEntry, key: any}) =>
+    <Collapsible 
+        trigger={dropdownHeader(props.entry.severity.toString())} 
+        key={props.key} 
+        className={"Collapsible"}
+    >
+        <p> {props.entry.body.message} </p>
+        <p> Spawned at time {props.entry.date.toISOString()} </p>
+        <p> From task {props.entry.source} running on thread {props.entry.thread} </p>
+        {makeCollapsible("Generated object", props.entry.body.object)}
+    </Collapsible>
 
-    const [content, setContent] = React.useState(toShow.overview.content);
-    const [showExpanded, setShowExpanded] = React.useState(true);
-    const [buttonName, setButtonName] = React.useState(toShow.overview.buttonName);
 
-    const onClick = () => {
-        setContent(showExpanded ? toShow.expanded.content : toShow.overview.content);
-        setShowExpanded(!showExpanded);
-        setButtonName(showExpanded ? toShow.expanded.buttonName : toShow.overview.buttonName);
-    }
-
-    return (
-        <div key={props.key}>
-            <button key={props.key} onClick={onClick}>
-                {buttonName}
-            </button>
-            <br/>
-            {content}
-        </div>
-    )
-}
-
-export const LoadingEntry = (props: {key: any}) => (
+export const LoadingEntry = (props: {key: any}) =>
     <div key= {props.key}>
         . . . . . . . . . .
     </div>
-)
 
-interface ComponentsToShow {
-    content: JSX.Element
-    buttonName: string
+const makeCollapsible = (name: string, object: any) => {
+    if (typeof object !== "object") // string or number or whatever
+        return <p> {name}: {object.toString()} </p>;
+    
+    const childNames = Object.keys(object);
+    if (childNames.length === 1) 
+        return <p> {childNames[0]}: {object[childNames[0]]} </p>;
+    
+    return (
+        <Collapsible trigger={dropdownHeader(name)} key={name} className={"Collapsible"}>
+            {childNames.map(childName => makeCollapsible(childName, object[childName]))}
+        </Collapsible>
+    );
+
 }
+
+const dropdownHeader = (header: string) =>
+    <> 
+        <img src={dropdownImg} style={{height: 15, width: 15}}/>
+        {header}
+    </>

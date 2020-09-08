@@ -1,15 +1,26 @@
 import * as React from "react";
-import { InfiniteLoader, List, IndexRange, Index, ListRowProps } from "react-virtualized";
+import * as ReactDOM from "react-dom";
+import { InfiniteLoader, List, IndexRange, Index, ListRowProps, AutoSizer } from "react-virtualized";
 import { LogEntry, sampleLogEntry } from "../backend/types";
 import * as util from "../backend/util";
 import axios from "axios";
 import { EntryButton, LoadingEntry } from "./entry";
-import "./Table.css"
+import { debug } from "console";
 
 export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}) => {
     let entries = new Array<LogEntry>();
 
+
     const isRowLoaded = ({index}: Index) => entries[index] !== undefined;
+
+    const tidyEntry = (entry: any) => ({
+        ...entry, 
+        date: new Date(util.before(entry.date, ",")),
+        body: {
+            ...entry.body,
+            object: JSON.parse(entry.body.object)
+        }
+    })
 
     // [startIndex, stopIndex)
     const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
@@ -19,24 +30,15 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
             components: props.filepath.replace(/\\/g, "/").split("/")
         }))
         .data.entries
-        .map((entry: any) => ({
-            ...entry, 
-            date: new Date(util.before(entry.date, ","))
-        }))
+        .map(tidyEntry)
 
         entries = util.placeAt(entries, newEntries, startIndex);
     }
 
-    const rowRenderer = ({key, index, style}: ListRowProps) => {
-        const content = isRowLoaded({index}) ? 
-            <EntryButton entry={entries[index]} key={key} /> :
-            <LoadingEntry key={key} />
-        return (
-            <div key = {key} style = {style}>
-                {content}
-            </div>
-        )
-    }
+    const rowRenderer = ({key, index, style}: ListRowProps) =>
+        isRowLoaded({index}) ? 
+        <EntryButton key={key} entry={entries[index]}/> : 
+        <LoadingEntry key={key} />
 
     return (
         <InfiniteLoader
@@ -44,17 +46,22 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
             loadMoreRows = {loadMoreRows}
             rowCount = {props.amountOfEntries}
         >
-            {({ onRowsRendered, registerChild }) => (
-                <List
-                    height={1000}
-                    onRowsRendered={onRowsRendered}
-                    ref={registerChild}
-                    rowCount={props.amountOfEntries}
-                    rowHeight={120}
-                    rowRenderer={rowRenderer}
-                    width={2000}
-                />
-            )}
+            {({ onRowsRendered, registerChild }) =>
+                <AutoSizer>
+                    {({width, height}) => 
+                        <List
+                            style={{background: "blue"}}
+                            height={height}
+                            width={width}
+                            onRowsRendered={onRowsRendered}
+                            ref={registerChild}
+                            rowCount={props.amountOfEntries}
+                            rowRenderer={rowRenderer}
+                            rowHeight={1 + height / props.amountOfEntries}
+                        />
+                    }
+                </AutoSizer>
+            }
         </InfiniteLoader>
     )
 }

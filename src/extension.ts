@@ -70,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (logViewPanel == undefined) logViewPanel = createLogViewPanel(context);
 		logViewPanel.webview.html = getReactPanelContent('logviewer', context);
     
-		const filepath: PathLike = path.join(context.extensionPath, "smalllog.log");
+		const filepath: PathLike = path.join(context.extensionPath, "hugelog.log");
 		
 		reader.countEntriesInFile(filepath).then(amount => {
 			logViewPanel?.webview.postMessage(<WindowMessage> {
@@ -80,6 +80,36 @@ export async function activate(context: vscode.ExtensionContext) {
 			})
 		});
 	});
+<<<<<<< HEAD
+=======
+
+	vscode.window.registerTreeDataProvider('cordaSamples', cordaSamplesProvider);
+
+}
+
+export const getReactPanelContent = (panel: string, context: vscode.ExtensionContext) => {
+	let title: string, subPath: string;
+	if (panel == 'logviewer') {
+		title = "Corda Log Viewer";
+		subPath = "out/logviewer/frontend/";
+	} else {
+		title = "Corda Node Explorer";
+		subPath = "out/nodeexplorer/";
+	}
+
+	return	`<!DOCTYPE html>
+		<html lang="en"> 
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>${title}</title>
+		</head>
+		<body>
+			<div id="root"></div>
+			${loadScript(context,path.normalize(subPath) + 'index' + '.js')}
+		</body>
+		</html>`
+>>>>>>> b0f5e85... Generated object tidied up with dropdowns. Filtering doesnt work
 }
 
 
