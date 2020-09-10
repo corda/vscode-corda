@@ -1,29 +1,21 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { InfiniteLoader, List, IndexRange, Index, ListRowProps, AutoSizer } from "react-virtualized";
+import InfiniteLoader from "react-window-infinite-loader";
+import { VariableSizeList as List } from "react-window";
 import { LogEntry, sampleLogEntry } from "../backend/types";
 import * as util from "../backend/util";
 import axios from "axios";
 import { EntryButton, LoadingEntry } from "./entry";
-import { debug } from "console";
 
-export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}) => {
+type filterType = (entry: LogEntry) => boolean;
+
+export const EntriesLoader = (props: {filepath: string, amountOfEntries: number, filterBy: filterType}) => {
     let entries = new Array<LogEntry>();
 
-
-    const isRowLoaded = ({index}: Index) => entries[index] !== undefined;
-
-    const tidyEntry = (entry: any) => ({
-        ...entry, 
-        date: new Date(util.before(entry.date, ",")),
-        body: {
-            ...entry.body,
-            object: JSON.parse(entry.body.object)
-        }
-    })
+    const isItemLoaded = (index: number) => entries[index] !== undefined;
 
     // [startIndex, stopIndex)
-    const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
+    const loadMoreItems = async (startIndex: number, stopIndex: number) => {
         const newEntries = (await axios.post("http://localhost:8580/logReader/read", {
             startIndex,
             stopIndex,
@@ -35,33 +27,29 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}
         entries = util.placeAt(entries, newEntries, startIndex);
     }
 
-    const rowRenderer = ({key, index, style}: ListRowProps) =>
-        isRowLoaded({index}) ? 
-        <EntryButton key={key} entry={entries[index]}/> : 
-        <LoadingEntry key={key} />
+    const Row = ({index, style}) =>
+        isItemLoaded(index) ? 
+            <EntryButton entry={entries[index]} key={index}/> :
+            <LoadingEntry key={index}/>
 
     return (
         <InfiniteLoader
-            isRowLoaded = {isRowLoaded}
-            loadMoreRows = {loadMoreRows}
-            rowCount = {props.amountOfEntries}
+            isItemLoaded = {isItemLoaded}
+            loadMoreItems = {loadMoreItems}
+            itemCount = {props.amountOfEntries}
         >
-            {({ onRowsRendered, registerChild }) =>
-                <AutoSizer>
-                    {({width, height}) => 
-                        <List
-                            style={{background: "blue"}}
-                            height={height}
-                            width={width}
-                            onRowsRendered={onRowsRendered}
-                            ref={registerChild}
-                            rowCount={props.amountOfEntries}
-                            rowRenderer={rowRenderer}
-                            rowHeight={1 + height / props.amountOfEntries}
-                        />
-                    }
-                </AutoSizer>
-            }
+            {({ onItemsRendered, ref }) => (
+                <List
+                    onItemsRendered={onItemsRendered}
+                    ref={ref}
+                    height={600}
+                    itemCount={props.amountOfEntries}
+                    itemSize={(index: number) => index % 2 === 0 ? 50 : 100}
+                    width={300}
+                >
+                    {Row}
+                </List>
+            )}
         </InfiniteLoader>
     )
 }
