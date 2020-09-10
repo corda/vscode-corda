@@ -2,8 +2,8 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { MessageType, WindowMessage } from "./logviewer/backend/types";
-import * as reader from "./logviewer/backend/reader";
+import { MessageType, WindowMessage } from "./logviewer/frontend/types";
+import * as request from "./logviewer/frontend/request";
 import { PathLike } from "fs";
 
 import { CordaOperationsProvider } from './treeDataProviders/cordaOperations';
@@ -30,6 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Panels for Tools views
 	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
+	let serverLaunched = false;
 
 	// Corda TreeDataProviders
 	const cordaOperationsProvider = new CordaOperationsProvider();
@@ -70,46 +71,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (logViewPanel == undefined) logViewPanel = createLogViewPanel(context);
 		logViewPanel.webview.html = getReactPanelContent('logviewer', context);
     
-		const filepath: PathLike = path.join(context.extensionPath, "hugelog.log");
+		const filepath = path.join(context.extensionPath, "hugelog.log");
 		
-		reader.countEntriesInFile(filepath).then(amount => {
-			logViewPanel?.webview.postMessage(<WindowMessage> {
+		request.countEntries(filepath).then(count => {
+			logViewPanel?.webview.postMessage({
 				messageType: MessageType.NEW_LOG_ENTRIES,
 				filepath,
-				amount
-			})
-		});
+				entriesCount: count
+			} as WindowMessage)
+		})
 	});
-<<<<<<< HEAD
-=======
-
-	vscode.window.registerTreeDataProvider('cordaSamples', cordaSamplesProvider);
-
-}
-
-export const getReactPanelContent = (panel: string, context: vscode.ExtensionContext) => {
-	let title: string, subPath: string;
-	if (panel == 'logviewer') {
-		title = "Corda Log Viewer";
-		subPath = "out/logviewer/frontend/";
-	} else {
-		title = "Corda Node Explorer";
-		subPath = "out/nodeexplorer/";
-	}
-
-	return	`<!DOCTYPE html>
-		<html lang="en"> 
-		<head>
-			<meta charset="UTF-8">
-			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>${title}</title>
-		</head>
-		<body>
-			<div id="root"></div>
-			${loadScript(context,path.normalize(subPath) + 'index' + '.js')}
-		</body>
-		</html>`
->>>>>>> b0f5e85... Generated object tidied up with dropdowns. Filtering doesnt work
 }
 
 

@@ -1,37 +1,29 @@
 import * as React from "react";
 import { InfiniteLoader, List, IndexRange, ListRowProps, AutoSizer } from "react-virtualized";
-import { LogEntry } from "../backend/types";
-import * as util from "../backend/util";
-import axios from "axios";
+import { LogEntry } from "./types";
+import * as util from "./util";
+import { entriesBetween } from "./request";
 import { EntryButton, LoadingEntry } from "./entry";
 
-type filterType = (entry: LogEntry) => boolean;
+export interface entriesLoaderProps {
+    filepath: string, 
+    amountOfEntries: number, 
+    filterBy: (entry: LogEntry) => boolean
+}
 
-export const EntriesLoader = (props: {filepath: string, amountOfEntries: number, filterBy: filterType}) => {
+export const EntriesLoader = (props: entriesLoaderProps) => {
     let entries = new Array<LogEntry>();
 
     const isRowLoaded = (index: number) => entries[index] !== undefined;
 
-    const tidyEntry = (entry: any) => ({
-        ...entry, 
-        date: new Date(util.before(entry.date, ",")),
-        body: {
-            ...entry.body,
-            object: JSON.parse(entry.body.object)
-        }
-    })
-
-    // [startIndex, stopIndex)
-    const loadMoreRows = async (startIndex: number, stopIndex: number) => {
-        const newEntries = (await axios.post("http://localhost:8580/logReader/read", {
-            startIndex,
-            stopIndex,
-            components: props.filepath.replace(/\\/g, "/").split("/")
-        }))
-        .data.entries
-        .map(tidyEntry)
-
-        entries = util.placeAt(entries, newEntries, startIndex);
+    
+    /** `[startIndex, stopIndex)` */
+    const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
+        entries = util.placeAt(
+            entries, 
+            await entriesBetween(startIndex, stopIndex, props.filepath), 
+            startIndex
+        );
     }
 
     const rowRenderer = ({key, index, style}: ListRowProps) => {
@@ -62,7 +54,7 @@ export const EntriesLoader = (props: {filepath: string, amountOfEntries: number,
                             ref={registerChild}
                             rowCount={props.amountOfEntries}
                             rowRenderer={rowRenderer}
-                            rowHeight={1 + height / props.amountOfEntries}
+                            rowHeight={30}
                         />
                     }
                 </AutoSizer>

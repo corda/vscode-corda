@@ -45,5 +45,5 @@ export enum MessageType {
 export interface WindowMessage {
     messageType: MessageType,
     filepath: string,
-    amount: number
+    entriesCount: number
 }

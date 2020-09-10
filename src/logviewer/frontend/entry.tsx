@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { LogEntry } from '../backend/types';
+import { LogEntry } from './types';
 import Collapsible from "react-collapsible";
 import dropdownImg from "../../../media/dropdown.png"; 
-import { isEmptyObject } from "../backend/util"
+import { isEmptyObject } from "./util"
 import { Col } from 'react-bootstrap';
 
 export const EntryButton = (props: {entry: LogEntry, key: any}) =>
