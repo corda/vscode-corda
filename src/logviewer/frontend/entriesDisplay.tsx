@@ -1,7 +1,7 @@
 import React from "react";
 import { LogEntry } from "./types";
 
-import {EntriesLoader, entriesLoaderProps} from "./entriesLoader";
+import { EntriesLoader } from "./entriesLoader";
 
 export const EntriesDisplay = (props: {filepath: string, amountOfEntries: number}) => {
     type filterType = {
@@ -15,7 +15,6 @@ export const EntriesDisplay = (props: {filepath: string, amountOfEntries: number
     
     return (
         <>
-            <br/>
             <EntriesLoader 
                 filepath={props.filepath}
                 amountOfEntries={props.amountOfEntries}

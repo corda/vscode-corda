@@ -30,7 +30,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Panels for Tools views
 	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
-	let serverLaunched = false;
 
 	// Corda TreeDataProviders
 	const cordaOperationsProvider = new CordaOperationsProvider();
@@ -73,6 +72,8 @@ export async function activate(context: vscode.ExtensionContext) {
     
 		const filepath = path.join(context.extensionPath, "hugelog.log");
 		
+		request.entriesBetween(0, 5, filepath).then(entries => console.log("from server #0:", entries[0]));
+
 		request.countEntries(filepath).then(count => {
 			logViewPanel?.webview.postMessage({
 				messageType: MessageType.NEW_LOG_ENTRIES,
@@ -85,3 +86,22 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 export const deactivate = () => {};
+
+const findTerminal = (termName: string) => {
+	const terminals = vscode.window.terminals.filter(t => t.name == termName);
+	return terminals.length !== 0 ? terminals[0] : undefined;
+}
+
+const launchServer = () => {
+    const termName = "Node Client Server";
+    if (findTerminal(termName) === undefined) {
+        const terminal = vscode.window.createTerminal(termName);
+        const jarPath = vscode.extensions.getExtension("R3.vscode-corda")?.extensionPath;
+        terminal.sendText(`cd ${jarPath}`);
+        terminal.sendText(`java -jar explorer-server-0.1.0.jar`);
+        console.log("Client launched successfully!");
+    } 
+    else {
+        console.log("Client already up");
+    }
+}

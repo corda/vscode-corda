@@ -1,8 +1,8 @@
 import * as React from "react";
 import { InfiniteLoader, List, IndexRange, ListRowProps, AutoSizer } from "react-virtualized";
-import { LogEntry } from "./types";
+import { LogEntry, sampleLogEntry } from "./types";
 import * as util from "./util";
-import { entriesBetween } from "./request";
+import * as request from "./request";
 import { EntryButton, LoadingEntry } from "./entry";
 
 export interface entriesLoaderProps {
@@ -14,14 +14,14 @@ export interface entriesLoaderProps {
 export const EntriesLoader = (props: entriesLoaderProps) => {
     let entries = new Array<LogEntry>();
 
-    const isRowLoaded = (index: number) => entries[index] !== undefined;
+    const isRowLoaded = (index: number) => !!entries[index];
 
     
     /** `[startIndex, stopIndex)` */
     const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
         entries = util.placeAt(
             entries, 
-            await entriesBetween(startIndex, stopIndex, props.filepath), 
+            await request.entriesBetween(startIndex, stopIndex, props.filepath), 
             startIndex
         );
     }

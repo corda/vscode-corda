@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { WindowMessage, MessageType, LogEntry } from './types';
 import { EntriesDisplay } from "./entriesDisplay";
+import { EntriesLoader } from './entriesLoader';
 
 window.addEventListener("message", event => {
     const message = event.data as WindowMessage;
@@ -9,9 +10,10 @@ window.addEventListener("message", event => {
         case MessageType.NEW_LOG_ENTRIES:
             ReactDOM.render( 
                 <div style={{height: 600}}>
-                    <EntriesDisplay 
+                    <EntriesLoader 
                         filepath={message.filepath} 
-                        amountOfEntries={message.entriesCount} 
+                        amountOfEntries={600} 
+                        filterBy={(entry: LogEntry) => true}
                     />
                 </div>,
                 document.getElementById('root')

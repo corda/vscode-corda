@@ -2,8 +2,6 @@ import * as React from 'react';
 import { LogEntry } from './types';
 import Collapsible from "react-collapsible";
 import dropdownImg from "../../../media/dropdown.png"; 
-import { isEmptyObject } from "./util"
-import { Col } from 'react-bootstrap';
 
 export const EntryButton = (props: {entry: LogEntry, key: any}) =>
     <Collapsible 
@@ -31,12 +29,9 @@ const makeCollapsible = (name: string, object: any) => {
     if (childNames.length === 1) 
         return <p> {childNames[0]}: {object[childNames[0]]} </p>;
     
-    return (
-        <Collapsible trigger={dropdownHeader(name)} key={name} className={"Collapsible"}>
+    return <Collapsible trigger={dropdownHeader(name)} key={name} className={"Collapsible"}>
             {childNames.map(childName => makeCollapsible(childName, object[childName]))}
         </Collapsible>
-    );
-
 }
 
 const dropdownHeader = (header: string) =>
