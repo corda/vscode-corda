@@ -3,7 +3,7 @@ import { ClassSig } from './typeParsing';
 
 export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> {
 	
-	constructor(private  contractStates: ClassSig[]) {}
+	constructor(private contractStateFiles: ClassSig[]) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaState | undefined | void> = new vscode.EventEmitter<CordaState | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaState | undefined | void>;
@@ -13,10 +13,10 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 	}
 	getChildren(element?: CordaState): Thenable<CordaState[]> {
 		if (!element) {
-			let states: CordaState[] = this.contractStates.map(sig => {
+			let contractStates: CordaState[] = this.contractStateFiles.map(sig => {
 				return new CordaState(sig.name, vscode.TreeItemCollapsibleState.None);
 			});
-			return Promise.resolve(states);
+			return Promise.resolve(contractStates);
 		} else {
 			return Promise.resolve([]);
 		}

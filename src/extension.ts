@@ -15,7 +15,7 @@ import { CordaStatesProvider } from './cordaStates';
 import { CordaToolsProvider } from './cordaTools';
 import { CordaSamplesProvider } from './cordaSamples';
 
-import { ClassTypeVisitor, ClassSig, extractContractStates } from './typeParsing';
+import { ClassTypeVisitor, ClassSig, extractTypes } from './typeParsing';
 
 
 const testParse = async (context: vscode.ExtensionContext) => {
@@ -38,17 +38,13 @@ const testParse = async (context: vscode.ExtensionContext) => {
 		ctVisitor.visit(cst);
 	}
 
-	let contractStateClasses = extractContractStates(ctVisitor);
-
-	return contractStateClasses;
-	
-
-	// console.log("stop");
+	// let contractStateClasses = extractContractStates(ctVisitor);
+	return extractTypes(ctVisitor);	
 
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-	let contractStates = await testParse(context);
+	let {contractStateTypes, contractTypes, flowTypes} = await testParse(context); // destructure
 
 	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
@@ -58,8 +54,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	const cordaOperationsProvider = new CordaOperationsProvider();
 	const cordaDepProvider = new CordaDepProvider();
 	const cordaFlowsProvider = new CordaFlowsProvider();
-	const cordaContractsProvider = new CordaContractsProvider();
-	const cordaStatesProvider = new CordaStatesProvider(contractStates);
+	const cordaContractsProvider = new CordaContractsProvider(contractTypes);
+	const cordaStatesProvider = new CordaStatesProvider(contractStateTypes);
 	const cordaToolsProvider = new CordaToolsProvider();
 	const cordaSamplesProvider = new CordaSamplesProvider();
 

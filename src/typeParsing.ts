@@ -3,6 +3,7 @@ const {
   BaseJavaCstVisitorWithDefaults
 } = require("java-parser");
 
+// represents a class signature from a .java
 export class ClassSig {
   name : any;
   superClass: any;
@@ -14,6 +15,7 @@ export class ClassSig {
   }
 }
 
+// represents an interface signature from a .java
 export class InterfaceSig {
   name: any;
   superInterface: any;
@@ -23,6 +25,7 @@ export class InterfaceSig {
   }
 }
 
+// visitor for CST tree traversal
 export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   constructor() {
       super();
@@ -57,7 +60,6 @@ export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   }
 
   superclass(ctx: any) {
-      // return ctx.classType[0].children.Identifier[0].image;
       return this.visit(ctx.classType);
   }
 
@@ -86,24 +88,54 @@ export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   }
 }
 
-export const extractContractStates = (ctVisitor: ClassTypeVisitor) => {
-    let contractStateInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
-    let csInterfaceSigs = contractStateInterfaces.map(itr => { return new InterfaceSig(itr, undefined); });
+// extracts ContractStates, Contracts, and Flows from visitor results
+export const extractTypes = (ctVisitor: ClassTypeVisitor) => {
+    const contractStateBaseInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
+    const contractBaseInterface = ['Contract'];
+    const contractStateInterfaceSigs = contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, undefined); });
+    const contractInterfaceSig = contractBaseInterface.map(itr => { return new InterfaceSig(itr, undefined); });
 
+    // ContractState
+    const contractStatesData = extractTypesFromBase(contractStateInterfaceSigs, { interfaceSigs: ctVisitor.interfaceSigs,  classSigs: ctVisitor.classSigs });
 
-	// all interfaces which are derived from ContractState
-    let interfaces = findCSChildTypes(csInterfaceSigs, ctVisitor.interfaceSigs);
-    csInterfaceSigs = csInterfaceSigs.concat(interfaces);
+    // Contract
+    const contractsData = extractTypesFromBase(contractInterfaceSig, { interfaceSigs: contractStatesData.remainingInterfaceSigs,  classSigs: contractStatesData.remainingClassSigs })
 
-    // all classes derived from all interfaces
-    let  states = findCSChildTypes(csInterfaceSigs, ctVisitor.classSigs);
-    let remainingClassSigs = ctVisitor.classSigs.filter(sigs => {return !states.includes(sigs)});
-
-    // all classes derived from all classes
-    return states.concat(findCSChildTypes(states, remainingClassSigs));
+    // Flows
+    const flowsData = [];
+    return {contractStateTypes: contractStatesData.baseTypeClasses, contractTypes: contractsData.baseTypeClasses, flowTypes: flowsData};
 }
 
-const findCSChildTypes = (typesToMatch, typeSigs) => {
+const extractTypesFromBase = (targetSigs: any, {interfaceSigs, classSigs}:{interfaceSigs: InterfaceSig[], classSigs: ClassSig[]}) => {
+    
+    let baseTypeClasses: any;
+    let remainingInterfaceSigs: InterfaceSig[];
+    let remainingClassSigs: ClassSig[];
+
+    if (targetSigs[0] instanceof InterfaceSig) {
+        let interfaces:InterfaceSig[] = [];
+        // all interfaces which are derived from baseType (if applicable)
+        interfaces = findChildTypes(targetSigs, interfaceSigs);
+        targetSigs = targetSigs.concat(interfaces);
+        remainingInterfaceSigs = interfaceSigs.filter(sigs => {return !interfaces.includes(sigs)});
+
+        // all classes derived from baseType interfaces (if applicable)
+        baseTypeClasses = findChildTypes(targetSigs, classSigs);
+        remainingClassSigs = classSigs.filter(sigs => {return !baseTypeClasses.includes(sigs)});
+    } else {  // flows derive ONLY from class extension
+        baseTypeClasses = targetSigs;
+        remainingInterfaceSigs = [];
+        remainingClassSigs = classSigs;
+    }
+    
+    // all classes derived from another class
+    baseTypeClasses = baseTypeClasses.concat(findChildTypes(baseTypeClasses, remainingClassSigs));
+    remainingClassSigs = remainingClassSigs.filter(sigs => {return !baseTypeClasses.includes(sigs)});
+
+    return { baseTypeClasses, remainingInterfaceSigs, remainingClassSigs };
+}
+
+const findChildTypes = (typesToMatch, typeSigs) => {
     if (typesToMatch.length == 0) return []; // base case
 
     let foundTypes: any = [];
@@ -139,7 +171,7 @@ const findCSChildTypes = (typesToMatch, typeSigs) => {
         const remainingSigs = typeSigs.filter((sig: any) => { return !foundTypes.includes(sig) });
         // Sig to InterfaceName
         // let foundTypesNames = foundTypes.map(inter => inter.name);
-        return foundTypes.concat(findCSChildTypes(foundTypes, remainingSigs));
+        return foundTypes.concat(findChildTypes(foundTypes, remainingSigs));
     }
 
     return foundTypes;
