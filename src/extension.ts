@@ -15,7 +15,41 @@ import { CordaStatesProvider } from './cordaStates';
 import { CordaToolsProvider } from './cordaTools';
 import { CordaSamplesProvider } from './cordaSamples';
 
-export function activate(context: vscode.ExtensionContext) {
+import { ClassTypeVisitor, ClassSig, extractContractStates } from './typeParsing';
+
+
+const testParse = async (context: vscode.ExtensionContext) => {
+	
+	var { parse } = require("java-parser");
+
+	const localJavaFiles: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
+	const ctVisitor: ClassTypeVisitor = new ClassTypeVisitor();
+
+	interface fileSig {
+		fileURI: vscode.Uri,
+		classSigs: ClassSig[]
+	}
+
+	// visit all files and parse to prospect objects which have inheritance
+	for (let i = 0; i < localJavaFiles.length; i++) {
+		let file = await vscode.workspace.fs.readFile(localJavaFiles[i]);
+		console.log(file.toString());
+		let cst = parse(file.toString());
+		ctVisitor.visit(cst);
+	}
+
+	let contractStateClasses = extractContractStates(ctVisitor);
+
+	return contractStateClasses;
+	
+
+	// console.log("stop");
+
+}
+
+export async function activate(context: vscode.ExtensionContext) {
+	let contractStates = await testParse(context);
+
 	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
 
@@ -25,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const cordaDepProvider = new CordaDepProvider();
 	const cordaFlowsProvider = new CordaFlowsProvider();
 	const cordaContractsProvider = new CordaContractsProvider();
-	const cordaStatesProvider = new CordaStatesProvider();
+	const cordaStatesProvider = new CordaStatesProvider(contractStates);
 	const cordaToolsProvider = new CordaToolsProvider();
 	const cordaSamplesProvider = new CordaSamplesProvider();
 

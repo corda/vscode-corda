@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
+import { ClassSig } from './typeParsing';
 
 export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> {
 	
+	constructor(private  contractStates: ClassSig[]) {}
+
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaState | undefined | void> = new vscode.EventEmitter<CordaState | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaState | undefined | void>;
 	
@@ -9,7 +12,14 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 		return element;
 	}
 	getChildren(element?: CordaState): Thenable<CordaState[]> {
-		return Promise.resolve([new CordaState("States here - placeholder", vscode.TreeItemCollapsibleState.None)]);
+		if (!element) {
+			let states: CordaState[] = this.contractStates.map(sig => {
+				return new CordaState(sig.name, vscode.TreeItemCollapsibleState.None);
+			});
+			return Promise.resolve(states);
+		} else {
+			return Promise.resolve([]);
+		}
 	}
 	
 	refresh(): void {
