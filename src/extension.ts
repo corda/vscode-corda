@@ -53,7 +53,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const cordaTemplatesProvider = new CordaTemplatesProvider();
 	const cordaOperationsProvider = new CordaOperationsProvider();
 	const cordaDepProvider = new CordaDepProvider();
-	const cordaFlowsProvider = new CordaFlowsProvider();
+	const cordaFlowsProvider = new CordaFlowsProvider(flowTypes);
 	const cordaContractsProvider = new CordaContractsProvider(contractTypes);
 	const cordaStatesProvider = new CordaStatesProvider(contractStateTypes);
 	const cordaToolsProvider = new CordaToolsProvider();

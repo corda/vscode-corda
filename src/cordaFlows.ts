@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
+import { ClassSig } from './typeParsing';
 
 export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	
+	constructor(private flowFiles: ClassSig[]) {}
+
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaFlow | undefined | void> = new vscode.EventEmitter<CordaFlow | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaFlow | undefined | void>;
 	
@@ -9,8 +12,14 @@ export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 		return element;
 	}
 	getChildren(element?: CordaFlow): Thenable<CordaFlow[]> {
-		return Promise.resolve([new CordaFlow("Flows here - placeholder", vscode.TreeItemCollapsibleState.None)]);
-	}
+		if (!element) {
+			let flows: CordaFlow[] = this.flowFiles.map(sig => {
+				return new CordaFlow(sig.name, vscode.TreeItemCollapsibleState.None);
+			});
+			return Promise.resolve(flows);
+		} else {
+			return Promise.resolve([]);
+		}	}
 	
 	refresh(): void {
 		this._onDidChangeTreeData.fire();
