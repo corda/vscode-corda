@@ -114,6 +114,21 @@
 				"command": "cordaStates.add",
 				"title": "Add",
 				"icon": "$(add)"
+			},
+			{
+				"command": "cordaFlows.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "cordaContracts.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "cordaStates.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
 			}
 		],
 		"menus": {

@@ -6,7 +6,7 @@ export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	constructor(private flowFiles: ClassSig[]) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaFlow | undefined | void> = new vscode.EventEmitter<CordaFlow | undefined | void>();
-	readonly onDidChangeTreeData?: vscode.Event<CordaFlow | undefined | void>;
+	readonly onDidChangeTreeData?: vscode.Event<CordaFlow | undefined | void> = this._onDidChangeTreeData.event;
 	
 	getTreeItem(element: CordaFlow): vscode.TreeItem {
 		return element;
@@ -29,7 +29,8 @@ export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 			return Promise.resolve([]);
 		}	}
 	
-	refresh(): void {
+	refresh(classSig: ClassSig): void {
+		(classSig) ? this.flowFiles.push(classSig) : '';
 		this._onDidChangeTreeData.fire();
 	}
 }

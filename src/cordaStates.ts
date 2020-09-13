@@ -6,7 +6,7 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 	constructor(private contractStateFiles: ClassSig[]) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaState | undefined | void> = new vscode.EventEmitter<CordaState | undefined | void>();
-	readonly onDidChangeTreeData?: vscode.Event<CordaState | undefined | void>;
+	readonly onDidChangeTreeData?: vscode.Event<CordaState | undefined | void> = this._onDidChangeTreeData.event;
 	
 	getTreeItem(element: CordaState): vscode.TreeItem {
 		return element;
@@ -30,7 +30,8 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 		}
 	}
 	
-	refresh(): void {
+	refresh(classSig: ClassSig): void {
+		(classSig) ? this.contractStateFiles.push(classSig) : '';
 		this._onDidChangeTreeData.fire();
 	}
 }
@@ -40,7 +41,7 @@ export class CordaState extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		private readonly classSig: ClassSig,
+		private readonly classSig: ClassSig | undefined,
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);

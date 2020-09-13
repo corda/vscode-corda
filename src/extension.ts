@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { MessageType, WindowMessage } from "./logviewer/backend/types";
 import * as reader from "./logviewer/backend/reader";
-import { PathLike, writeFileSync } from "fs";
+import { PathLike } from "fs";
+import Axios, * as axios from 'axios';
 
 import { CordaTemplatesProvider } from './cordaTemplates';
 import { CordaOperationsProvider } from './cordaOperations';
@@ -15,7 +16,7 @@ import { CordaStatesProvider } from './cordaStates';
 import { CordaToolsProvider } from './cordaTools';
 import { CordaSamplesProvider } from './cordaSamples';
 
-import { parseJavaFiles } from './typeParsing';
+import { ClassSig, parseJavaFiles } from './typeParsing';
 
 export async function activate(context: vscode.ExtensionContext) {
 	let {contractStateTypes, contractTypes, flowTypes} = await parseJavaFiles(context); // destructure
@@ -46,11 +47,51 @@ export async function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('cordaFlows', cordaFlowsProvider);
 	vscode.window.registerTreeDataProvider('cordaContracts', cordaContractsProvider);
 	vscode.window.registerTreeDataProvider('cordaStates', cordaStatesProvider);
+	
+	vscode.commands.registerCommand('cordaFlows.add', () => {
+	
+		const qpickItems = ['FlowLogic'];
+		const qpickPlaceHolder = 'Choose a parent flow class';
+		const inputPlaceHolder = 'Enter the name of the flow';
+		const commandSource = 'cordaFlows';
+		const sourceMap = {'FlowLogic':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseFlow.java'};
+
+		addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+	});
+
+	vscode.commands.registerCommand('cordaContracts.add', () => {
+	
+		const qpickItems = ['Contract'];
+		const qpickPlaceHolder = 'Choose a parent contract class';
+		const inputPlaceHolder = 'Enter the name of the contract';
+		const commandSource = 'cordaContracts';
+		const sourceMap = {'Contract':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContract.java'};
+
+		addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+	});
+	
+	vscode.commands.registerCommand('cordaStates.add', async () => {
+		const qpickItems = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
+		const qpickPlaceHolder = 'Choose a parent state class';
+		const inputPlaceHolder = 'Enter the name of the state';
+		const commandSource = 'cordaStates';
+		const sourceMap = {'ContractState':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContractState.java'};
+
+		addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+	});
+
+
+
 	vscode.commands.registerCommand('corda.openFile', (uri) => {
 		vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
 			vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
 		})
 	});
+
+	vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig));
+	vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig));
+	vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig));
+
 
 	vscode.window.registerTreeDataProvider('cordaTools', cordaToolsProvider);
 	vscode.commands.registerCommand('corda.nodeExplorerCommand', (panelDesc) => vscode.window.showInformationMessage(panelDesc));
@@ -74,7 +115,32 @@ export async function activate(context: vscode.ExtensionContext) {
 
 }
 
-export const getReactPanelContent = (panel: string, context: vscode.ExtensionContext) => {
+const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap) => {
+	let result: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}});
+	let stateBase = await vscode.window.showQuickPick(qpickItems,
+	{
+		placeHolder: qpickPlaceHolder
+	});
+	let fileName = await vscode.window.showInputBox({
+		placeHolder: inputPlaceHolder,
+		validateInput: text => {
+			return undefined;
+			// must start with capital
+			// must have valid chars
+			// if not .java, append suffix.
+		}
+	}).then(name => { return (name?.includes('.java') ? name : name + '.java') }); // append .java if needed
+
+	// check stateBase / http mapping to fetch correct template
+	const stateBaseText = await Axios.get(sourceMap[stateBase!]);
+	const fileUri = vscode.Uri.joinPath(result?.pop()!, fileName!);
+	var uint8array = new TextEncoder().encode(stateBaseText.data);
+	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(
+		() => vscode.commands.executeCommand(commandSource + '.refresh', new ClassSig(fileName.replace('.java',''), '', [stateBase!], fileUri))
+	);
+}
+
+const getReactPanelContent = (panel: string, context: vscode.ExtensionContext) => {
 	let title: string, subPath: string;
 	if (panel == 'logviewer') {
 		title = "Corda Log Viewer";

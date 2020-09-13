@@ -6,7 +6,7 @@ export class CordaContractsProvider implements vscode.TreeDataProvider<CordaCont
 	constructor(private contractFiles: ClassSig[]) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaContract | undefined | void> = new vscode.EventEmitter<CordaContract | undefined | void>();
-	readonly onDidChangeTreeData?: vscode.Event<CordaContract | undefined | void>;
+	readonly onDidChangeTreeData?: vscode.Event<CordaContract | undefined | void> = this._onDidChangeTreeData.event;
 	
 	getTreeItem(element: CordaContract): vscode.TreeItem {
 		return element;
@@ -29,7 +29,8 @@ export class CordaContractsProvider implements vscode.TreeDataProvider<CordaCont
 			return Promise.resolve([]);
 		}	}
 	
-	refresh(): void {
+	refresh(classSig: ClassSig): void {
+		(classSig) ? this.contractFiles.push(classSig) : '';
 		this._onDidChangeTreeData.fire();
 	}
 }
