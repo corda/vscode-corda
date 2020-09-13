@@ -15,31 +15,10 @@ import { CordaStatesProvider } from './cordaStates';
 import { CordaToolsProvider } from './cordaTools';
 import { CordaSamplesProvider } from './cordaSamples';
 
-import { ClassTypeVisitor, extractTypes } from './typeParsing';
-
-const testParse = async (context: vscode.ExtensionContext) => {
-	
-	var { parse } = require("java-parser");
-
-	const localJavaFiles: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
-	const ctVisitor: ClassTypeVisitor = new ClassTypeVisitor();
-
-	// visit all files and parse to prospect objects which have inheritance
-	for (let i = 0; i < localJavaFiles.length; i++) {
-		const fileUri = localJavaFiles[i];
-		const uInt8file = await vscode.workspace.fs.readFile(fileUri);
-		let cst = parse(uInt8file.toString());
-		ctVisitor.setWorkingFile(fileUri);
-		ctVisitor.visit(cst);
-	}
-
-	// let contractStateClasses = extractContractStates(ctVisitor);
-	return extractTypes(ctVisitor);	
-
-}
+import { parseJavaFiles } from './typeParsing';
 
 export async function activate(context: vscode.ExtensionContext) {
-	let {contractStateTypes, contractTypes, flowTypes} = await testParse(context); // destructure
+	let {contractStateTypes, contractTypes, flowTypes} = await parseJavaFiles(context); // destructure
 
 	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;

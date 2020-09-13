@@ -1,8 +1,10 @@
-import { Uri } from 'vscode';
+import { Uri, ExtensionContext, workspace } from 'vscode';
 const { 
   parse,
   BaseJavaCstVisitorWithDefaults
 } = require("java-parser");
+
+// STRUCTURES ======
 
 // represents a class signature from a .java
 export class ClassSig {
@@ -31,7 +33,7 @@ export class InterfaceSig {
 }
 
 // visitor for CST tree traversal
-export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
+class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   constructor() {
       super();
       this.workingFile = undefined; // store file URI for a particular visit
@@ -98,8 +100,30 @@ export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   }
 }
 
+// FUNCTIONS ===========
+
+export const parseJavaFiles = async (context: ExtensionContext) => {
+	
+	var { parse } = require("java-parser");
+
+	const localJavaFiles: Uri[] = await workspace.findFiles('**/*.java');
+	const ctVisitor: ClassTypeVisitor = new ClassTypeVisitor();
+
+	// visit all files and parse to prospect objects which have inheritance
+	for (let i = 0; i < localJavaFiles.length; i++) {
+		const fileUri = localJavaFiles[i];
+		const uInt8file = await workspace.fs.readFile(fileUri);
+		let cst = parse(uInt8file.toString());
+		ctVisitor.setWorkingFile(fileUri);
+		ctVisitor.visit(cst);
+	}
+
+	return extractTypes(ctVisitor);	
+
+}
+
 // extracts ContractStates, Contracts, and Flows from visitor results
-export const extractTypes = (ctVisitor: ClassTypeVisitor) => {
+const extractTypes = (ctVisitor: ClassTypeVisitor) => {
     const contractStateBaseInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
     const contractBaseInterface = ['Contract'];
     const flowBaseClassSig = [new ClassSig('FlowLogic', '', [], undefined)];
