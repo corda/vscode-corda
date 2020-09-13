@@ -15,8 +15,7 @@ import { CordaStatesProvider } from './cordaStates';
 import { CordaToolsProvider } from './cordaTools';
 import { CordaSamplesProvider } from './cordaSamples';
 
-import { ClassTypeVisitor, ClassSig, extractTypes } from './typeParsing';
-
+import { ClassTypeVisitor, extractTypes } from './typeParsing';
 
 const testParse = async (context: vscode.ExtensionContext) => {
 	
@@ -25,16 +24,12 @@ const testParse = async (context: vscode.ExtensionContext) => {
 	const localJavaFiles: vscode.Uri[] = await vscode.workspace.findFiles('**/*.java');
 	const ctVisitor: ClassTypeVisitor = new ClassTypeVisitor();
 
-	interface fileSig {
-		fileURI: vscode.Uri,
-		classSigs: ClassSig[]
-	}
-
 	// visit all files and parse to prospect objects which have inheritance
 	for (let i = 0; i < localJavaFiles.length; i++) {
-		let file = await vscode.workspace.fs.readFile(localJavaFiles[i]);
-		console.log(file.toString());
-		let cst = parse(file.toString());
+		const fileUri = localJavaFiles[i];
+		const uInt8file = await vscode.workspace.fs.readFile(fileUri);
+		let cst = parse(uInt8file.toString());
+		ctVisitor.setWorkingFile(fileUri);
 		ctVisitor.visit(cst);
 	}
 
@@ -62,16 +57,21 @@ export async function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('cordaTemplates', cordaTemplatesProvider);
 
 	vscode.window.registerTreeDataProvider('cordaOperations', cordaOperationsProvider);
-	vscode.commands.registerCommand('corda.assembleCommand', (msg) => vscode.window.showInformationMessage(msg));
-	vscode.commands.registerCommand('corda.buildCommand', (msg) => vscode.window.showInformationMessage(msg));
-	vscode.commands.registerCommand('corda.testCommand', (msg) => vscode.window.showInformationMessage(msg));
-	vscode.commands.registerCommand('corda.cleanCommand', (msg) => vscode.window.showInformationMessage(msg));
+	vscode.commands.registerCommand('corda.operations.assembleCommand', (msg) => vscode.window.showInformationMessage(msg));
+	vscode.commands.registerCommand('corda.operations.buildCommand', (msg) => vscode.window.showInformationMessage(msg));
+	vscode.commands.registerCommand('corda.operations.testCommand', (msg) => vscode.window.showInformationMessage(msg));
+	vscode.commands.registerCommand('corda.operations.cleanCommand', (msg) => vscode.window.showInformationMessage(msg));
 
 	vscode.window.registerTreeDataProvider('cordaDependencies', cordaDepProvider);
 	
 	vscode.window.registerTreeDataProvider('cordaFlows', cordaFlowsProvider);
 	vscode.window.registerTreeDataProvider('cordaContracts', cordaContractsProvider);
 	vscode.window.registerTreeDataProvider('cordaStates', cordaStatesProvider);
+	vscode.commands.registerCommand('corda.openFile', (uri) => {
+		vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+			vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
+		})
+	});
 
 	vscode.window.registerTreeDataProvider('cordaTools', cordaToolsProvider);
 	vscode.commands.registerCommand('corda.nodeExplorerCommand', (panelDesc) => vscode.window.showInformationMessage(panelDesc));

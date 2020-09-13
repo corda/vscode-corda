@@ -14,7 +14,15 @@ export class CordaContractsProvider implements vscode.TreeDataProvider<CordaCont
 	getChildren(element?: CordaContract): Thenable<CordaContract[]> {
 		if (!element) {
 			let contracts: CordaContract[] = this.contractFiles.map(sig => {
-				return new CordaContract(sig.name, vscode.TreeItemCollapsibleState.None);
+				return new CordaContract(
+					sig.name, 
+					vscode.TreeItemCollapsibleState.None, 
+					sig,
+					{
+						command: 'corda.openFile',
+						title: '',
+						arguments: [sig.file]
+					});
 			});
 			return Promise.resolve(contracts);
 		} else {
@@ -31,6 +39,7 @@ export class CordaContract extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+		private readonly classSig: ClassSig,
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);

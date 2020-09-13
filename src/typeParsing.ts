@@ -1,3 +1,4 @@
+import { Uri } from 'vscode';
 const { 
   parse,
   BaseJavaCstVisitorWithDefaults
@@ -5,23 +6,27 @@ const {
 
 // represents a class signature from a .java
 export class ClassSig {
-  name : any;
-  superClass: any;
-  superInterfaces: any;
-  constructor(name, superClass, superInterfaces) {
+  name : string;
+  superClass: string;
+  superInterfaces: string[];
+  file: Uri | undefined;
+  constructor(name: string, superClass: string, superInterfaces: string[], file: Uri | undefined) {
       this.name = name;
       this.superClass = superClass;
       this.superInterfaces = superInterfaces;
+      this.file = file;
   }
 }
 
 // represents an interface signature from a .java
 export class InterfaceSig {
-  name: any;
-  superInterface: any;
-  constructor(name, superInterface) {
+  name: string;
+  superInterface: string;
+  file: Uri | undefined;
+  constructor(name: string, superInterface: string, file: Uri | undefined) {
       this.name = name;
       this.superInterface = superInterface;
+      this.file = file;
   }
 }
 
@@ -29,9 +34,14 @@ export class InterfaceSig {
 export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   constructor() {
       super();
+      this.workingFile = undefined; // store file URI for a particular visit
       this.classSigs = [];
       this.interfaceSigs = [];
       this.validateVisitor();
+  }
+
+  setWorkingFile(file: Uri) {
+      this.workingFile = file;
   }
 
   normalClassDeclaration(ctx: any) {
@@ -40,7 +50,7 @@ export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       const superInterfaces = this.visit(ctx.superinterfaces);
       if (superClass != undefined || superInterfaces != undefined) {
           this.classSigs.push(
-              new ClassSig(name, superClass, superInterfaces)
+              new ClassSig(name, superClass, superInterfaces, this.workingFile)
           );
       } 
   }
@@ -50,7 +60,7 @@ export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       const superInterface = this.visit(ctx.extendsInterfaces);
       if (superInterface != undefined) {
           this.interfaceSigs.push(
-              new InterfaceSig(name, superInterface[0])
+              new InterfaceSig(name, superInterface[0], this.workingFile)
           );
       }
   }
@@ -92,9 +102,9 @@ export class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
 export const extractTypes = (ctVisitor: ClassTypeVisitor) => {
     const contractStateBaseInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
     const contractBaseInterface = ['Contract'];
-    const flowBaseClassSig = [new ClassSig('FlowLogic', undefined, undefined)];
-    const contractStateInterfaceSigs = contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, undefined); });
-    const contractInterfaceSig = contractBaseInterface.map(itr => { return new InterfaceSig(itr, undefined); });
+    const flowBaseClassSig = [new ClassSig('FlowLogic', '', [], undefined)];
+    const contractStateInterfaceSigs = contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, '', undefined); });
+    const contractInterfaceSig = contractBaseInterface.map(itr => { return new InterfaceSig(itr, '', undefined); });
 
     // ContractState
     const contractStatesData = extractTypesFromBase(contractStateInterfaceSigs, { interfaceSigs: ctVisitor.interfaceSigs,  classSigs: ctVisitor.classSigs });

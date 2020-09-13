@@ -11,22 +11,22 @@ export class CordaOperationsProvider implements vscode.TreeDataProvider<CordaOpe
 	getChildren(element?: CordaOperation): Thenable<CordaOperation[]> {
 		return Promise.resolve([
 			new CordaOperation("Assemble", vscode.TreeItemCollapsibleState.None, {
-				command: 'corda.assembleCommand',
+				command: 'corda.operations.assembleCommand',
 				title: '',
 				arguments: ["Doing Assemble"]
 			}),
 			new CordaOperation("Build", vscode.TreeItemCollapsibleState.None, {
-				command: 'corda.buildCommand',
+				command: 'corda.operations.buildCommand',
 				title: '',
 				arguments: ["Doing Build"]
 			}),
 			new CordaOperation("Test", vscode.TreeItemCollapsibleState.None, {
-				command: 'corda.testCommand',
+				command: 'corda.operations.testCommand',
 				title: '',
 				arguments: ["Doing Test"]
 			}),
 			new CordaOperation("Clean", vscode.TreeItemCollapsibleState.None, {
-				command: 'corda.cleanCommand',
+				command: 'corda.operations.cleanCommand',
 				title: '',
 				arguments: ["Doing Clean"]
 			})

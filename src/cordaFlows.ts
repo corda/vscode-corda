@@ -14,7 +14,15 @@ export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	getChildren(element?: CordaFlow): Thenable<CordaFlow[]> {
 		if (!element) {
 			let flows: CordaFlow[] = this.flowFiles.map(sig => {
-				return new CordaFlow(sig.name, vscode.TreeItemCollapsibleState.None);
+				return new CordaFlow(
+					sig.name, 
+					vscode.TreeItemCollapsibleState.None, 
+					sig,
+					{
+						command: 'corda.openFile',
+						title: '',
+						arguments: [sig.file]
+					});
 			});
 			return Promise.resolve(flows);
 		} else {
@@ -31,6 +39,7 @@ export class CordaFlow extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+		private readonly classSig: ClassSig,
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
