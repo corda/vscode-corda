@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { ClassSig } from '../typeParsing';
 
+/**
+ * Contracts provider for generating TreeViews
+ */
 export class CordaContractsProvider implements vscode.TreeDataProvider<CordaContract> {
 	
 	constructor(private contractFiles: ClassSig[]) {}
@@ -29,6 +32,10 @@ export class CordaContractsProvider implements vscode.TreeDataProvider<CordaCont
 			return Promise.resolve([]);
 		}	}
 	
+	/**
+	 * - refreshes the tree view
+	 * @param classSig global classSig listing Contracts in project
+	 */
 	refresh(classSig: ClassSig): void {
 		(classSig) ? this.contractFiles.push(classSig) : '';
 		this._onDidChangeTreeData.fire();

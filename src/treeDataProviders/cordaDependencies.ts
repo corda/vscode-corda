@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+/**
+ * Dependencies provider for generating TreeViews
+ */
 export class CordaDepProvider implements vscode.TreeDataProvider<CordaDependency> {
 	
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaDependency | undefined | void> = new vscode.EventEmitter<CordaDependency | undefined | void>();

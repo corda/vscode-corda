@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { ClassSig } from '../typeParsing';
 
+/**
+ * States provider for generating TreeViews
+ */
 export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> {
 	
 	constructor(private contractStateFiles: ClassSig[]) {}
@@ -30,6 +33,10 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 		}
 	}
 	
+	/**
+	 * - refreshes the tree view
+	 * @param classSig global classSig listing States in project
+	 */
 	refresh(classSig: ClassSig): void {
 		(classSig) ? this.contractStateFiles.push(classSig) : '';
 		this._onDidChangeTreeData.fire();

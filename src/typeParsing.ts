@@ -7,6 +7,9 @@ const {
 
 // STRUCTURES ======
 
+/**
+ * Represents an ambigious Object signature
+ */
 export abstract class ObjectSig {
     name: string;
     file: Uri | undefined;
@@ -16,7 +19,9 @@ export abstract class ObjectSig {
     } 
 }
 
-// represents a class signature from a .java
+/**
+ * Represents a Corda Class (inherits from ContractState, Contract, or FlowLogic)
+ */
 export class ClassSig extends ObjectSig {
   superClass: string;
   superInterfaces: string[];
@@ -27,7 +32,9 @@ export class ClassSig extends ObjectSig {
   }
 }
 
-// represents an interface signature from a .java
+/**
+ * Represents a Corda Interface (inherits from ContractState, or Contract)
+ */
 export class InterfaceSig extends ObjectSig {
   superInterface: string;
   constructor(name: string, superInterface: string, file: Uri | undefined) {
@@ -36,13 +43,15 @@ export class InterfaceSig extends ObjectSig {
   }
 }
 
-// visitor for CST tree traversal
+/**
+ * Visitor for parsing CST tree and returning Corda Classes / Interfaces
+ */
 class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   constructor() {
       super();
-      this.workingFile = undefined; // store file URI for a particular visit
-      this.classSigs = [];
-      this.interfaceSigs = [];
+      this.workingFile = undefined; // store file URI for a particular visit (what file does this object belong)
+      this.classSigs = []; // list of Corda Classes
+      this.interfaceSigs = []; // list of Corda Interfaces
       this.validateVisitor();
   }
 
@@ -50,6 +59,7 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       this.workingFile = file;
   }
 
+  // Visits all class declarations in CST
   normalClassDeclaration(ctx: any) {
       const name = this.visit(ctx.typeIdentifier);
       const superClass = this.visit(ctx.superclass);
@@ -61,6 +71,7 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       } 
   }
 
+  // Visits all interface declarations in CST
   normalInterfaceDeclaration(ctx: any) {
       const name = this.visit(ctx.typeIdentifier)
       const superInterface = this.visit(ctx.extendsInterfaces);
@@ -106,6 +117,13 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
 
 // FUNCTIONS ===========
 
+/**
+ * Entry point for a FULL project workspace parsing
+ * - creates CST
+ * - identifies all .java files and creates URI
+ * - visits each URI resolving all Corda Classes / Interfaces
+ * @param context 
+ */
 export const parseJavaFiles = async (context: ExtensionContext) => {
 	
 	var { parse } = require("java-parser");
@@ -126,7 +144,11 @@ export const parseJavaFiles = async (context: ExtensionContext) => {
 
 }
 
-// extracts ContractStates, Contracts, and Flows from visitor results
+/**
+ * Helper function to accumulate results for States, Contracts, Flows
+ * @param ctVisitor 
+ * @returns dictionary of project classes and project interfaces.
+ */
 const extractTypes = (ctVisitor: ClassTypeVisitor) => {
     const flowBaseClassSig = [new ClassSig(Constants.flowBaseClass[0], '', [], undefined)];
     const contractStateInterfaceSigs = Constants.contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, '', undefined); });
@@ -146,9 +168,19 @@ const extractTypes = (ctVisitor: ClassTypeVisitor) => {
     }
 }
 
+/**
+ * Extract all descendants of a list of Classes/Interfaces.
+ * @param targetSigs // base Classes/Interfaces
+ * @param interfaceSigs // possible descendant interfaces
+ * @param classSigs  // possible descendant classes
+ * 
+ * interfaces from base interfaces,
+ * classes from base interfaces or inherited interfaces
+ * classes extended from classes from base interfaces or inherited interfaces
+ */
 const extractTypesFromBase = (targetSigs: any[], interfaceSigs: InterfaceSig[], classSigs: ClassSig[]) => {
     
-    let baseTypeClasses: any;
+    let baseTypeClasses: any; // 
     let baseTypeInterfaces:InterfaceSig[] = [];
     let remainingInterfaceSigs: InterfaceSig[];
     let remainingClassSigs: ClassSig[];
@@ -159,7 +191,7 @@ const extractTypesFromBase = (targetSigs: any[], interfaceSigs: InterfaceSig[], 
         targetSigs = targetSigs.concat(baseTypeInterfaces);
         remainingInterfaceSigs = interfaceSigs.filter(sigs => {return !baseTypeInterfaces.includes(sigs)});
 
-        // all classes derived from baseType interfaces (if applicable)
+        // all classes derived from baseType interfaces plus derived interfaces (if applicable)
         baseTypeClasses = findChildTypes(targetSigs, classSigs);
         remainingClassSigs = classSigs.filter(sigs => {return !baseTypeClasses.includes(sigs)});
     } else {  // flows derive ONLY from class extension - targetSigs ClassSig[]
@@ -168,7 +200,7 @@ const extractTypesFromBase = (targetSigs: any[], interfaceSigs: InterfaceSig[], 
         remainingClassSigs = classSigs;
     }
     
-    // all classes derived from another class
+    // all classes derived from another class which has parent baseType interface or derived interface
     baseTypeClasses = baseTypeClasses.concat(findChildTypes(
         (targetSigs[0] instanceof ClassSig) ? targetSigs : baseTypeClasses,
         remainingClassSigs));
@@ -177,6 +209,11 @@ const extractTypesFromBase = (targetSigs: any[], interfaceSigs: InterfaceSig[], 
     return { baseTypeClasses, baseTypeInterfaces, remainingInterfaceSigs, remainingClassSigs };
 }
 
+/**
+ * Recursively returns all Objects derived from param typesToMatch.
+ * @param typesToMatch 
+ * @param typeSigs 
+ */
 const findChildTypes = (typesToMatch, typeSigs) => {
     if (typesToMatch.length == 0) return []; // base case
 

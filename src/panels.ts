@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+/**
+ * 
+ * @param context extension context for accessing window
+ */
 export const createLogViewPanel = (context) => {
 	return vscode.window.createWebviewPanel( 
 		'cordaLogViewer', 
@@ -14,6 +18,10 @@ export const createLogViewPanel = (context) => {
 	)
 };
 
+/**
+ * 
+ * @param context extension context for accessing window
+ */
 export const createNodeExplorerPanel = (context) => {
 	return vscode.window.createWebviewPanel( 
 		'cordaNodeExplorer', 
@@ -27,6 +35,11 @@ export const createNodeExplorerPanel = (context) => {
 	);
 }
 
+/**
+ * Minimal html for panel content with embedding script
+ * @param panel 
+ * @param context 
+ */
 export const getReactPanelContent = (panel: string, context: vscode.ExtensionContext) => {
 	let title: string, subPath: string;
 	if (panel == 'logviewer') {

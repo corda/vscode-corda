@@ -23,13 +23,19 @@ import { cordaContractsAddCallback, cordaContractStatesAddCallback, cordaFlowsAd
 // let projectClasses: {contractStateClasses:ClassSig[] | ObjectSig[], contractClasses:ClassSig[] | ObjectSig[], flowClasses:ClassSig[] | ObjectSig[]};
 // let projectInterfaces: {contractStateInterfaces:InterfaceSig[] | ObjectSig[], contractInterfaces:InterfaceSig[] | ObjectSig[]};
 
-// Constants for Base CordaCore interfaces and classes
+/**
+ * Constants for Inherited Corda Core Types
+ */
 export abstract class Constants {
     static readonly contractStateBaseInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
     static readonly contractBaseInterface = ['Contract'];
     static readonly flowBaseClass = ['FlowLogic'];
 }
 
+/**
+ * Extension entry point
+ * @param context 
+ */
 export async function activate(context: vscode.ExtensionContext) {
 	const projectObjects: {projectClasses: any, projectInterfaces:any} = await parseJavaFiles(context); // scan all project java files and build inventory
 

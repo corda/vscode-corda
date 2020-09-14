@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { ClassSig } from '../typeParsing';
 
+/**
+ * Flows provider for generating TreeViews
+ */
 export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	
 	constructor(private flowFiles: ClassSig[]) {}
@@ -29,6 +32,10 @@ export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 			return Promise.resolve([]);
 		}	}
 	
+	/**
+	 * - refreshes the tree view
+	 * @param classSig global classSig listing Flows in project
+	 */
 	refresh(classSig: ClassSig): void {
 		(classSig) ? this.flowFiles.push(classSig) : '';
 		this._onDidChangeTreeData.fire();

@@ -5,6 +5,10 @@ import Axios from 'axios';
 
 // CALLBACKS
 
+/**
+ * 
+ * @param projectObjects dictionary of Corda types, used for inheritance selection
+ */
 export const cordaFlowsAddCallback = async (projectObjects): Promise<void> => {
 	
     const qpickItems = (projectObjects.projectClasses.flowClasses as ClassSig[]).map((sig) => {
@@ -15,7 +19,7 @@ export const cordaFlowsAddCallback = async (projectObjects): Promise<void> => {
     const commandSource = 'cordaFlows';
     const sourceMap = {'FlowLogic':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseFlow.java'};
 
-    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap, projectObjects);
+    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
 export const cordaContractsAddCallback = async (projectObjects): Promise<void> => {
@@ -30,7 +34,7 @@ export const cordaContractsAddCallback = async (projectObjects): Promise<void> =
     const commandSource = 'cordaContracts';
     const sourceMap = {'Contract':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContract.java'};
 
-    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap, projectObjects);
+    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
 export const cordaContractStatesAddCallback = async (projectObjects): Promise<void> => {
@@ -44,10 +48,10 @@ export const cordaContractStatesAddCallback = async (projectObjects): Promise<vo
     const commandSource = 'cordaStates';
     const sourceMap = {'ContractState':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContractState.java'};
 
-    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap, projectObjects);
+    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
-const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap, projectObjects) => {
+const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap) => {
 	let result: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}});
 	if (result == undefined) return;
 
@@ -76,13 +80,6 @@ const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, 
 	// write file -> refresh Tree -> open file
 	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(() => {
 		const classToAdd: ClassSig = new ClassSig(fileName.replace('.java',''), '', [stateBase!], fileUri);
-		// if (commandSource == 'cordaStates') {
-		// 	projectObjects.projectClasses.contractStateClasses.push(classToAdd);
-		// } else if (commandSource == 'cordaContracts') {
-		// 	projectObjects.projectClasses.contractClasses.push(classToAdd);
-		// } else {
-		// 	projectObjects.projectClasses.flowClasses.push(classToAdd);
-		// }
 		vscode.commands.executeCommand(commandSource + '.refresh', classToAdd);
 	}).then(() => vscode.commands.executeCommand('corda.openFile', fileUri));
 }
