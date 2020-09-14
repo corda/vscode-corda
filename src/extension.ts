@@ -16,10 +16,25 @@ import { CordaStatesProvider } from './cordaStates';
 import { CordaToolsProvider } from './cordaTools';
 import { CordaSamplesProvider } from './cordaSamples';
 
-import { ClassSig, parseJavaFiles } from './typeParsing';
+import { ClassSig, InterfaceSig, ObjectSig, parseJavaFiles } from './typeParsing';
+
+let projectClasses: {contractStateClasses:ClassSig[] | ObjectSig[], contractClasses:ClassSig[] | ObjectSig[], flowClasses:ClassSig[] | ObjectSig[]};
+let projectInterfaces: {contractStateInterfaces:InterfaceSig[] | ObjectSig[], contractInterfaces:InterfaceSig[] | ObjectSig[]};
+
+export abstract class Constants {
+    static readonly contractStateBaseInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
+    static readonly contractBaseInterface = ['Contract'];
+    static readonly flowBaseClass = ['FlowLogic'];
+}
 
 export async function activate(context: vscode.ExtensionContext) {
-	let {contractStateTypes, contractTypes, flowTypes} = await parseJavaFiles(context); // destructure
+	const projectObjects = await parseJavaFiles(context); // destructure
+	projectClasses = projectObjects.projectClasses;
+	projectInterfaces = projectObjects.projectIntefaces;
+
+	console.log(JSON.stringify(Constants.contractStateBaseInterfaces));
+	console.log(JSON.stringify(Constants.contractBaseInterface));
+	console.log(JSON.stringify(Constants.flowBaseClass));
 
 	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
@@ -28,9 +43,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	const cordaTemplatesProvider = new CordaTemplatesProvider();
 	const cordaOperationsProvider = new CordaOperationsProvider();
 	const cordaDepProvider = new CordaDepProvider();
-	const cordaFlowsProvider = new CordaFlowsProvider(flowTypes);
-	const cordaContractsProvider = new CordaContractsProvider(contractTypes);
-	const cordaStatesProvider = new CordaStatesProvider(contractStateTypes);
+	const cordaFlowsProvider = new CordaFlowsProvider(projectClasses.flowClasses as ClassSig[]);
+	const cordaContractsProvider = new CordaContractsProvider(projectClasses.contractClasses as ClassSig[]);
+	const cordaStatesProvider = new CordaStatesProvider(projectClasses.contractStateClasses as ClassSig[]);
 	const cordaToolsProvider = new CordaToolsProvider();
 	const cordaSamplesProvider = new CordaSamplesProvider();
 
@@ -50,8 +65,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	
 	vscode.commands.registerCommand('cordaFlows.add', () => {
 	
-		const qpickItems = ['FlowLogic'];
-		const qpickPlaceHolder = 'Choose a parent flow class';
+		const qpickItems = (projectClasses.flowClasses as ClassSig[]).map((sig) => {
+				return sig.name
+			}).concat(Constants.flowBaseClass);
+			console.log(JSON.stringify(Constants.flowBaseClass));
+		const qpickPlaceHolder = 'Choose a parent flow to extend';
 		const inputPlaceHolder = 'Enter the name of the flow';
 		const commandSource = 'cordaFlows';
 		const sourceMap = {'FlowLogic':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseFlow.java'};
@@ -61,8 +79,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	vscode.commands.registerCommand('cordaContracts.add', () => {
 	
-		const qpickItems = ['Contract'];
-		const qpickPlaceHolder = 'Choose a parent contract class';
+		const qpickItems = (projectClasses.contractClasses as ObjectSig[]).concat(projectInterfaces.contractInterfaces)
+			.map((sig) => {
+				return sig.name
+			}).concat(Constants.contractBaseInterface);
+		const qpickPlaceHolder = 'Choose a parent contract interface or class to extend';
 		const inputPlaceHolder = 'Enter the name of the contract';
 		const commandSource = 'cordaContracts';
 		const sourceMap = {'Contract':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContract.java'};
@@ -71,8 +92,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 	
 	vscode.commands.registerCommand('cordaStates.add', async () => {
-		const qpickItems = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
-		const qpickPlaceHolder = 'Choose a parent state class';
+		const qpickItems = (projectClasses.contractStateClasses as ObjectSig[]).concat(projectInterfaces.contractStateInterfaces)
+			.map((sig) => {
+				return sig.name
+			}).concat(Constants.contractStateBaseInterfaces);
+		const qpickPlaceHolder = 'Choose a parent state interface or class to extend';
 		const inputPlaceHolder = 'Enter the name of the state';
 		const commandSource = 'cordaStates';
 		const sourceMap = {'ContractState':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContractState.java'};
@@ -117,10 +141,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
 const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap) => {
 	let result: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}});
+	if (result == undefined) return;
+
 	let stateBase = await vscode.window.showQuickPick(qpickItems,
 	{
 		placeHolder: qpickPlaceHolder
 	});
+	if (stateBase == undefined) return;
+
 	let fileName = await vscode.window.showInputBox({
 		placeHolder: inputPlaceHolder,
 		validateInput: text => {
@@ -130,14 +158,25 @@ const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, 
 			// if not .java, append suffix.
 		}
 	}).then(name => { return (name?.includes('.java') ? name : name + '.java') }); // append .java if needed
+	if (fileName == undefined) return;
 
-	// check stateBase / http mapping to fetch correct template
+	// check Base / http mapping to fetch correct template
 	const stateBaseText = await Axios.get(sourceMap[stateBase!]);
 	const fileUri = vscode.Uri.joinPath(result?.pop()!, fileName!);
 	var uint8array = new TextEncoder().encode(stateBaseText.data);
-	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(
-		() => vscode.commands.executeCommand(commandSource + '.refresh', new ClassSig(fileName.replace('.java',''), '', [stateBase!], fileUri))
-	);
+
+	// write file -> refresh Tree -> open file
+	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(() => {
+		const classToAdd: ClassSig = new ClassSig(fileName.replace('.java',''), '', [stateBase!], fileUri);
+		if (commandSource == 'cordaStates') {
+			projectClasses.contractStateClasses.push(classToAdd);
+		} else if (commandSource == 'cordaContracts') {
+			projectClasses.contractClasses.push(classToAdd);
+		} else {
+			projectClasses.flowClasses.push(classToAdd);
+		}
+		vscode.commands.executeCommand(commandSource + '.refresh', classToAdd);
+	}).then(() => vscode.commands.executeCommand('corda.openFile', fileUri));
 }
 
 const getReactPanelContent = (panel: string, context: vscode.ExtensionContext) => {

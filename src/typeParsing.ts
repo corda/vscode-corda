@@ -1,4 +1,5 @@
 import { Uri, ExtensionContext, workspace } from 'vscode';
+import { Constants } from './extension';
 const { 
   parse,
   BaseJavaCstVisitorWithDefaults
@@ -6,29 +7,32 @@ const {
 
 // STRUCTURES ======
 
+export abstract class ObjectSig {
+    name: string;
+    file: Uri | undefined;
+    constructor(name: string, file: Uri | undefined) {
+        this.name = name;
+        this.file = file;
+    } 
+}
+
 // represents a class signature from a .java
-export class ClassSig {
-  name : string;
+export class ClassSig extends ObjectSig {
   superClass: string;
   superInterfaces: string[];
-  file: Uri | undefined;
   constructor(name: string, superClass: string, superInterfaces: string[], file: Uri | undefined) {
-      this.name = name;
+      super(name, file);
       this.superClass = superClass;
       this.superInterfaces = superInterfaces;
-      this.file = file;
   }
 }
 
 // represents an interface signature from a .java
-export class InterfaceSig {
-  name: string;
+export class InterfaceSig extends ObjectSig {
   superInterface: string;
-  file: Uri | undefined;
   constructor(name: string, superInterface: string, file: Uri | undefined) {
-      this.name = name;
+      super(name, file);
       this.superInterface = superInterface;
-      this.file = file;
   }
 }
 
@@ -124,35 +128,36 @@ export const parseJavaFiles = async (context: ExtensionContext) => {
 
 // extracts ContractStates, Contracts, and Flows from visitor results
 const extractTypes = (ctVisitor: ClassTypeVisitor) => {
-    const contractStateBaseInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
-    const contractBaseInterface = ['Contract'];
-    const flowBaseClassSig = [new ClassSig('FlowLogic', '', [], undefined)];
-    const contractStateInterfaceSigs = contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, '', undefined); });
-    const contractInterfaceSig = contractBaseInterface.map(itr => { return new InterfaceSig(itr, '', undefined); });
+    const flowBaseClassSig = [new ClassSig(Constants.flowBaseClass.pop()!, '', [], undefined)];
+    const contractStateInterfaceSigs = Constants.contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, '', undefined); });
+    const contractInterfaceSig = Constants.contractBaseInterface.map(itr => { return new InterfaceSig(itr, '', undefined); });
 
     // ContractState
-    const contractStatesData = extractTypesFromBase(contractStateInterfaceSigs, { interfaceSigs: ctVisitor.interfaceSigs,  classSigs: ctVisitor.classSigs });
+    const contractStatesData = extractTypesFromBase(contractStateInterfaceSigs, ctVisitor.interfaceSigs,  ctVisitor.classSigs);
 
     // Contract
-    const contractsData = extractTypesFromBase(contractInterfaceSig, { interfaceSigs: contractStatesData.remainingInterfaceSigs,  classSigs: contractStatesData.remainingClassSigs });
+    const contractsData = extractTypesFromBase(contractInterfaceSig, contractStatesData.remainingInterfaceSigs,  contractStatesData.remainingClassSigs);
 
     // Flows
-    const flowsData = extractTypesFromBase(flowBaseClassSig, { interfaceSigs: contractsData.remainingInterfaceSigs, classSigs:  contractsData.remainingClassSigs});
-    return {contractStateTypes: contractStatesData.baseTypeClasses, contractTypes: contractsData.baseTypeClasses, flowTypes: flowsData.baseTypeClasses};
+    const flowsData = extractTypesFromBase(flowBaseClassSig, contractsData.remainingInterfaceSigs, contractsData.remainingClassSigs);
+    return {
+        projectClasses: {contractStateClasses: contractStatesData.baseTypeClasses, contractClasses: contractsData.baseTypeClasses, flowClasses: flowsData.baseTypeClasses},
+        projectIntefaces:{contractStateInterfaces: contractStatesData.baseTypeInterfaces, contractInterfaces: contractsData.baseTypeInterfaces}
+    }
 }
 
-const extractTypesFromBase = (targetSigs: any[], {interfaceSigs, classSigs}:{interfaceSigs: InterfaceSig[], classSigs: ClassSig[]}) => {
+const extractTypesFromBase = (targetSigs: any[], interfaceSigs: InterfaceSig[], classSigs: ClassSig[]) => {
     
     let baseTypeClasses: any;
+    let baseTypeInterfaces:InterfaceSig[] = [];
     let remainingInterfaceSigs: InterfaceSig[];
     let remainingClassSigs: ClassSig[];
 
     if (targetSigs[0] instanceof InterfaceSig) {
-        let interfaces:InterfaceSig[] = [];
         // all interfaces which are derived from baseType (if applicable)
-        interfaces = findChildTypes(targetSigs, interfaceSigs);
-        targetSigs = targetSigs.concat(interfaces);
-        remainingInterfaceSigs = interfaceSigs.filter(sigs => {return !interfaces.includes(sigs)});
+        baseTypeInterfaces = findChildTypes(targetSigs, interfaceSigs);
+        targetSigs = targetSigs.concat(baseTypeInterfaces);
+        remainingInterfaceSigs = interfaceSigs.filter(sigs => {return !baseTypeInterfaces.includes(sigs)});
 
         // all classes derived from baseType interfaces (if applicable)
         baseTypeClasses = findChildTypes(targetSigs, classSigs);
@@ -169,7 +174,7 @@ const extractTypesFromBase = (targetSigs: any[], {interfaceSigs, classSigs}:{int
         remainingClassSigs));
     remainingClassSigs = remainingClassSigs.filter(sigs => {return !baseTypeClasses.includes(sigs)});
 
-    return { baseTypeClasses, remainingInterfaceSigs, remainingClassSigs };
+    return { baseTypeClasses, baseTypeInterfaces, remainingInterfaceSigs, remainingClassSigs };
 }
 
 const findChildTypes = (typesToMatch, typeSigs) => {
