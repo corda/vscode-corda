@@ -3,37 +3,45 @@ import { InfiniteLoader, List, IndexRange, ListRowProps, AutoSizer } from "react
 import { LogEntry, sampleLogEntry } from "./types";
 import * as util from "./util";
 import * as request from "./request";
-import { EntryButton, LoadingEntry } from "./entry";
+import { Entry, LoadingEntry } from "./entry";
 
 export interface entriesLoaderProps {
     filepath: string, 
-    amountOfEntries: number, 
+    entriesCount: number, 
     filterBy: (entry: LogEntry) => boolean
 }
 
 export const EntriesLoader = (props: entriesLoaderProps) => {
-    let entries = new Array<LogEntry>();
+    const [entries, setEntries] = React.useState(new Array<LogEntry>());
 
     const isRowLoaded = (index: number) => !!entries[index];
 
     
     /** `[startIndex, stopIndex)` */
     const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
-        entries = util.placeAt(
+        console.log("loading from", startIndex, "to", stopIndex);
+        setEntries(util.placeAt(
             entries, 
             await request.entriesBetween(startIndex, stopIndex, props.filepath), 
             startIndex
-        );
+        ));
     }
 
     const rowRenderer = ({key, index, style}: ListRowProps) => {
         if (isRowLoaded(index)) {
             if (props.filterBy(entries[index])) {
-                return <EntryButton entry={entries[index]} key={key} />
+                console.log(entries[index], "passes filter");
+                return <Entry entry={entries[index]} key={key} />
             }
-            return <div style={{display: "none"}}> I'm invisible! </div>;
+            else {
+                console.log(entries[index], "fails to pass filter");
+                return <div style={{display: "none"}}> I'm invisible! </div>;
+            }
         }
-        return <LoadingEntry key={key}/>
+        else {
+            console.log(entries);
+            return <LoadingEntry key={key}/>
+        }
     }
         
 
@@ -41,18 +49,17 @@ export const EntriesLoader = (props: entriesLoaderProps) => {
         <InfiniteLoader
             isRowLoaded = {({index}) => isRowLoaded(index)}
             loadMoreRows = {loadMoreRows}
-            rowCount = {props.amountOfEntries}
+            rowCount = {props.entriesCount}
         >
             {({ onRowsRendered, registerChild }) =>
                 <AutoSizer>
                     {({width, height}) => 
                         <List
-                            style={{background: "blue"}}
                             height={height}
                             width={width}
                             onRowsRendered={onRowsRendered}
                             ref={registerChild}
-                            rowCount={props.amountOfEntries}
+                            rowCount={props.entriesCount}
                             rowRenderer={rowRenderer}
                             rowHeight={30}
                         />

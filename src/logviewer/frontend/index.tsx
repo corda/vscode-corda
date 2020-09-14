@@ -10,10 +10,9 @@ window.addEventListener("message", event => {
         case MessageType.NEW_LOG_ENTRIES:
             ReactDOM.render( 
                 <div style={{height: 600}}>
-                    <EntriesLoader 
+                    <EntriesDisplay 
                         filepath={message.filepath} 
-                        amountOfEntries={600} 
-                        filterBy={(entry: LogEntry) => true}
+                        entriesCount={message.entriesCount} 
                     />
                 </div>,
                 document.getElementById('root')

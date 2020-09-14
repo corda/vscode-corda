@@ -1,23 +1,31 @@
 import React from "react";
 import { LogEntry } from "./types";
-
 import { EntriesLoader } from "./entriesLoader";
+import { SearchBox } from "./searchBox";
 
-export const EntriesDisplay = (props: {filepath: string, amountOfEntries: number}) => {
+export const EntriesDisplay = (props: {filepath: string, entriesCount: number}) => {
     type filterType = {
         filterBy: (entry: LogEntry) => boolean
     }
 
     const [filter, setFilter] = React.useState({filterBy: (entry: LogEntry) => true} as filterType);
 
-    const onUpdateSearch = (text: string) => 
-        setFilter({filterBy: (entry: LogEntry) => JSON.stringify(entry).includes(text)});
+    const onUpdateText = (text: string) => {
+        setFilter({filterBy: 
+            (entry: LogEntry) => JSON.stringify(entry).toLowerCase().includes(text.toLowerCase())
+        });
+    }
     
     return (
         <>
+            <SearchBox
+                placeholder="Search here..."
+                onUpdateText={onUpdateText}
+            />
+            <br/>
             <EntriesLoader 
                 filepath={props.filepath}
-                amountOfEntries={props.amountOfEntries}
+                entriesCount={props.entriesCount}
                 filterBy={filter.filterBy}
             />
         </>
