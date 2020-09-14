@@ -128,7 +128,7 @@ export const parseJavaFiles = async (context: ExtensionContext) => {
 
 // extracts ContractStates, Contracts, and Flows from visitor results
 const extractTypes = (ctVisitor: ClassTypeVisitor) => {
-    const flowBaseClassSig = [new ClassSig(Constants.flowBaseClass.pop()!, '', [], undefined)];
+    const flowBaseClassSig = [new ClassSig(Constants.flowBaseClass[0], '', [], undefined)];
     const contractStateInterfaceSigs = Constants.contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, '', undefined); });
     const contractInterfaceSig = Constants.contractBaseInterface.map(itr => { return new InterfaceSig(itr, '', undefined); });
 
@@ -142,7 +142,7 @@ const extractTypes = (ctVisitor: ClassTypeVisitor) => {
     const flowsData = extractTypesFromBase(flowBaseClassSig, contractsData.remainingInterfaceSigs, contractsData.remainingClassSigs);
     return {
         projectClasses: {contractStateClasses: contractStatesData.baseTypeClasses, contractClasses: contractsData.baseTypeClasses, flowClasses: flowsData.baseTypeClasses},
-        projectIntefaces:{contractStateInterfaces: contractStatesData.baseTypeInterfaces, contractInterfaces: contractsData.baseTypeInterfaces}
+        projectInterfaces:{contractStateInterfaces: contractStatesData.baseTypeInterfaces, contractInterfaces: contractsData.baseTypeInterfaces}
     }
 }
 

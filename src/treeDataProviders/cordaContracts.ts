@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ClassSig } from './typeParsing';
+import { ClassSig } from '../typeParsing';
 
 export class CordaContractsProvider implements vscode.TreeDataProvider<CordaContract> {
 	
