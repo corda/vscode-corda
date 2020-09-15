@@ -58,8 +58,8 @@
 		"views": {
 			"corda": [
 				{
-					"id": "cordaTemplates",
-					"name": "CorDapp Templates",
+					"id": "cordaProjects",
+					"name": "CorDapp Projects",
 					"visibility": "collapsed"
 				},
 				{
@@ -91,15 +91,15 @@
 					"id": "cordaTools",
 					"name": "Corda Tools",
 					"visibility": "collapsed"
-				},
-				{
-					"id": "cordaSamples",
-					"name": "CorDapp Samples",
-					"visibility": "collapsed"
 				}
 			]
 		},
 		"commands": [
+			{
+				"command": "cordaProjects.new",
+				"title": "New Project",
+				"icon": "$(repo-clone)"
+			},
 			{
 				"command": "cordaFlows.add",
 				"title": "Add",
@@ -134,6 +134,11 @@
 		"menus": {
 			"commandPalette": [],
 			"view/title": [
+				{
+					"command": "cordaProjects.new",
+					"when": "view == cordaProjects",
+					"group": "navigation"
+				},
 				{
 					"command": "cordaFlows.add",
 					"when": "view == cordaFlows",
@@ -188,6 +193,7 @@
 	"dependencies": {
 		"@material-ui/core": "^4.8.2",
 		"@material-ui/icons": "^4.9.1",
+		"adm-zip": "^0.4.16",
 		"axios": "^0.19.1",
 		"axios-retry": "^3.1.2",
 		"bootstrap": "^4.5.2",

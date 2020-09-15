@@ -17,20 +17,7 @@ import { CordaSamplesProvider } from './treeDataProviders/cordaSamples';
 
 import { ClassSig, InterfaceSig, ObjectSig, parseJavaFiles } from './typeParsing';
 import { createNodeExplorerPanel, createLogViewPanel, getReactPanelContent } from './panels';
-import { cordaContractsAddCallback, cordaContractStatesAddCallback, cordaFlowsAddCallback } from './commands';
-
-// tracks all valid CorDapp objects and interfaces (Contracts, States, Flows)
-// let projectClasses: {contractStateClasses:ClassSig[] | ObjectSig[], contractClasses:ClassSig[] | ObjectSig[], flowClasses:ClassSig[] | ObjectSig[]};
-// let projectInterfaces: {contractStateInterfaces:InterfaceSig[] | ObjectSig[], contractInterfaces:InterfaceSig[] | ObjectSig[]};
-
-/**
- * Constants for Inherited Corda Core Types
- */
-export abstract class Constants {
-    static readonly contractStateBaseInterfaces = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
-    static readonly contractBaseInterface = ['Contract'];
-    static readonly flowBaseClass = ['FlowLogic'];
-}
+import { cordaContractsAddCallback, cordaContractStatesAddCallback, cordaFlowsAddCallback, fetchTemplateOrSampleCallback } from './commands';
 
 /**
  * Extension entry point
@@ -44,26 +31,23 @@ export async function activate(context: vscode.ExtensionContext) {
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
 
 	// Corda TreeDataProviders
-	const cordaTemplatesProvider = new CordaTemplatesProvider();
 	const cordaOperationsProvider = new CordaOperationsProvider();
 	const cordaDepProvider = new CordaDepProvider();
 	const cordaFlowsProvider = new CordaFlowsProvider(projectObjects.projectClasses.flowClasses as ClassSig[]);
 	const cordaContractsProvider = new CordaContractsProvider(projectObjects.projectClasses.contractClasses as ClassSig[]);
 	const cordaStatesProvider = new CordaStatesProvider(projectObjects.projectClasses.contractStateClasses as ClassSig[]);
 	const cordaToolsProvider = new CordaToolsProvider();
-	const cordaSamplesProvider = new CordaSamplesProvider();
 
 	// Register DataProviders
-	vscode.window.registerTreeDataProvider('cordaTemplates', cordaTemplatesProvider);
 	vscode.window.registerTreeDataProvider('cordaOperations', cordaOperationsProvider);
 	vscode.window.registerTreeDataProvider('cordaDependencies', cordaDepProvider);
 	vscode.window.registerTreeDataProvider('cordaFlows', cordaFlowsProvider);
 	vscode.window.registerTreeDataProvider('cordaContracts', cordaContractsProvider);
 	vscode.window.registerTreeDataProvider('cordaStates', cordaStatesProvider);
 	vscode.window.registerTreeDataProvider('cordaTools', cordaToolsProvider);
-	vscode.window.registerTreeDataProvider('cordaSamples', cordaSamplesProvider);
 	
 	// Register Commands
+	vscode.commands.registerCommand('cordaProjects.new', () => fetchTemplateOrSampleCallback());
 	vscode.commands.registerCommand('corda.operations.assembleCommand', (msg) => vscode.window.showInformationMessage(msg));
 	vscode.commands.registerCommand('corda.operations.buildCommand', (msg) => vscode.window.showInformationMessage(msg));
 	vscode.commands.registerCommand('corda.operations.testCommand', (msg) => vscode.window.showInformationMessage(msg));

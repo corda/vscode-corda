@@ -1,9 +1,52 @@
-import { Constants } from './extension';
+import { Constants } from './CONSTANTS';
 import * as vscode from 'vscode';
 import { ClassSig, ObjectSig, InterfaceSig } from './typeParsing';
 import Axios from 'axios';
+import * as fs from 'fs';
 
 // CALLBACKS
+
+/**
+ * Fetches a project from REPO using github api
+ */
+export const fetchTemplateOrSampleCallback = async () => {
+
+    // quickPick choose template or sample
+    const qpickItems = Object.keys(Constants.gitHubApi).map((key, index) => { return key; });
+    const requestedProject = await vscode.window.showQuickPick(qpickItems,
+        {
+            placeHolder: 'Choose a template or sample project'
+        });
+    if (requestedProject == undefined) return;
+
+    // request save directory
+    const path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}, openLabel: 'Save Project'});
+    if (path == undefined) return;
+    const targetPath = vscode.Uri.joinPath(path[0], requestedProject);
+    
+    // make sure sample isn't already contained in directory
+    if (fs.existsSync(targetPath.fsPath)) {
+        vscode.window.showInformationMessage("Project already exists in chosen directory");
+        return;
+    }
+
+    // fetch the template or sample
+    const zipFile = await Axios.get(
+        Constants.gitHubApi[requestedProject],
+        {responseType: 'arraybuffer'}
+    );
+
+    // unzip to disk
+    const AdmZip = require('adm-zip');
+    const zip = new AdmZip(zipFile.data);
+    const entryName = zip.getEntries()[0].entryName.slice(0,-1)
+    zip.extractAllTo(path[0].fsPath, true);
+
+    // correct verbose github naming
+    await vscode.workspace.fs.rename(vscode.Uri.joinPath(path[0], entryName), targetPath)
+        .then(() => {vscode.commands.executeCommand('vscode.openFolder', targetPath, true)});
+
+}
 
 /**
  * 
@@ -51,9 +94,17 @@ export const cordaContractStatesAddCallback = async (projectObjects): Promise<vo
     addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
+/**
+ * Helper for cordaFlowsAddCallback, cordaContractsAddCallback, and cordaContractStatesAddCallback
+ * @param qpickItems 
+ * @param qpickPlaceHolder 
+ * @param inputPlaceHolder 
+ * @param commandSource 
+ * @param sourceMap 
+ */
 const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap) => {
-	let result: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}});
-	if (result == undefined) return;
+	let path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}, openLabel: 'Save File'});
+	if (path == undefined) return;
 
 	let stateBase = await vscode.window.showQuickPick(qpickItems,
 	{
@@ -74,7 +125,7 @@ const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, 
 
 	// check Base / http mapping to fetch correct template
 	const stateBaseText = await Axios.get(sourceMap[stateBase!]);
-	const fileUri = vscode.Uri.joinPath(result?.pop()!, fileName!);
+	const fileUri = vscode.Uri.joinPath(path?.pop()!, fileName!);
 	var uint8array = new TextEncoder().encode(stateBaseText.data);
 
 	// write file -> refresh Tree -> open file

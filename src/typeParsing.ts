@@ -1,5 +1,5 @@
 import { Uri, ExtensionContext, workspace } from 'vscode';
-import { Constants } from './extension';
+import { Constants } from './CONSTANTS';
 const { 
   parse,
   BaseJavaCstVisitorWithDefaults
