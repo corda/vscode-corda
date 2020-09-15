@@ -2,33 +2,6 @@ import * as React from 'react';
 import { LogEntry, LogSeverity } from './types';
 import Collapsible from "react-collapsible";
 import dropdownImg from "../../../media/dropdown.png"; 
-import Paper from "@material-ui/core/Paper";
-import Grid from "@material-ui/core/Grid";
-import { createMuiTheme } from "@material-ui/core/styles";
-import * as colours from "@material-ui/core/colors";
-import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
-
-const themeDefn = {
-    palette: {
-        primary: colours.red,
-        secondary: colours.grey
-    },
-};
-
-const useStyles = makeStyles((theme: Theme) => 
-    createStyles({
-        root: {
-            flexGrow: 1,
-            background: theme.palette.background.default
-        },
-        paper: {
-            padding: theme.spacing(2),
-            background: theme.palette.background.paper,
-            textAlign: "center",
-            color: theme.palette.text.primary
-        }
-    })
-);
 
 
 export const Entry = (props: {entry: LogEntry, key: any}) => 

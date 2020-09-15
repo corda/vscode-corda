@@ -2,6 +2,9 @@ import React from "react";
 import { LogEntry } from "./types";
 import { EntriesLoader } from "./entriesLoader";
 import { SearchBox } from "./searchBox";
+import { LogSeverity } from "./types";
+import { DropdownFilter } from "./dropdownFilter";
+
 
 export const EntriesDisplay = (props: {filepath: string, entriesCount: number}) => {
     type filterType = {
@@ -10,17 +13,23 @@ export const EntriesDisplay = (props: {filepath: string, entriesCount: number}) 
 
     const [filter, setFilter] = React.useState({filterBy: (entry: LogEntry) => true} as filterType);
 
-    const onUpdateText = (text: string) => {
+    const onSearch = (text: string) => {
         setFilter({filterBy: 
-            (entry: LogEntry) => JSON.stringify(entry).toLowerCase().includes(text.toLowerCase())
+            entry => JSON.stringify(entry).toLowerCase().includes(text.toLowerCase())
         });
     }
+
+    const onDropdownClick = (severity: LogSeverity) =>
+        setFilter({filterBy: 
+            entry => entry.severity === severity
+        })
     
     return (
         <>
+            <DropdownFilter filter={onDropdownClick}/>
             <SearchBox
                 placeholder="Search here..."
-                onUpdateText={onUpdateText}
+                onUpdateText={onSearch}
             />
             <br/>
             <EntriesLoader 
