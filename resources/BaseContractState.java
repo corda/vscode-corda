@@ -6,9 +6,6 @@ import java.util.List;
 
 public class BaseContractState implements ContractState {
 
-    public BaseContractState() {
-    }
-
     @NotNull
     @Override
     public List<AbstractParty> getParticipants() {

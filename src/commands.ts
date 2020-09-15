@@ -60,7 +60,8 @@ export const cordaFlowsAddCallback = async (projectObjects): Promise<void> => {
     const qpickPlaceHolder = 'Choose a parent flow to extend';
     const inputPlaceHolder = 'Enter the name of the flow';
     const commandSource = 'cordaFlows';
-    const sourceMap = {'FlowLogic':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseFlow.java'};
+    // sourceMap <baseType>:[<templateClassName>,<URL>]
+    const sourceMap = {'FlowLogic':['BaseFlow','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseFlow.java']};
 
     addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
@@ -75,7 +76,8 @@ export const cordaContractsAddCallback = async (projectObjects): Promise<void> =
     const qpickPlaceHolder = 'Choose a parent contract interface or class to extend';
     const inputPlaceHolder = 'Enter the name of the contract';
     const commandSource = 'cordaContracts';
-    const sourceMap = {'Contract':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContract.java'};
+    // sourceMap <baseType>:[<templateClassName>,<URL>]
+    const sourceMap = {'Contract':['BaseContract','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContract.java']};
 
     addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
@@ -89,7 +91,8 @@ export const cordaContractStatesAddCallback = async (projectObjects): Promise<vo
     const qpickPlaceHolder = 'Choose a parent state interface or class to extend';
     const inputPlaceHolder = 'Enter the name of the state';
     const commandSource = 'cordaStates';
-    const sourceMap = {'ContractState':'https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContractState.java'};
+    // sourceMap <baseType>:[<templateClassName>,<URL>]
+    const sourceMap = {'ContractState':['BaseContractState','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContractState.java']};
 
     addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
@@ -120,17 +123,21 @@ const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, 
 			// - must have valid chars
 			// - must not already exist!
 		}
-	}).then(name => { return (name?.includes('.java') ? name : name + '.java') }); // append .java if needed
+	});
 	if (fileName == undefined) return;
 
 	// check Base / http mapping to fetch correct template
-	const stateBaseText = await Axios.get(sourceMap[stateBase!]);
+    let stateBaseText:string = await (await Axios.get(sourceMap[stateBase!][1])).data;
+    stateBaseText = stateBaseText.replace(sourceMap[stateBase][0], fileName) // inject custom ClassName
+
+    fileName = fileName.includes('.java') ? fileName : fileName + '.java'; // append .java if needed
+
 	const fileUri = vscode.Uri.joinPath(path?.pop()!, fileName!);
-	var uint8array = new TextEncoder().encode(stateBaseText.data);
+	var uint8array = new TextEncoder().encode(stateBaseText);
 
 	// write file -> refresh Tree -> open file
 	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(() => {
-		const classToAdd: ClassSig = new ClassSig(fileName.replace('.java',''), '', [stateBase!], fileUri);
+		const classToAdd: ClassSig = new ClassSig(fileName!.replace('.java',''), '', [stateBase!], fileUri);
 		vscode.commands.executeCommand(commandSource + '.refresh', classToAdd);
 	}).then(() => vscode.commands.executeCommand('corda.openFile', fileUri));
 }
