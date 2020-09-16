@@ -10,3 +10,23 @@ export abstract class Constants {
         'bootcamp-cordapp':'https://api.github.com/repos/corda/bootcamp-cordapp/zipball'
     };
 }
+
+export abstract class TestData {
+    static readonly mockNetwork = [
+        {
+            'name':'PartyA',
+            'location':'GB',
+            'port':'10006'
+        },
+        {
+            'name':'PartyB',
+            'location':'CA',
+            'port':'10007'
+        },
+        {
+            'name':'PartyA',
+            'location':'US',
+            'port':'10008'
+        }
+    ]
+}

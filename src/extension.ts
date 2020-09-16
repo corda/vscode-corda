@@ -6,18 +6,19 @@ import { MessageType, WindowMessage } from "./logviewer/backend/types";
 import * as reader from "./logviewer/backend/reader";
 import { PathLike } from "fs";
 
-import { CordaTemplatesProvider } from './treeDataProviders/cordaTemplates';
 import { CordaOperationsProvider } from './treeDataProviders/cordaOperations';
 import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
 import { CordaContractsProvider } from './treeDataProviders/cordaContracts';
 import { CordaStatesProvider } from './treeDataProviders/cordaStates';
-import { CordaToolsProvider } from './treeDataProviders/cordaTools';
-import { CordaSamplesProvider } from './treeDataProviders/cordaSamples';
+import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 
-import { ClassSig, InterfaceSig, ObjectSig, parseJavaFiles } from './typeParsing';
+import { ClassSig, parseJavaFiles } from './typeParsing';
 import { createNodeExplorerPanel, createLogViewPanel, getReactPanelContent } from './panels';
 import { cordaContractsAddCallback, cordaContractStatesAddCallback, cordaFlowsAddCallback, fetchTemplateOrSampleCallback } from './commands';
+
+// TESTING
+import { TestData } from './CONSTANTS';
 
 /**
  * Extension entry point
@@ -36,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const cordaFlowsProvider = new CordaFlowsProvider(projectObjects.projectClasses.flowClasses as ClassSig[]);
 	const cordaContractsProvider = new CordaContractsProvider(projectObjects.projectClasses.contractClasses as ClassSig[]);
 	const cordaStatesProvider = new CordaStatesProvider(projectObjects.projectClasses.contractStateClasses as ClassSig[]);
-	const cordaToolsProvider = new CordaToolsProvider();
+	const cordaMockNetworkProvider = new CordaMockNetworkProvider(TestData.mockNetwork);
 
 	// Register DataProviders
 	vscode.window.registerTreeDataProvider('cordaOperations', cordaOperationsProvider);
@@ -44,7 +45,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('cordaFlows', cordaFlowsProvider);
 	vscode.window.registerTreeDataProvider('cordaContracts', cordaContractsProvider);
 	vscode.window.registerTreeDataProvider('cordaStates', cordaStatesProvider);
-	vscode.window.registerTreeDataProvider('cordaTools', cordaToolsProvider);
+	vscode.window.registerTreeDataProvider('cordaMockNetwork', cordaMockNetworkProvider);
 	
 	// Register Commands
 	vscode.commands.registerCommand('cordaProjects.new', () => fetchTemplateOrSampleCallback());
@@ -64,11 +65,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig));
 	vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig));
 	vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig));
-	vscode.commands.registerCommand('corda.nodeExplorerCommand', (panelDesc) => vscode.window.showInformationMessage(panelDesc));
-	vscode.commands.registerCommand('corda.logViewerCommand', (panelDesc) => {
+	vscode.commands.registerCommand('corda.logViewer', () => {
 		
 		if (logViewPanel == undefined) logViewPanel = createLogViewPanel(context);
-		logViewPanel.webview.html = getReactPanelContent(panelDesc, context);
+		logViewPanel.webview.html = getReactPanelContent('logviewer', context);
     
 		const filepath: PathLike = path.join(context.extensionPath, "smalllog.log");
 		
