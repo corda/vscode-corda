@@ -45,19 +45,16 @@ export const EntriesLoader = (props: entriesLoaderProps) => {
             rowCount = {props.entriesCount}
         >
             {({ onRowsRendered, registerChild }) =>
-                <AutoSizer>
-                    {({width, height}) => 
-                        <List
-                            width={width}
-                            height={height}
-                            onRowsRendered={onRowsRendered}
-                            ref={registerChild}
-                            rowCount={props.entriesCount}
-                            rowRenderer={rowRenderer}
-                            rowHeight={30}
-                        />   
-                    }
-                </AutoSizer>
+                <List id={"hi"}
+                    style={{height: "auto"}}
+                    width={500}
+                    height={800}
+                    onRowsRendered={onRowsRendered}
+                    ref={registerChild}
+                    rowCount={Math.min(props.entriesCount, 12)}
+                    rowRenderer={rowRenderer}
+                    rowHeight={30}
+                />   
             }
         </InfiniteLoader>
     )

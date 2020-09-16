@@ -47,3 +47,12 @@ export interface WindowMessage {
     filepath: string,
     entriesCount: number
 }
+
+export const severityToName = (severity: LogSeverity) => {
+    switch (severity) {
+        case LogSeverity.WARN: return "WARN";
+        case LogSeverity.ERROR: return "ERROR";
+        default:                return "INFO";
+
+    }
+}

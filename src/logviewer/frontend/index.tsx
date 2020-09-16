@@ -3,6 +3,8 @@ import * as ReactDOM from 'react-dom';
 import { WindowMessage, MessageType, LogEntry } from './types';
 import { EntriesDisplay } from "./entriesDisplay";
 import { EntriesLoader } from './entriesLoader';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import "./styles.css";
 
 window.addEventListener("message", event => {
     const message = event.data as WindowMessage;
