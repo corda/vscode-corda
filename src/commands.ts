@@ -1,8 +1,10 @@
-import { Constants } from './CONSTANTS';
+import { Constants, GRADLE_TASKS_EXTENSION_ID } from './CONSTANTS';
 import * as vscode from 'vscode';
 import { ClassSig, ObjectSig, InterfaceSig } from './typeParsing';
 import Axios from 'axios';
 import * as fs from 'fs';
+import { ExtensionApi as GradleApi, RunTaskOpts, Output } from 'vscode-gradle';
+import * as util from 'util';
 
 // CALLBACKS
 
@@ -140,4 +142,35 @@ const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, 
 		const classToAdd: ClassSig = new ClassSig(fileName!.replace('.java',''), '', [stateBase!], fileUri);
 		vscode.commands.executeCommand(commandSource + '.refresh', classToAdd);
 	}).then(() => vscode.commands.executeCommand('corda.openFile', fileUri));
+}
+
+/**
+ * Executing callback for running Gradle task
+ * @param task 
+ */
+export const runGradleTaskCallback = async (task: string) => {
+    const extension = vscode.extensions.getExtension(GRADLE_TASKS_EXTENSION_ID);
+    const gradleApi = extension!.exports as GradleApi;
+    const runTaskOpts: RunTaskOpts = {
+        projectFolder: vscode.workspace.workspaceFolders![0].uri.fsPath,
+        taskName: task,
+        showOutputColors: false,
+        onOutput: (output: Output): void => {
+            const message = new util.TextDecoder("utf-8").decode(
+              output.getOutputBytes_asU8()
+            );
+            if (output.getOutputType()) {
+                console.log(message);
+            } else {
+                console.error(message);
+            }
+        },
+    };
+    await gradleApi.runTask(runTaskOpts).then(() => vscode.window.showInformationMessage("CorDapp " + task + " complete."));
+}
+
+export const openFile = async (uri: vscode.Uri) => {
+    vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
+        vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
+    })
 }

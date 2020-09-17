@@ -30,3 +30,5 @@ export abstract class TestData {
         }
     ]
 }
+
+export const GRADLE_TASKS_EXTENSION_ID = 'richardwillis.vscode-gradle';

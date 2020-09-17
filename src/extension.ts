@@ -15,7 +15,7 @@ import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 
 import { ClassSig, parseJavaFiles } from './typeParsing';
 import { createNodeExplorerPanel, createLogViewPanel, getReactPanelContent } from './panels';
-import { cordaContractsAddCallback, cordaContractStatesAddCallback, cordaFlowsAddCallback, fetchTemplateOrSampleCallback } from './commands';
+import * as callbacks from './commands';
 
 // TESTING
 import { TestData } from './CONSTANTS';
@@ -48,20 +48,25 @@ export async function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('cordaMockNetwork', cordaMockNetworkProvider);
 	
 	// Register Commands
-	vscode.commands.registerCommand('cordaProjects.new', () => fetchTemplateOrSampleCallback());
-	vscode.commands.registerCommand('corda.operations.assembleCommand', (msg) => vscode.window.showInformationMessage(msg));
-	vscode.commands.registerCommand('corda.operations.buildCommand', (msg) => vscode.window.showInformationMessage(msg));
-	vscode.commands.registerCommand('corda.operations.testCommand', (msg) => vscode.window.showInformationMessage(msg));
-	vscode.commands.registerCommand('corda.operations.cleanCommand', (msg) => vscode.window.showInformationMessage(msg));
 
-	vscode.commands.registerCommand('cordaFlows.add', () => cordaFlowsAddCallback(projectObjects));
-	vscode.commands.registerCommand('cordaContracts.add', () => cordaContractsAddCallback(projectObjects));
-	vscode.commands.registerCommand('cordaStates.add', () => cordaContractStatesAddCallback(projectObjects));
-	vscode.commands.registerCommand('corda.openFile', (uri) => {
-		vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
-			vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
-		})
-	});
+	vscode.commands.registerCommand('cordaProjects.new', () => callbacks.fetchTemplateOrSampleCallback());
+
+	// ops
+	vscode.commands.registerCommand('corda.operations.assembleCommand', () => callbacks.runGradleTaskCallback("assemble"));
+	vscode.commands.registerCommand('corda.operations.buildCommand', () => callbacks.runGradleTaskCallback("build"));
+	vscode.commands.registerCommand('corda.operations.testCommand', () => callbacks.runGradleTaskCallback("test"));
+	vscode.commands.registerCommand('corda.operations.cleanCommand', () => callbacks.runGradleTaskCallback("clean"));
+
+	// add classes
+	vscode.commands.registerCommand('cordaFlows.add', () => callbacks.cordaFlowsAddCallback(projectObjects));
+	vscode.commands.registerCommand('cordaContracts.add', () => callbacks.cordaContractsAddCallback(projectObjects));
+	vscode.commands.registerCommand('cordaStates.add', () => callbacks.cordaContractStatesAddCallback(projectObjects));
+	vscode.commands.registerCommand('corda.openFile', (uri) => callbacks.openFile(uri));
+
+	// mocknetwork
+	// vscode
+
+	// refreshes
 	vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig));
 	vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig));
 	vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig));

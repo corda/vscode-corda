@@ -126,6 +126,11 @@
 				"icon": "$(refresh)"
 			},
 			{
+				"command": "corda.mockNetwork.networkMap",
+				"title": "View Network Map",
+				"icon": "$(globe)"
+			},
+			{
 				"command": "corda.mockNetwork.edit",
 				"title": "Edit Mock Network",
 				"icon": "$(wrench)"
@@ -180,19 +185,24 @@
 					"group": "navigation"
 				},
 				{
-					"command": "corda.mockNetwork.edit",
+					"command": "corda.mockNetwork.networkMap",
 					"when": "view == cordaMockNetwork",
 					"group": "navigation@0"
 				},
 				{
-					"command": "corda.mockNetwork.deployNodes",
+					"command": "corda.mockNetwork.edit",
 					"when": "view == cordaMockNetwork",
 					"group": "navigation@1"
 				},
 				{
-					"command": "corda.mocknetwork.runNodes",
+					"command": "corda.mockNetwork.deployNodes",
 					"when": "view == cordaMockNetwork",
 					"group": "navigation@2"
+				},
+				{
+					"command": "corda.mocknetwork.runNodes",
+					"when": "view == cordaMockNetwork",
+					"group": "navigation@3"
 				}
 			],
 			"view/item/context": [
@@ -270,6 +280,7 @@
 		"redux-devtools-extension": "^2.13.8",
 		"redux-thunk": "^2.3.0",
 		"responsive-table": "^0.1.2",
-		"simple-flexbox": "^2.3.2"
+		"simple-flexbox": "^2.3.2",
+		"vscode-gradle": "0.0.256279716"
 	}
 }
