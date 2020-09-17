@@ -7,6 +7,6 @@ export const SearchBox = (props: {placeholder: string, onUpdateText: updateFn}) 
         <label htmlFor="search"> {props.placeholder} </label>
         <input 
             type="text"  
-            onChange={(event: ChangeEvent<HTMLInputElement>) => props.onUpdateText(event.target.value)}
+            onChange={event => props.onUpdateText(event.target.value)}
         />
     </>

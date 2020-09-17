@@ -1,11 +1,26 @@
 /**
  * Marks if a log is `INFO`, `WARN` or `ERROR`
  */
-export enum LogSeverity {
-    INFO,
-    WARN,
-    ERROR
+
+//* The abstract type which contains all the severities */
+export interface LogSeverities {
+    INFO: "INFO",
+    WARN: "WARN",
+    ERROR: "ERROR"
 }
+
+// A concrete object which contains all the severities */
+export const LogSeverities = {
+    INFO: "INFO",
+    WARN: "WARN",
+    ERROR: "ERROR"
+} as LogSeverities
+
+
+/** The enum which consists of LogSeverity.INFO, LogSeverity.WARN, LogSeverity.ERROR */
+export type Severity = LogSeverities["INFO"] | LogSeverities["WARN"] | LogSeverities["ERROR"]
+
+const x: Severity = LogSeverities.INFO
 
 /**
  * A human-readable `message` and an `object` of relevant code details (e.g code that caused error message) that the log stores 
@@ -19,7 +34,7 @@ export interface LogBody {
  * A complete log entry: `severity`, `date`, `thread`, `source` and `body`
  */
 export interface LogEntry {
-    severity: LogSeverity,
+    severity: Severity,
     date: Date,
     thread: string,
     source: string,
@@ -27,7 +42,7 @@ export interface LogEntry {
 }
 
 export const sampleLogEntry = (i: number) => <LogEntry>({
-    severity: LogSeverity.INFO,
+    severity: LogSeverities.INFO,
     date: new Date(),
     thread: "main",
     source: `sample #${i}`,
@@ -48,11 +63,6 @@ export interface WindowMessage {
     entriesCount: number
 }
 
-export const severityToName = (severity: LogSeverity) => {
-    switch (severity) {
-        case LogSeverity.WARN: return "WARN";
-        case LogSeverity.ERROR: return "ERROR";
-        default:                return "INFO";
-
-    }
+export const nameToSeverity = (name: string): Severity => {
+    return LogSeverities[name];
 }

@@ -28,8 +28,9 @@ export const EntriesLoader = (props: entriesLoaderProps) => {
 
     const rowRenderer = ({key, index, style}: ListRowProps) => {
         if (isRowLoaded(index)) {
-            if (props.filterBy(entries[index])) 
+            if (props.filterBy(entries[index])) {
                 return <Entry entry={entries[index]} key={key} />
+            }
             else
                 return <div style={{display: "none"}}> I'm invisible! </div>;
         }
@@ -45,8 +46,7 @@ export const EntriesLoader = (props: entriesLoaderProps) => {
             rowCount = {props.entriesCount}
         >
             {({ onRowsRendered, registerChild }) =>
-                <List id={"hi"}
-                    style={{height: "auto"}}
+                <List
                     width={500}
                     height={800}
                     onRowsRendered={onRowsRendered}

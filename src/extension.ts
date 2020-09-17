@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { MessageType, WindowMessage } from "./logviewer/frontend/types";
+import { LogSeverities, MessageType, WindowMessage } from "./logviewer/frontend/types";
 import * as request from "./logviewer/frontend/request";
 import { PathLike } from "fs";
 
@@ -70,7 +70,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		logViewPanel.webview.html = getReactPanelContent('logviewer', context);
     
 		const filepath = path.join(context.extensionPath, "smalllog.log");
-		
 		request.countEntries(filepath).then(count => {
 			logViewPanel?.webview.postMessage({
 				messageType: MessageType.NEW_LOG_ENTRIES,

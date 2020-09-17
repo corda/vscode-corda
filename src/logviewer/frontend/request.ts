@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LogEntry } from "./types";
+import { LogEntry, LogSeverities } from "./types";
 import * as util from "./util";
 import axios from "axios";
 
@@ -8,6 +8,7 @@ const resultFromServer = async (domain: string, postRequest: any) =>
 
 const tidyEntry = (entry: any) => ({
     ...entry, 
+    severity: LogSeverities[entry.severity],
     date: new Date(util.before(entry.date, ",")),
     body: {
         ...entry.body,

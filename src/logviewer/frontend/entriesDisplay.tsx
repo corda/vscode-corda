@@ -2,7 +2,7 @@ import React from "react";
 import { LogEntry } from "./types";
 import { EntriesLoader } from "./entriesLoader";
 import { SearchBox } from "./searchBox";
-import { LogSeverity } from "./types";
+import { Severity } from "./types";
 import { DropdownFilter } from "./dropdownFilter";
 
 
@@ -19,7 +19,7 @@ export const EntriesDisplay = (props: {filepath: string, entriesCount: number}) 
         });
     }
 
-    const onDropdownClick = (severity: LogSeverity) =>
+    const onDropdownClick = (severity: Severity) =>
         setFilter({filterBy: 
             entry => entry.severity === severity
         })

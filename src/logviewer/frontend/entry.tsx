@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { LogEntry, LogSeverity } from './types';
+import { LogEntry, LogSeverities } from './types';
 import Collapse from "react-bootstrap/Collapse";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import dropdownImg from "../../../media/dropdown.png"; 
+import * as util from "./util";
 
 export const Entry = (props: {entry: LogEntry, key: any}) => 
     expandableObject(props.entry.severity.toString(), props.entry)
@@ -17,21 +17,21 @@ export const LoadingEntry = (props: {key: any}) =>
     </div>
 
 
-const expandableObject = (name: string, object: any) => {
+const expandableObject = (header: any, object: any) => {
     const keys = Object.keys(object);
     if (keys.length === 0 || typeof object !== "object" || object instanceof Date) {
-        return rowOf(name, object);
+        return <KeyValueRow header={header} object={object} />
     }
     if (keys.length === 1) {
-        return rowOf(keys[0], object[keys[0]])
+        return <KeyValueRow header={keys[0]} object={object[keys[0]]} />
     }
     return (
         <Expandable 
-            header={name} 
+            header={header} 
             elements={keys.map(
                 key => expandableObject(key, object[key])
             )}
-            key={name + JSON.stringify(object)}
+            key={JSON.stringify(name) + JSON.stringify(object)}
         />
     )
 }
@@ -47,25 +47,42 @@ const Expandable = ({header, elements, key}) => {
                 aria-controls={innerDivId}
                 aria-expanded={open}
             >
-                {header}
+                {format(header)}
             </Button>
             <Collapse in={open}>
                 <div id={innerDivId}>
                     {elements}
                 </div>
             </Collapse>
+            <br />
         </>
     )
 }
 
 
-const rowOf = (key: string, value: any) => 
-    <Container>
+const KeyValueRow = ({header, object}) => {
+    console.log(object);
+
+    return (
+        <Container>
         <Row>
-            <Col sm={4}> {key} </Col>
-            <Col sm={8}> {value.toString()} </Col>
+            <Col sm={4}> {format(header)} </Col>
+            <Col sm={8}> {format(object)} </Col>
         </Row>
     </Container>
+
+    )
+}
+    
+const format = (object: any) => {
+    if (isEmptyObject(object))
+        return "(empty)"
+
+    if (object instanceof Date) 
+        return util.before(object.toString(), " GMT")
+
+    return object.toString()
+}
 
 const isEmptyObject = (object: any) =>
     Object.keys(object).length === 0 && !(object instanceof Date)
