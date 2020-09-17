@@ -11,6 +11,7 @@
 			"DOM"
 		],
 		"sourceMap": true,
+		"esModuleInterop": true,
 		"rootDir": "src",
 		"strict": true   /* enable all strict type-checking options */
 		/* Additional Checks */

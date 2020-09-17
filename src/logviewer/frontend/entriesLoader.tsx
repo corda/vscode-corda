@@ -1,60 +1,61 @@
 import * as React from "react";
-import { InfiniteLoader, List, IndexRange, Index, ListRowProps } from "react-virtualized";
-import { LogEntry, sampleLogEntry } from "../backend/types";
-import * as util from "../backend/util";
-import axios from "axios";
-import { EntryButton, LoadingEntry } from "./entry";
-import "./Table.css"
+import { InfiniteLoader, List, IndexRange, ListRowProps, AutoSizer } from "react-virtualized";
+import { LogEntry } from "./types";
+import * as util from "./util";
+import * as request from "./request";
+import { Entry, LoadingEntry } from "./entry";
 
-export const EntriesLoader = (props: {filepath: string, amountOfEntries: number}) => {
-    let entries = new Array<LogEntry>();
+export interface entriesLoaderProps {
+    filepath: string, 
+    entriesCount: number, 
+    filterBy: (entry: LogEntry) => boolean
+}
 
-    const isRowLoaded = ({index}: Index) => entries[index] !== undefined;
+export const EntriesLoader = (props: entriesLoaderProps) => {
+    const [entries, setEntries] = React.useState(new Array<LogEntry>());
 
-    // [startIndex, stopIndex)
+    const isRowLoaded = (index: number) => !!entries[index];
+
+    
+    /** `[startIndex, stopIndex)` */
     const loadMoreRows = async ({startIndex, stopIndex}: IndexRange) => {
-        const newEntries = (await axios.post("http://localhost:8580/logReader/read", {
-            startIndex,
-            stopIndex,
-            components: props.filepath.replace(/\\/g, "/").split("/")
-        }))
-        .data.entries
-        .map((entry: any) => ({
-            ...entry, 
-            date: new Date(util.before(entry.date, ","))
-        }))
-
-        entries = util.placeAt(entries, newEntries, startIndex);
+        setEntries(util.placeAt(
+            entries, 
+            await request.entriesBetween(startIndex, stopIndex, props.filepath), 
+            startIndex
+        ));
     }
 
     const rowRenderer = ({key, index, style}: ListRowProps) => {
-        const content = isRowLoaded({index}) ? 
-            <EntryButton entry={entries[index]} key={key} /> :
-            <LoadingEntry key={key} />
-        return (
-            <div key = {key} style = {style}>
-                {content}
-            </div>
-        )
+        if (isRowLoaded(index)) {
+            if (props.filterBy(entries[index])) {
+                return <Entry entry={entries[index]} key={key} />
+            }
+            else
+                return <div style={{display: "none"}}> I'm invisible! </div>;
+        }
+        else
+            return <LoadingEntry key={key}/>
     }
+        
 
     return (
         <InfiniteLoader
-            isRowLoaded = {isRowLoaded}
+            isRowLoaded = {({index}) => isRowLoaded(index)}
             loadMoreRows = {loadMoreRows}
-            rowCount = {props.amountOfEntries}
+            rowCount = {props.entriesCount}
         >
-            {({ onRowsRendered, registerChild }) => (
+            {({ onRowsRendered, registerChild }) =>
                 <List
-                    height={1000}
+                    width={500}
+                    height={800}
                     onRowsRendered={onRowsRendered}
                     ref={registerChild}
-                    rowCount={props.amountOfEntries}
-                    rowHeight={120}
+                    rowCount={Math.min(props.entriesCount, 12)}
                     rowRenderer={rowRenderer}
-                    width={2000}
-                />
-            )}
+                    rowHeight={30}
+                />   
+            }
         </InfiniteLoader>
     )
 }

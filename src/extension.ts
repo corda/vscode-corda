@@ -2,8 +2,8 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { MessageType, WindowMessage } from "./logviewer/backend/types";
-import * as reader from "./logviewer/backend/reader";
+import { LogSeverities, MessageType, WindowMessage } from "./logviewer/frontend/types";
+import * as request from "./logviewer/frontend/request";
 import { PathLike } from "fs";
 
 import { CordaOperationsProvider } from './treeDataProviders/cordaOperations';
@@ -75,17 +75,21 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (logViewPanel == undefined) logViewPanel = createLogViewPanel(context);
 		logViewPanel.webview.html = getReactPanelContent('logviewer', context);
     
-		const filepath: PathLike = path.join(context.extensionPath, "smalllog.log");
-		
-		reader.countEntriesInFile(filepath).then(amount => {
-			logViewPanel?.webview.postMessage(<WindowMessage> {
+		const filepath = path.join(context.extensionPath, "smalllog.log");
+		request.countEntries(filepath).then(count => {
+			logViewPanel?.webview.postMessage({
 				messageType: MessageType.NEW_LOG_ENTRIES,
 				filepath,
-				amount
-			})
-		});
+				entriesCount: count
+			} as WindowMessage)
+		})
 	});
 }
 
 
 export const deactivate = () => {};
+
+const findTerminal = (termName: string) => {
+	const terminals = vscode.window.terminals.filter(t => t.name == termName);
+	return terminals.length !== 0 ? terminals[0] : undefined;
+}
