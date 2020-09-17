@@ -1,6 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { LogSeverities, MessageType, WindowMessage } from "./logviewer/frontend/types";
 import * as request from "./logviewer/frontend/request";
 import { PathLike } from "fs";
