@@ -285,5 +285,9 @@
 		"responsive-table": "^0.1.2",
 		"simple-flexbox": "^2.3.2",
 		"vscode-gradle": "0.0.256279716"
-	}
+	},
+	"extensionDependencies": [
+		"vscjava.vscode-java-pack",
+		"richardwillis.vscode-gradle"
+	]
 }
