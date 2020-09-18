@@ -17,6 +17,8 @@ import { ClassSig, parseJavaFiles } from './typeParsing';
 import { createNodeExplorerPanel, createLogViewPanel, getReactPanelContent } from './panels';
 import * as callbacks from './commands';
 
+import { launchClient } from './terminals';
+
 // TESTING
 import { TestData } from './CONSTANTS';
 
@@ -30,6 +32,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Panels for Tools views
 	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
 	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
+
+	// Launch client connector Springboot jar
+	launchClient();
 
 	// Corda TreeDataProviders
 	const cordaOperationsProvider = new CordaOperationsProvider();
