@@ -54,5 +54,6 @@ export class CordaFlow extends vscode.TreeItem {
 	}
 
 	iconPath = new vscode.ThemeIcon('zap');
+	description = (this.classSig.superClass != undefined) ? this.classSig.superClass : this.classSig.superInterfaces[0]; 
 
 }

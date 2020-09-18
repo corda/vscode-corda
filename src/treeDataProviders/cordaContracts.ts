@@ -54,5 +54,6 @@ export class CordaContract extends vscode.TreeItem {
 	}
 
 	iconPath = new vscode.ThemeIcon('law');
+	description = (this.classSig.superClass != undefined) ? this.classSig.superClass : this.classSig.superInterfaces[0]; 
 
 }
