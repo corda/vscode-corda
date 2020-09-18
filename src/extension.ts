@@ -49,41 +49,59 @@ export async function activate(context: vscode.ExtensionContext) {
 	
 	// Register Commands
 
-	vscode.commands.registerCommand('cordaProjects.new', () => callbacks.fetchTemplateOrSampleCallback());
+	context.subscriptions.push(
+		vscode.commands.registerCommand('cordaProjects.new', () => callbacks.fetchTemplateOrSampleCallback()),
 
-	// ops
-	vscode.commands.registerCommand('corda.operations.assembleCommand', () => callbacks.runGradleTaskCallback("assemble"));
-	vscode.commands.registerCommand('corda.operations.buildCommand', () => callbacks.runGradleTaskCallback("build"));
-	vscode.commands.registerCommand('corda.operations.testCommand', () => callbacks.runGradleTaskCallback("test"));
-	vscode.commands.registerCommand('corda.operations.cleanCommand', () => callbacks.runGradleTaskCallback("clean"));
+		// ops
+		vscode.commands.registerCommand('corda.operations.assembleCommand', () => callbacks.runGradleTaskCallback("assemble")),
+		vscode.commands.registerCommand('corda.operations.buildCommand', () => callbacks.runGradleTaskCallback("build")),
+		vscode.commands.registerCommand('corda.operations.testCommand', () => callbacks.runGradleTaskCallback("test")),
+		vscode.commands.registerCommand('corda.operations.cleanCommand', () => callbacks.runGradleTaskCallback("clean")),
 
-	// add classes
-	vscode.commands.registerCommand('cordaFlows.add', () => callbacks.cordaFlowsAddCallback(projectObjects));
-	vscode.commands.registerCommand('cordaContracts.add', () => callbacks.cordaContractsAddCallback(projectObjects));
-	vscode.commands.registerCommand('cordaStates.add', () => callbacks.cordaContractStatesAddCallback(projectObjects));
-	vscode.commands.registerCommand('corda.openFile', (uri) => callbacks.openFile(uri));
+		// add classes
+		vscode.commands.registerCommand('cordaFlows.add', () => callbacks.cordaFlowsAddCallback(projectObjects)),
+		vscode.commands.registerCommand('cordaContracts.add', () => callbacks.cordaContractsAddCallback(projectObjects)),
+		vscode.commands.registerCommand('cordaStates.add', () => callbacks.cordaContractStatesAddCallback(projectObjects)),
+		vscode.commands.registerCommand('corda.openFile', (uri) => callbacks.openFile(uri)),
 
-	// mocknetwork
-	// vscode
+		// mocknetwork
+		// vscode
 
-	// refreshes
-	vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig));
-	vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig));
-	vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig));
-	vscode.commands.registerCommand('corda.logViewer', () => {
-		
-		if (logViewPanel == undefined) logViewPanel = createLogViewPanel(context);
-		logViewPanel.webview.html = getReactPanelContent('logviewer', context);
-    
-		const filepath = path.join(context.extensionPath, "smalllog.log");
-		request.countEntries(filepath).then(count => {
-			logViewPanel?.webview.postMessage({
-				messageType: MessageType.NEW_LOG_ENTRIES,
-				filepath,
-				entriesCount: count
-			} as WindowMessage)
+		// refreshes
+		vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig)),
+		vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig)),
+		vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig)),
+		vscode.commands.registerCommand('corda.logViewer', () => {
+			
+			if (logViewPanel) {
+				logViewPanel.reveal();
+			}  else {
+				logViewPanel = createLogViewPanel(context);
+
+				logViewPanel.webview.html = getReactPanelContent('logviewer', context);
+			}
+			
+			const filepath = path.join(context.extensionPath, "smalllog.log");
+			request.countEntries(filepath).then(count => {
+				logViewPanel?.webview.postMessage({
+					messageType: MessageType.NEW_LOG_ENTRIES,
+					filepath,
+					entriesCount: count
+				} as WindowMessage)
+			})
+			
+			logViewPanel.onDidDispose(
+				() => {
+					logViewPanel = undefined;
+				},
+				null,
+				context.subscriptions
+			)
+
 		})
-	});
+	); // end context subscriptions
+
+
 }
 
 
