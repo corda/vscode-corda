@@ -2,8 +2,8 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { LogSeverities, MessageType, WindowMessage } from "./logviewer/frontend/types";
-import * as request from "./logviewer/frontend/request";
+import { LogSeverities, MessageType, WindowMessage } from "./logviewer/types";
+import * as request from "./logviewer/request";
 import { PathLike } from "fs";
 
 import { CordaOperationsProvider } from './treeDataProviders/cordaOperations';

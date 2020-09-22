@@ -3,9 +3,9 @@
 const path = require('path');
 
 module.exports = {
-    entry: "./src/logviewer/frontend/index.tsx",
+    entry: "./src/logviewer/index.tsx",
     output: {
-        path: path.resolve(__dirname, 'out/logviewer/frontend/'),
+        path: path.resolve(__dirname, 'out/logviewer/'),
         filename: "index.js",
         libraryTarget: 'umd',
       devtoolModuleFilenameTemplate: '../[resource-path]'

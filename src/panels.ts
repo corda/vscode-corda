@@ -13,7 +13,7 @@ export const createLogViewPanel = (context) => {
 		{
 			enableScripts: true,
 			retainContextWhenHidden: true,
-			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out/logviewer/frontend')) ]
+			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out/logviewer')) ]
 		}
 	)
 };
@@ -44,7 +44,7 @@ export const getReactPanelContent = (panel: string, context: vscode.ExtensionCon
 	let title: string, subPath: string;
 	if (panel == 'logviewer') {
 		title = "Corda Log Viewer";
-		subPath = "out/logviewer/frontend/";
+		subPath = "out/logviewer/";
 	} else {
 		title = "Corda Node Explorer";
 		subPath = "out/nodeexplorer/";
