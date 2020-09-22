@@ -14,13 +14,14 @@ import { CordaStatesProvider } from './treeDataProviders/cordaStates';
 import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 
 import { ClassSig, parseJavaFiles } from './typeParsing';
-import { createNodeExplorerPanel, createLogViewPanel, getReactPanelContent } from './panels';
+import { getWebViewPanel } from './panels';
 import * as callbacks from './commands';
-
 import { launchClient } from './terminals';
 
 // TESTING
 import { TestData } from './CONSTANTS';
+
+const cordaWebViewPanels: { [id: string] : vscode.WebviewPanel } = {};
 
 /**
  * Extension entry point
@@ -78,31 +79,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig)),
 		vscode.commands.registerCommand('corda.logViewer', () => {
 			
-			if (logViewPanel) {
-				logViewPanel.reveal();
-			}  else {
-				logViewPanel = createLogViewPanel(context);
-
-				logViewPanel.webview.html = getReactPanelContent('logviewer', context);
-			}
+			panelStart('logviewer', context);
 			
 			const filepath = path.join(context.extensionPath, "smalllog.log");
 			request.countEntries(filepath).then(count => {
-				logViewPanel?.webview.postMessage({
+				cordaWebViewPanels['logviewer']?.webview.postMessage({
 					messageType: MessageType.NEW_LOG_ENTRIES,
 					filepath,
 					entriesCount: count
 				} as WindowMessage)
 			})
-			
-			logViewPanel.onDidDispose(
-				() => {
-					logViewPanel = undefined;
-				},
-				null,
-				context.subscriptions
-			)
-
 		})
 	); // end context subscriptions
 
@@ -111,6 +97,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 export const deactivate = () => {};
+
+const panelStart = (view: string, context: vscode.ExtensionContext) => {
+	let panel = cordaWebViewPanels[view];
+	if (panel) {
+		panel.reveal();
+	}  else {
+		cordaWebViewPanels[view] = getWebViewPanel(view, context);
+	}
+}
 
 const findTerminal = (termName: string) => {
 	const terminals = vscode.window.terminals.filter(t => t.name == termName);

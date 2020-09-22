@@ -1,55 +1,62 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-/**
- * 
- * @param context extension context for accessing window
- */
-export const createLogViewPanel = (context) => {
-	return vscode.window.createWebviewPanel( 
-		'cordaLogViewer', 
-		'Corda Log Viewer',
-		vscode.ViewColumn.One, 
-		{
-			enableScripts: true,
-			retainContextWhenHidden: true,
-			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out/logviewer')) ]
-		}
+
+export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) => {
+	let title: string, resourceRoot: string, file: string;
+	
+	switch (view) {
+		case 'logviewer':
+			title = "Corda Log Viewer";
+			resourceRoot = "out/logviewer/";
+			file = "index.js"; // change this
+			break;
+		case 'networkmap':
+			title = "Network Map";
+			resourceRoot = "out/nodeexplorer/";
+			file = "networkmap.js";
+			break;
+		default:
+			title = "";
+			resourceRoot = "";
+			file = "";
+	}
+	
+	let logViewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, view, title, resourceRoot);
+	logViewPanel.webview.html = getReactPanelContent(context, title, resourceRoot, file);
+	logViewPanel.onDidDispose(
+		() => {
+			logViewPanel = undefined;
+		},
+		null,
+		context.subscriptions
 	)
-};
+	return logViewPanel;
+}
 
 /**
  * 
  * @param context extension context for accessing window
  */
-export const createNodeExplorerPanel = (context) => {
+const createViewPanel = (context, view, title, resourceRoot) => {
 	return vscode.window.createWebviewPanel( 
-		'cordaNodeExplorer', 
-		'Corda Node Explorer', 
+		view, 
+		title,
 		vscode.ViewColumn.One, 
 		{
 			enableScripts: true,
 			retainContextWhenHidden: true,
-			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, 'out/nodeexplorer/')) ]
+			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, resourceRoot)) ]
 		}
-	);
-}
+	)
+};
 
 /**
  * Minimal html for panel content with embedding script
  * @param panel 
  * @param context 
  */
-export const getReactPanelContent = (panel: string, context: vscode.ExtensionContext) => {
-	let title: string, subPath: string;
-	if (panel == 'logviewer') {
-		title = "Corda Log Viewer";
-		subPath = "out/logviewer/";
-	} else {
-		title = "Corda Node Explorer";
-		subPath = "out/nodeexplorer/";
-	}
-
+const getReactPanelContent = (context: vscode.ExtensionContext, title: string, resourceRoot: string, file: string) => {
 	return	`<!DOCTYPE html>
 		<html lang="en"> 
 		<head>
@@ -59,7 +66,7 @@ export const getReactPanelContent = (panel: string, context: vscode.ExtensionCon
 		</head>
 		<body>
 			<div id="root">   </div>
-			${loadScript(context,path.normalize(subPath) + 'index' + '.js')}
+			${loadScript(context,path.normalize(resourceRoot) + file)}
 		</body>
 		</html>`
 }
