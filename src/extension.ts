@@ -17,32 +17,54 @@ import { ClassSig, parseJavaFiles } from './typeParsing';
 import { getWebViewPanel } from './panels';
 import * as callbacks from './commands';
 import { launchClient } from './terminals';
+import { getBuildGradleFSWatcher } from './watchers';
+import { cordaCheckAndLoad } from './projectUtils';
 
 // TESTING
 import { TestData } from './CONSTANTS';
 
+
 const cordaWebViewPanels: { [id: string] : vscode.WebviewPanel } = {};
+const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
+
+/**
+ * context.workSpaceState entries:
+ * projectIsCorda - is the workspace a valid Corda Project, set in cordaCheckAndLoad().
+ * 
+ * context.globalState entries:
+ * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
+ *  */ 
+
 
 /**
  * Extension entry point
  * @param context 
  */
 export async function activate(context: vscode.ExtensionContext) {
-	const projectObjects: {projectClasses: any, projectInterfaces:any} = await parseJavaFiles(context); // scan all project java files and build inventory
 
-	// Panels for Tools views
-	let logViewPanel: vscode.WebviewPanel | undefined = undefined;
-	let nodeExplorerPanel: vscode.WebviewPanel | undefined = undefined;
+	let projectObjects: {projectClasses: any, projectInterfaces:any};
 
-	// Launch client connector Springboot jar
-	launchClient();
+	// determine Corda project and setup
+	await cordaCheckAndLoad(context).then(async (result) => {
+		if (!result) {
+			vscode.window.setStatusBarMessage("INTERSTITIAL for Project");
+			return;
+		}
+
+		projectObjects= await parseJavaFiles(context); // scan all project java files and build inventory
+		// Initiate watchers
+		cordaWatchers?.push(getBuildGradleFSWatcher());
+
+		// Launch client connector Springboot jar
+		launchClient();
+	});
 
 	// Corda TreeDataProviders
 	const cordaOperationsProvider = new CordaOperationsProvider();
 	const cordaDepProvider = new CordaDepProvider();
-	const cordaFlowsProvider = new CordaFlowsProvider(projectObjects.projectClasses.flowClasses as ClassSig[]);
-	const cordaContractsProvider = new CordaContractsProvider(projectObjects.projectClasses.contractClasses as ClassSig[]);
-	const cordaStatesProvider = new CordaStatesProvider(projectObjects.projectClasses.contractStateClasses as ClassSig[]);
+	const cordaFlowsProvider = new CordaFlowsProvider(projectObjects!.projectClasses.flowClasses as ClassSig[]);
+	const cordaContractsProvider = new CordaContractsProvider(projectObjects!.projectClasses.contractClasses as ClassSig[]);
+	const cordaStatesProvider = new CordaStatesProvider(projectObjects!.projectClasses.contractStateClasses as ClassSig[]);
 	const cordaMockNetworkProvider = new CordaMockNetworkProvider(TestData.mockNetwork);
 
 	// Register DataProviders
@@ -95,9 +117,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 }
 
-
 export const deactivate = () => {};
 
+/**
+ * Checks if webviews exists and show or create with content
+ * @param view : name of the view
+ * @param context
+ */
 const panelStart = (view: string, context: vscode.ExtensionContext) => {
 	let panel = cordaWebViewPanels[view];
 	if (panel) {
@@ -107,6 +133,10 @@ const panelStart = (view: string, context: vscode.ExtensionContext) => {
 	}
 }
 
+/**
+ * returns true if named terminal exists in windows
+ * @param termName 
+ */
 const findTerminal = (termName: string) => {
 	const terminals = vscode.window.terminals.filter(t => t.name == termName);
 	return terminals.length !== 0 ? terminals[0] : undefined;
