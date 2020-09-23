@@ -697,7 +697,6 @@ function parse(readableStream) {
     });
 }
 
-
 module.exports = {
     parseText: function (text) {
         var textAsStream = new Readable();

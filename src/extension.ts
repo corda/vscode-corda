@@ -51,12 +51,13 @@ export async function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		projectObjects= await parseJavaFiles(context); // scan all project java files and build inventory
-		// Initiate watchers
-		cordaWatchers?.push(getBuildGradleFSWatcher());
+		vscode.window.setStatusBarMessage("Corda-Project"); // identify project as Corda
 
-		// Launch client connector Springboot jar
-		launchClient();
+		projectObjects= await parseJavaFiles(context); // scan all project java files and build inventory
+		
+		cordaWatchers?.push(getBuildGradleFSWatcher()); // Initiate watchers
+
+		launchClient(); // Launch client connector Springboot jar
 	});
 
 	// Corda TreeDataProviders

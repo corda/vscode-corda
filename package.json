@@ -242,6 +242,7 @@
 		"@types/find": "^0.2.1",
 		"@types/node": "^10.12.21",
 		"@types/react-dom": "^16.9.8",
+		"@types/uuid": "^8.3.0",
 		"@types/vscode": "^1.36.0",
 		"babel-loader": "^8.1.0",
 		"css-loader": "^3.5.2",

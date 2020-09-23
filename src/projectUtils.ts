@@ -3,7 +3,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-import gjs from './gradleParser';
+
+const gjs = require('../gradleParser');
 
 /**
  * Fix which is used for JUnit testrunner to correctly work
@@ -33,8 +34,7 @@ const setJDTpref = (projectCwd: string) => { // for java-testrunner compat. in g
 
 /**
  * Returns whether project is a CorDapp project
- * TODO: Stronger check, should check minimal required corda dependencies and throw relevant error. 
- * current check is merely against the 'corda' keyword.
+ * TODO: Move this check to representation.buildscript.ext dep on the parsing
  * @param buildGradleFile 
  * @param context 
  */
@@ -74,52 +74,17 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
         await context.globalState.update("clientToken", uuidv4());
     }
 
-    // let files = fileSync(/build.gradle$/, projectCwd);
-    // for(let i = 0; i < files.length; i++){
-    //     scanGradleFile(files[i], i === files.length - 1);
-    // }
-    
-    // console.log("stop");
+    let gradleTaskConfigs: cordaTaskConfig[] | undefined = []
+    let files = fileSync(/build.gradle$/, projectCwd);
+    for(let i = 0; i < files.length; i++){
+        gradleTaskConfigs.push(await gjs.parseFile(files[i]));
+    }
+    let deployNodesConfigs: cordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value) => {
+        return value.task && value.task.node;
+    })
+    await context.workspaceState.update("deployNodesConfig", deployNodesConfigs![0].task);
 
     return true;
-}
-
-/**
- * scanGradleFile uses the imported parser to scan through a passed in file. 
- * If it detects that the parse has returned attributes that we'd expect in the gradle file that defines the nodes, 
- * it will load the contents of that file into the nodeConfig variable (which will then be used to 
- * pass connection information up to the views).
- * @param fileName - location of the file to parse
- * @param last - boolean that indicates whether this is the last file that needs to be scanned
- */
-const scanGradleFile = (fileName : String, last: boolean): any => {
-    // TEMP VARS
-    let nodeDefaults: cordaNodeDefaultConfig[] | any = []
-    let nodeConfig: cordaNodeConfig;
-    let nodeDir: any;
-    let nodeNames: any;
-
-	gjs.parseFile(fileName).then((representation : cordaTaskConfig) => {
-		// Pick up any other configuration we might need in this parse loop and assign it to our globals
-		if (representation.task !== undefined && representation.task.node !== undefined) {
-			if(representation.task.nodeDefaults){
-				nodeDefaults = representation.task.nodeDefaults as cordaNodeDefaultConfig;
-			}else{
-				nodeDefaults = {rpcUsers : {} };
-			}
-			nodeConfig = representation.task.node as cordaNodeConfig;
-			nodeDir = fileName.replace('build.gradle','');
-		}
-		
-		if(last){
-			// reset nodeNames
-			nodeNames = [] as any;
-			for(let index in nodeConfig) {
-				nodeNames.push(nodeConfig[index].name.match("O=(.*),L")![1]);
-			}
-			console.log('Node names in build.gradle are: ' + JSON.stringify(nodeNames));
-		}
-	});
 }
    
 // tslint:disable-next-line: class-name
