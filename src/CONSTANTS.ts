@@ -32,3 +32,4 @@ export abstract class TestData {
 }
 
 export const GRADLE_TASKS_EXTENSION_ID = 'richardwillis.vscode-gradle';
+export const SERVER_BASE_URL = 'http://localhost:8580';

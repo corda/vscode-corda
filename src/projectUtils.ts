@@ -83,23 +83,34 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     let deployNodesConfigs: cordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value) => {
         return value.task && value.task.node;
     })
+    // currently allow ONE deployNodesConfig per project but future will allow multiple w/ selection
     await context.workspaceState.update("deployNodesConfig", deployNodesConfigs![0].task);
 
     return true;
 }
-   
+
 // tslint:disable-next-line: class-name
-interface cordaNodeConfig {
+export interface cordaNode {
+    name: string,
+    notary: [],
+    p2pPort: string,
+    rpcSettings: any,
+    rpcUsers: any,
+    cordappDir: string;
+}
+
+// tslint:disable-next-line: class-name
+export interface cordaNodeConfig {
 	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : any, rpcUsers : any, cordappDir: string};
 }
 
 // tslint:disable-next-line: class-name
-interface cordaNodeDefaultConfig{
+export interface cordaNodeDefaultConfig{
 	rpcUsers: any;
 }
 
 // tslint:disable-next-line: class-name
-interface cordaNodesConfig {
+export interface cordaNodesConfig {
 	node: cordaNodeConfig;
 	nodeDefaults: cordaNodeDefaultConfig;
 }

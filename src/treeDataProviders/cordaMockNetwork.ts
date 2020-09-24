@@ -1,23 +1,34 @@
 import * as vscode from 'vscode';
+import { cordaNodesConfig, cordaNodeConfig } from '../projectUtils'
 
 export class CordaMockNetworkProvider implements vscode.TreeDataProvider<CordaTool | vscode.TreeItem> {
 	
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaTool | undefined | void> = new vscode.EventEmitter<CordaTool | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaTool | undefined | void>;
 
-	constructor(private readonly mockNetwork: Object[]) {
+	constructor(private readonly context: vscode.ExtensionContext) {
 	}
 	
 	getTreeItem(element: CordaTool): vscode.TreeItem {
 		return element;
 	}
 	getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
+		let deployNodesConfig:cordaNodesConfig | undefined = this.context.workspaceState.get("deployNodesConfig");
 		if (!element) { // children of TOP level Mock Network
-			let nodes:Node[] = [];
-			this.mockNetwork.forEach(node => {
-				nodes.push(new Node(node['name'], [node['location'], node['port']], vscode.TreeItemCollapsibleState.Collapsed))
-			});
-			return nodes;
+			let nodes:cordaNodeConfig | undefined = deployNodesConfig?.node;
+			let nodeElements: Node[] = [];
+			Object.keys(nodes!).forEach((value) => {
+				// format to existing structure for display
+				nodeElements.push(new Node(
+					nodes![value].name.match("O=(.*),L")![1],
+					[nodes![value].name.match("L=(.*),C")![1],nodes![value].rpcSettings.address.split(":")[1]],
+					vscode.TreeItemCollapsibleState.Collapsed
+				));
+			})
+			// nodes.forEach(node => {
+			// 	nodes.push(new Node(node['name'], [node['location'], node['port']], vscode.TreeItemCollapsibleState.Collapsed))
+			// });
+			return nodeElements;
 
 		} else if (element instanceof Node) { // children of valid Nodes
 			return [

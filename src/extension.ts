@@ -19,6 +19,7 @@ import * as callbacks from './commands';
 import { launchClient } from './terminals';
 import { getBuildGradleFSWatcher } from './watchers';
 import { cordaCheckAndLoad } from './projectUtils';
+import { loginToNodes } from './nodeexplorer/login';
 
 // TESTING
 import { TestData } from './CONSTANTS';
@@ -29,9 +30,11 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * context.workSpaceState entries:
  * projectIsCorda - is the workspace a valid Corda Project, set in cordaCheckAndLoad().
  * <webviewpanels> - entry per active webview
+ * deployNodesConfig - list of nodes that are configured in build.gradle
  * 
  * context.globalState entries:
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
+ * runningNodes - list of nodes that are currently in running state - global tracking due to port allocations
  *  */ 
 
 
@@ -40,6 +43,9 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * @param context 
  */
 export async function activate(context: vscode.ExtensionContext) {
+
+	// FOR DEVELOPMENT TEST -- clear global state
+	await context.globalState.update("runningNodes", undefined);
 
 	let projectObjects: {projectClasses: any, projectInterfaces:any};
 
@@ -57,6 +63,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		cordaWatchers?.push(getBuildGradleFSWatcher()); // Initiate watchers
 
 		launchClient(); // Launch client connector Springboot jar
+
+		loginToNodes(context); // initiate login (if nodes are UP)
 	});
 
 	// Corda TreeDataProviders
@@ -65,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const cordaFlowsProvider = new CordaFlowsProvider(projectObjects!.projectClasses.flowClasses as ClassSig[]);
 	const cordaContractsProvider = new CordaContractsProvider(projectObjects!.projectClasses.contractClasses as ClassSig[]);
 	const cordaStatesProvider = new CordaStatesProvider(projectObjects!.projectClasses.contractStateClasses as ClassSig[]);
-	const cordaMockNetworkProvider = new CordaMockNetworkProvider(TestData.mockNetwork);
+	const cordaMockNetworkProvider = new CordaMockNetworkProvider(context);
 
 	// Register DataProviders
 	vscode.window.registerTreeDataProvider('cordaOperations', cordaOperationsProvider);
