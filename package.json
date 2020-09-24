@@ -141,22 +141,22 @@
 				"icon": "$(rocket)"
 			},
 			{
-				"command": "corda.mocknetwork.runNodes",
+				"command": "corda.mockNetwork.runNodes",
 				"title": "Run Mock Network",
 				"icon": "$(run-all)"
 			},
 			{
-				"command": "corda.runFlow",
+				"command": "corda.Node.runFlow",
 				"title": "Run Flow (Create Transaction)",
 				"icon": "$(run)"
 			},
 			{
-				"command": "corda.vaultQuery",
+				"command": "corda.Node.vaultQuery",
 				"title": "Vault Query (View Transactions)",
 				"icon": "$(search)"
 			},
 			{
-				"command": "corda.logViewer",
+				"command": "corda.Node.logViewer",
 				"title": "Log Viewer",
 				"icon": "$(telescope)"
 			}
@@ -200,24 +200,24 @@
 					"group": "navigation@2"
 				},
 				{
-					"command": "corda.mocknetwork.runNodes",
+					"command": "corda.mockNetwork.runNodes",
 					"when": "view == cordaMockNetwork",
 					"group": "navigation@3"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "corda.runFlow",
+					"command": "corda.Node.runFlow",
 					"when": "view == cordaMockNetwork && viewItem == node",
 					"group": "inline@0"
 				},
 				{
-					"command": "corda.vaultQuery",
+					"command": "corda.Node.vaultQuery",
 					"when": "view == cordaMockNetwork && viewItem == node",
 					"group": "inline@1"
 				},
 				{
-					"command": "corda.logViewer",
+					"command": "corda.Node.logViewer",
 					"when": "view == cordaMockNetwork && viewItem == node",
 					"group": "inline@2"
 				}
@@ -260,12 +260,13 @@
 	"dependencies": {
 		"@material-ui/core": "^4.8.2",
 		"@material-ui/icons": "^4.9.1",
-		"adm-zip": "^0.4.16",
 		"@types/react-window": "^1.8.2",
 		"@types/react-window-infinite-loader": "^1.0.3",
+		"adm-zip": "^0.4.16",
 		"axios": "^0.19.2",
 		"axios-retry": "^3.1.2",
 		"bootstrap": "^4.5.2",
+		"commonjs": "0.0.1",
 		"find": "^0.3.0",
 		"lodash.merge": "^4.6.2",
 		"popper": "^1.0.1",

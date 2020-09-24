@@ -25,7 +25,8 @@ export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) 
 	let logViewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, view, title, resourceRoot);
 	logViewPanel.webview.html = getReactPanelContent(context, title, resourceRoot, file);
 	logViewPanel.onDidDispose(
-		() => {
+		async () => {
+			await context.workspaceState.update(view, "");
 			logViewPanel = undefined;
 		},
 		null,

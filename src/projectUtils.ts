@@ -74,6 +74,7 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
         await context.globalState.update("clientToken", uuidv4());
     }
 
+    // Parse build.gradle for deployNodes configuration and store to workspace
     let gradleTaskConfigs: cordaTaskConfig[] | undefined = []
     let files = fileSync(/build.gradle$/, projectCwd);
     for(let i = 0; i < files.length; i++){

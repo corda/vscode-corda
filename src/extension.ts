@@ -23,13 +23,12 @@ import { cordaCheckAndLoad } from './projectUtils';
 // TESTING
 import { TestData } from './CONSTANTS';
 
-
-const cordaWebViewPanels: { [id: string] : vscode.WebviewPanel } = {};
 const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
 
 /**
  * context.workSpaceState entries:
  * projectIsCorda - is the workspace a valid Corda Project, set in cordaCheckAndLoad().
+ * <webviewpanels> - entry per active webview
  * 
  * context.globalState entries:
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
@@ -93,26 +92,27 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('cordaStates.add', () => callbacks.cordaContractStatesAddCallback(projectObjects)),
 		vscode.commands.registerCommand('corda.openFile', (uri) => callbacks.openFile(uri)),
 
-		// mocknetwork
-		// vscode
-
 		// refreshes
 		vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig)),
 		vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig)),
 		vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig)),
-		vscode.commands.registerCommand('corda.logViewer', () => {
+		
+		// webviews
+		vscode.commands.registerCommand('corda.Node.logViewer', () => {
 			
 			panelStart('logviewer', context);
 			
 			const filepath = path.join(context.extensionPath, "smalllog.log");
 			request.countEntries(filepath).then(count => {
-				cordaWebViewPanels['logviewer']?.webview.postMessage({
+				let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
+				panel?.webview.postMessage({
 					messageType: MessageType.NEW_LOG_ENTRIES,
 					filepath,
 					entriesCount: count
 				} as WindowMessage)
 			})
-		})
+		}),
+		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => panelStart('networkmap', context))
 	); // end context subscriptions
 
 
@@ -121,16 +121,16 @@ export async function activate(context: vscode.ExtensionContext) {
 export const deactivate = () => {};
 
 /**
- * Checks if webviews exists and show or create with content
+ * Checks if webviews exists and shows or create with content
  * @param view : name of the view
  * @param context
  */
-const panelStart = (view: string, context: vscode.ExtensionContext) => {
-	let panel = cordaWebViewPanels[view];
+const panelStart = async (view: string, context: vscode.ExtensionContext) => {
+	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
 	if (panel) {
 		panel.reveal();
 	}  else {
-		cordaWebViewPanels[view] = getWebViewPanel(view, context);
+		await context.workspaceState.update(view, getWebViewPanel(view, context));
 	}
 }
 
