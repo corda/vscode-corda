@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-
+import { cordaTaskConfig } from './types'
 const gjs = require('../gradleParser');
 
 /**
@@ -87,36 +87,4 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     await context.workspaceState.update("deployNodesConfig", deployNodesConfigs![0].task);
 
     return true;
-}
-
-// tslint:disable-next-line: class-name
-export interface cordaNode {
-    name: string,
-    notary: [],
-    p2pPort: string,
-    rpcSettings: any,
-    rpcUsers: any,
-    cordappDir: string;
-}
-
-// tslint:disable-next-line: class-name
-export interface cordaNodeConfig {
-	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : any, rpcUsers : any, cordappDir: string};
-}
-
-// tslint:disable-next-line: class-name
-export interface cordaNodeDefaultConfig{
-	rpcUsers: any;
-}
-
-// tslint:disable-next-line: class-name
-export interface cordaNodesConfig {
-	node: cordaNodeConfig;
-	nodeDefaults: cordaNodeDefaultConfig;
-}
-
-
-// tslint:disable-next-line: class-name
-interface cordaTaskConfig {
-	task: cordaNodesConfig;
 }

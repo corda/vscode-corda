@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { cordaNodesConfig, cordaNodeConfig } from '../projectUtils'
+import { cordaNodesConfig, cordaNodeConfig } from '../types'
 
 export class CordaMockNetworkProvider implements vscode.TreeDataProvider<CordaTool | vscode.TreeItem> {
 	

@@ -135,7 +135,7 @@ export const deactivate = () => {};
  */
 const panelStart = async (view: string, context: vscode.ExtensionContext) => {
 	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
-	if (panel) {
+	if (panel && panel.webview) {
 		panel.reveal();
 	}  else {
 		await context.workspaceState.update(view, getWebViewPanel(view, context));

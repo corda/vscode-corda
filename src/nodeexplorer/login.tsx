@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import axiosRetry from "axios-retry";
 import context from "react-bootstrap/esm/AccordionContext";
 import { SERVER_BASE_URL } from '../CONSTANTS';
-import { cordaNodeConfig, cordaNodeDefaultConfig, cordaNodesConfig, cordaNode } from '../projectUtils';
+import { cordaNodeConfig, cordaNodeDefaultConfig, cordaNodesConfig, cordaNode, loginRequest, runningNode } from '../types';
 
 // check server is up before login
 const server_awake = async () => {
@@ -57,22 +57,4 @@ export const loginToNodes = async (context: vscode.ExtensionContext) => {
 
     // Update treeview details as needed
     console.log("test");
-}
-
-interface loginRequest {
-    hostName: string,
-    port: string,
-    username: string,
-    password: string,
-}
-
-interface runningNode {
-    login: loginRequest,
-    id: string,
-    x500: {
-        name: string,
-        city: string,
-        country: string
-    },
-    nodeConf: cordaNode | undefined
 }
