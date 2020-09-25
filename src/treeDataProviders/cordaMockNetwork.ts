@@ -1,27 +1,26 @@
 import * as vscode from 'vscode';
-import { cordaNodesConfig, cordaNodeConfig } from '../types'
+import { CordaNodesConfig, CordaNodeConfig, DeployedNode, CordaNode } from '../types'
 
-export class CordaMockNetworkProvider implements vscode.TreeDataProvider<CordaTool | vscode.TreeItem> {
+export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 	
-	private _onDidChangeTreeData: vscode.EventEmitter<CordaTool | undefined | void> = new vscode.EventEmitter<CordaTool | undefined | void>();
-	readonly onDidChangeTreeData?: vscode.Event<CordaTool | undefined | void>;
+	private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | void>();
+	readonly onDidChangeTreeData?: vscode.Event<vscode.TreeItem | undefined | void>;
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 	}
 	
-	getTreeItem(element: CordaTool): vscode.TreeItem {
+	getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
 		return element;
 	}
 	getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-		let deployNodesConfig:cordaNodesConfig | undefined = this.context.workspaceState.get("deployNodesConfig");
+		let deployNodesConfig:DeployedNode[] | undefined = this.context.workspaceState.get("deployNodesConfig");
 		if (!element) { // children of TOP level Mock Network
-			let nodes:cordaNodeConfig | undefined = deployNodesConfig?.node;
 			let nodeElements: Node[] = [];
-			Object.keys(nodes!).forEach((value) => {
+			deployNodesConfig?.forEach((node) => {
 				// format to existing structure for display
 				nodeElements.push(new Node(
-					nodes![value].name.match("O=(.*),L")![1],
-					[nodes![value].name.match("L=(.*),C")![1],nodes![value].rpcSettings.address.split(":")[1]],
+					node.x500.name,
+					node,
 					vscode.TreeItemCollapsibleState.Collapsed
 				));
 			})
@@ -32,8 +31,8 @@ export class CordaMockNetworkProvider implements vscode.TreeDataProvider<CordaTo
 
 		} else if (element instanceof Node) { // children of valid Nodes
 			return [
-				new NodeDetail('Location', element.nodeDetails[0]), // details are derived from element (Node)
-				new NodeDetail('RPC Port', element.nodeDetails[1]),
+				new NodeDetail('Location', element.nodeDetails.x500.city + ", " + element.nodeDetails.x500.country), // details are derived from element (Node)
+				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port),
 				new CorDapps('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed) // STATIC placeholder - pass ALL apps to Constructor
 			];
 
@@ -98,7 +97,7 @@ export class Node extends vscode.TreeItem {
 
 	constructor(
 		public readonly label: string,
-		public readonly nodeDetails: any,
+		public readonly nodeDetails: DeployedNode,
 		public readonly collapsibleState?: vscode.TreeItemCollapsibleState
 	) {
 		super(label, collapsibleState);
@@ -107,27 +106,5 @@ export class Node extends vscode.TreeItem {
 
 	iconPath = new vscode.ThemeIcon('person');
 	contextValue = 'node';
-}
-
-export class CordaTool extends vscode.TreeItem {
-
-	constructor(
-		public readonly label: string,
-		public readonly collapsibleState?: vscode.TreeItemCollapsibleState,
-		public readonly command?: vscode.Command
-	) {
-		super(label, collapsibleState);
-		switch (command?.command) {
-			case 'corda.runFlow':
-				this.iconPath = new vscode.ThemeIcon('run');
-				break;
-			case 'corda.vaultQuery':
-				this.iconPath = new vscode.ThemeIcon('search')
-				break;
-			case 'corda.logViewer':
-				this.iconPath = new vscode.ThemeIcon('telescope')
-				break;
-		}
-	}
 }
 

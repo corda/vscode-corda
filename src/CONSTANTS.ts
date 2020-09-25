@@ -11,25 +11,6 @@ export abstract class Constants {
     };
 }
 
-export abstract class TestData {
-    static readonly mockNetwork = [
-        {
-            'name':'PartyA',
-            'location':'GB',
-            'port':'10006'
-        },
-        {
-            'name':'PartyB',
-            'location':'CA',
-            'port':'10007'
-        },
-        {
-            'name':'PartyA',
-            'location':'US',
-            'port':'10008'
-        }
-    ]
-}
-
 export const GRADLE_TASKS_EXTENSION_ID = 'richardwillis.vscode-gradle';
 export const SERVER_BASE_URL = 'http://localhost:8580';
+export const SERVER_JAR = "explorer-server-0.1.0.jar";

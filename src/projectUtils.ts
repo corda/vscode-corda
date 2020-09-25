@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-import { cordaTaskConfig } from './types'
+import { CordaNodesConfig, CordaTaskConfig, CordaNode, DeployedNode, LoginRequest, CordaNodeConfig } from './types'
 const gjs = require('../gradleParser');
 
 /**
@@ -75,16 +75,61 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     }
 
     // Parse build.gradle for deployNodes configuration and store to workspace
-    let gradleTaskConfigs: cordaTaskConfig[] | undefined = []
+    let gradleTaskConfigs: CordaTaskConfig[] | undefined = []
     let files = fileSync(/build.gradle$/, projectCwd);
     for(let i = 0; i < files.length; i++){
         gradleTaskConfigs.push(await gjs.parseFile(files[i]));
     }
-    let deployNodesConfigs: cordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value) => {
+    let deployNodesConfigs: CordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value) => {
         return value.task && value.task.node;
     })
+
     // currently allow ONE deployNodesConfig per project but future will allow multiple w/ selection
-    await context.workspaceState.update("deployNodesConfig", deployNodesConfigs![0].task);
+    let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0].task);
+    await context.workspaceState.update("deployNodesConfig", deployedNodes);
 
     return true;
+}
+
+const taskToDeployedNodes = (nodesConfig: CordaNodesConfig):DeployedNode[] => {
+    let nodes:CordaNodeConfig = nodesConfig.node;
+    let nodeDefaults = nodesConfig.nodeDefaults;
+    let deployedNodes: DeployedNode[] = [];
+    Object.keys(nodes).forEach((val) => {
+        // build up composites
+        let node:CordaNode = nodes[val]
+        let hostAndPort = node.rpcSettings.address.split(":");
+        
+        let cred:{user:string, pass:string} = {user:"", pass:""};
+        if (!node?.notary) { // NO CREDS for Notary
+            if (node?.rpcUsers) {
+                cred.user = node.rpcUsers.user;
+                cred.pass = node.rpcUsers.password;
+            } else {
+                cred.user = nodeDefaults.rpcUsers.user;
+                cred.pass = nodeDefaults.rpcUsers.password;
+            }
+        }
+
+        let loginRequest: LoginRequest = {
+            hostName: hostAndPort[0],
+            port: hostAndPort[1],
+            username: cred.user,
+            password: cred.pass
+        }
+        let x500: {name:string, city: string, country: string} = {
+            name: node.name.match("O=(.*),L")![1],
+            city: node.name.match("L=(.*),C")![1],
+            country: node.name.match("C=(.*)")![1]
+        }
+
+        // push on DeployedNode
+        deployedNodes.push({
+            loginRequest: loginRequest,
+            id: node.name,
+            x500: x500,
+            nodeConf: node,
+        })
+    })
+    return deployedNodes;
 }

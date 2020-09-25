@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
-
+import { SERVER_JAR } from './CONSTANTS';
+ 
 export function launchClient() {
     let debug = true;
 
@@ -9,7 +10,7 @@ export function launchClient() {
 	if (!terminal) { // check if client already launched
 		const jarPath = vscode.extensions.getExtension("R3.vscode-corda")?.extensionPath;
 		const cmd1 = 'cd ' + jarPath;
-		const cmd2 = 'java -jar explorer-server-0.1.0.jar' // --servertoken=' + clientToken;
+		const cmd2 = 'java -jar ' + SERVER_JAR; // --servertoken=' + clientToken;
 		terminal = vscode.window.createTerminal(name);
 		terminal.sendText(cmd1);
 		terminal.sendText(cmd2);

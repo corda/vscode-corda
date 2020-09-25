@@ -1,5 +1,5 @@
 // tslint:disable-next-line: class-name
-export interface cordaNode {
+export interface CordaNode {
     name: string,
     notary: [],
     p2pPort: string,
@@ -9,41 +9,46 @@ export interface cordaNode {
 }
 
 // tslint:disable-next-line: class-name
-export interface cordaNodeConfig {
-	[index: number]: { name: string; notary: []; p2pPort: string, rpcSettings : any, rpcUsers : any, cordappDir: string};
+export interface CordaNodeConfig {
+	[index: number]: CordaNode
 }
 
 // tslint:disable-next-line: class-name
-export interface cordaNodeDefaultConfig{
+export interface CordaNodesDefaultConfig{
 	rpcUsers: any;
 }
 
 // tslint:disable-next-line: class-name
-export interface cordaNodesConfig {
-	node: cordaNodeConfig;
-	nodeDefaults: cordaNodeDefaultConfig;
+export interface CordaNodesConfig {
+	node: CordaNodeConfig;
+	nodeDefaults: CordaNodesDefaultConfig;
 }
 
 
 // tslint:disable-next-line: class-name
-export interface cordaTaskConfig {
-	task: cordaNodesConfig;
+export interface CordaTaskConfig {
+	task: CordaNodesConfig;
 }
 
-export interface loginRequest {
+export interface LoginRequest {
     hostName: string,
     port: string,
     username: string,
     password: string,
 }
 
-export interface runningNode {
-    login: loginRequest,
+export interface RunningNode {
     id: string,
-    x500: {
-        name: string,
-        city: string,
-        country: string
-    },
-    nodeConf: cordaNode | undefined
+    deployedNode: DeployedNode
 }
+
+ export interface DeployedNode {
+     loginRequest: LoginRequest,
+     id: string,
+     x500: {
+         name: string,
+         city: string,
+         country: string
+     },
+     nodeConf: CordaNode
+ }

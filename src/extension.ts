@@ -21,9 +21,6 @@ import { getBuildGradleFSWatcher } from './watchers';
 import { cordaCheckAndLoad } from './projectUtils';
 import { loginToNodes } from './nodeexplorer/login';
 
-// TESTING
-import { TestData } from './CONSTANTS';
-
 const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
 
 /**
