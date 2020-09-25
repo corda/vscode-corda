@@ -77,3 +77,18 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
 	src="${vscode.Uri.file(context.asAbsolutePath(path)).with({ scheme: 'vscode-resource'}).toString()}"
 >
 </script>`;
+
+
+/**
+ * Checks if webviews exists and shows or create with content
+ * @param view : name of the view
+ * @param context
+ */
+export const panelStart = async (view: string, context: vscode.ExtensionContext) => {
+	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
+	if (panel && panel.webview) {
+		panel.reveal();
+	}  else {
+		await context.workspaceState.update(view, getWebViewPanel(view, context));
+	}
+}

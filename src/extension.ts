@@ -13,7 +13,7 @@ import { CordaStatesProvider } from './treeDataProviders/cordaStates';
 import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 
 import { ClassSig, parseJavaFiles } from './typeParsing';
-import { getWebViewPanel } from './panels';
+import { panelStart } from './panels';
 import * as callbacks from './commands';
 import { launchClient } from './terminals';
 import { getBuildGradleFSWatcher } from './watchers';
@@ -130,26 +130,3 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export const deactivate = () => {};
-
-/**
- * Checks if webviews exists and shows or create with content
- * @param view : name of the view
- * @param context
- */
-const panelStart = async (view: string, context: vscode.ExtensionContext) => {
-	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
-	if (panel && panel.webview) {
-		panel.reveal();
-	}  else {
-		await context.workspaceState.update(view, getWebViewPanel(view, context));
-	}
-}
-
-/**
- * returns true if named terminal exists in windows
- * @param termName 
- */
-const findTerminal = (termName: string) => {
-	const terminals = vscode.window.terminals.filter(t => t.name == termName);
-	return terminals.length !== 0 ? terminals[0] : undefined;
-}
