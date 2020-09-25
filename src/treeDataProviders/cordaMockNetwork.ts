@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { CordaNodesConfig, CordaNodeConfig, DeployedNode, CordaNode } from '../types'
 import { WorkStateKeys } from '../CONSTANTS'
+import { isNetworkRunning } from '../projectUtils';
 
 export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 	
@@ -32,7 +33,7 @@ export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.
 				new NodeDetail('Location', element.nodeDetails.x500.city + ", " + element.nodeDetails.x500.country), // details are derived from element (Node)
 				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port)
 			];
-			if (this.context.workspaceState.get(WorkStateKeys.NETWORK_RUNNING)) {
+			if (isNetworkRunning(this.context)) {
 				items.push(new CorDapps('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed))
 			}
 			return items;

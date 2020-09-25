@@ -15,11 +15,11 @@ import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 import { ClassSig, parseJavaFiles } from './typeParsing';
 import { panelStart } from './panels';
 import * as callbacks from './commands';
-import { launchClient } from './terminals';
 import { getBuildGradleFSWatcher } from './watchers';
 import { cordaCheckAndLoad, areNodesDeployed } from './projectUtils';
-import { loginToNodes } from './nodeexplorer/login';
+import { loginToNodes } from './nodeexplorer/serverClient';
 import { WorkStateKeys, GlobalStateKeys } from './CONSTANTS';
+import { server_awake } from './nodeexplorer/serverClient';
 
 const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
 
@@ -66,9 +66,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		
 		cordaWatchers?.push(getBuildGradleFSWatcher()); // Initiate watchers
 
-		launchClient(); // Launch client connector Springboot jar
-
-		loginToNodes(context); // initiate login (if nodes are UP)
+		server_awake(); // wait up server and launch client
 	});
 
 	// Corda TreeDataProviders
@@ -110,10 +108,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig)),
 		
 		// webviews
-		vscode.commands.registerCommand('corda.Node.logViewer', () => {
-			
-			panelStart('logviewer', context);
-			
+		vscode.commands.registerCommand('corda.Node.logViewer', async () => {
+			await panelStart('logviewer', context);
+
 			const filepath = path.join(context.extensionPath, "smalllog.log");
 			request.countEntries(filepath).then(count => {
 				let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { server_awake } from './nodeexplorer/serverClient';
 
 
 export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) => {
@@ -85,6 +86,7 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
  * @param context
  */
 export const panelStart = async (view: string, context: vscode.ExtensionContext) => {
+	await server_awake();
 	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
 	if (panel && panel.webview) {
 		panel.reveal();
