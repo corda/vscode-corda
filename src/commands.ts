@@ -5,6 +5,7 @@ import Axios from 'axios';
 import * as fs from 'fs';
 import { ExtensionApi as GradleApi, RunTaskOpts, Output } from 'vscode-gradle';
 import * as util from 'util';
+import { areNodesDeployed } from './projectUtils';
 
 // CALLBACKS
 
@@ -172,4 +173,24 @@ export const openFile = async (uri: vscode.Uri) => {
     vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
         vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
     })
+}
+
+export const deployNodesCallBack = async (context: vscode.ExtensionContext) => {
+    if (await areNodesDeployed(context)) {
+        vscode.window.showInformationMessage("Network is already deployed. Re-deploy will reset node data.", 'Run Network', 'Re-deploy', 'Cancel')
+            .then((selection) => {
+                switch (selection) {
+                    case 'Run Network':
+                        // RUN TASK
+                        break;
+                    case 'Re-deploy':
+                        runGradleTaskCallback("deployNodes");
+                        break;
+                    default:
+                        return; // quit the command
+                }
+            })
+    } else {
+        runGradleTaskCallback("deployNodes")
+    }
 }

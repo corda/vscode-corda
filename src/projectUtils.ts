@@ -3,7 +3,9 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
+import { GlobalStateKeys, WorkStateKeys } from './CONSTANTS';
 import { CordaNodesConfig, CordaTaskConfig, CordaNode, DeployedNode, LoginRequest, CordaNodeConfig } from './types'
+import context from 'react-bootstrap/esm/AccordionContext';
 const gjs = require('../gradleParser');
 
 /**
@@ -45,10 +47,10 @@ const setIsProjectCorda = async (buildGradleFile: string, context: vscode.Extens
         if (contents.includes('corda')) {
             console.log("Project is Corda");
             isGradle = true;
-            await context.workspaceState.update("projectIsCorda", true);
+            await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, true);
         }
     }
-    if (!isGradle) await context.workspaceState.update("projectIsCorda", false);
+    if (!isGradle) await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, false);
 }
 
 /**
@@ -67,11 +69,11 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     setJDTpref(projectCwd); // inject java testrunner fix setting
     setIsProjectCorda(projectGradle, context); // confirm CordaProject
 
-    if (!context.workspaceState.get("projectIsCorda")) { return false } // EXIT fun
+    if (!context.workspaceState.get(WorkStateKeys.PROJECT_IS_CORDA)) { return false } // EXIT fun
 
     // No client token set for Corda -> set a new token
-    if (context.globalState.get("clientToken") === undefined) {
-        await context.globalState.update("clientToken", uuidv4());
+    if (context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) === undefined) {
+        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, uuidv4());
     }
 
     // Parse build.gradle for deployNodes configuration and store to workspace
@@ -89,12 +91,17 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 
     // currently allow ONE deployNodesConfig per project but future will allow multiple w/ selection
     let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0].task);
-    await context.workspaceState.update("deployNodesBuildGradle", deployNodesConfigs![0].file)
-    await context.workspaceState.update("deployNodesConfig", deployedNodes);
+
+    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE, deployNodesConfigs![0].file)
+    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_CONFIG, deployedNodes);
 
     return true;
 }
 
+/**
+ * structures parsing and write to workspaceState
+ * @param nodesConfig 
+ */
 const taskToDeployedNodes = (nodesConfig: CordaNodesConfig):DeployedNode[] => {
     let nodes:CordaNodeConfig = nodesConfig.node;
     let nodeDefaults = nodesConfig.nodeDefaults;
@@ -136,4 +143,24 @@ const taskToDeployedNodes = (nodesConfig: CordaNodesConfig):DeployedNode[] => {
         })
     })
     return deployedNodes;
+}
+
+/**
+ * Determines if nodes have been deployed based on existence of the artifacts.
+ * @param context 
+ */
+export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
+    let nodesPath:string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
+    nodesPath = nodesPath!.split('build.gradle')[0] + 'build/nodes';
+    let result = fs.existsSync(nodesPath);
+    await context.workspaceState.update(WorkStateKeys.NODES_DEPLOYED, result);
+    vscode.commands.executeCommand('setContext', 'vscode-corda:nodesDeployed', result);
+    return result
+}
+
+export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
+    let result = true;
+    await context.workspaceState.update(WorkStateKeys.NETWORK_RUNNING, result)
+    vscode.commands.executeCommand('setContext', 'vscode-corda:networkRunning', result);
+    return result;
 }

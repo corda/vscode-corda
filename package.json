@@ -69,7 +69,7 @@
 				},
 				{
 					"id": "cordaMockNetwork",
-					"name": "Corda Mock Network",
+					"name": "Cordform Test Network",
 					"visibility": "collapsed"
 				},
 				{

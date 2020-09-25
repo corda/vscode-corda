@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import { CordaNodesConfig, CordaNodeConfig, DeployedNode, CordaNode } from '../types'
+import { WorkStateKeys } from '../CONSTANTS'
 
 export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 	
 	private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | void>();
-	readonly onDidChangeTreeData?: vscode.Event<vscode.TreeItem | undefined | void>;
+	readonly onDidChangeTreeData?: vscode.Event<vscode.TreeItem | undefined | void> = this._onDidChangeTreeData.event;
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 	}
@@ -13,7 +14,7 @@ export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.
 		return element;
 	}
 	getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-		let deployNodesConfig:DeployedNode[] | undefined = this.context.workspaceState.get("deployNodesConfig");
+		let deployNodesConfig:DeployedNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_CONFIG);
 		if (!element) { // children of TOP level Mock Network
 			let nodeElements: Node[] = [];
 			deployNodesConfig?.forEach((node) => {
@@ -24,18 +25,17 @@ export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.
 					vscode.TreeItemCollapsibleState.Collapsed
 				));
 			})
-			// nodes.forEach(node => {
-			// 	nodes.push(new Node(node['name'], [node['location'], node['port']], vscode.TreeItemCollapsibleState.Collapsed))
-			// });
 			return nodeElements;
 
 		} else if (element instanceof Node) { // children of valid Nodes
-			return [
+			let items: vscode.TreeItem[] = [
 				new NodeDetail('Location', element.nodeDetails.x500.city + ", " + element.nodeDetails.x500.country), // details are derived from element (Node)
-				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port),
-				new CorDapps('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed) // STATIC placeholder - pass ALL apps to Constructor
+				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port)
 			];
-
+			if (this.context.workspaceState.get(WorkStateKeys.NETWORK_RUNNING)) {
+				items.push(new CorDapps('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed))
+			}
+			return items;
 		} else if (element instanceof CorDapps) { // details of CorDapps
 			return [
 				new CorDappDetail("App1", "app detail place holder", vscode.TreeItemCollapsibleState.None), // STATIC placeholder - iterate on ALL apps from CorDapps object

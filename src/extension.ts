@@ -17,8 +17,9 @@ import { panelStart } from './panels';
 import * as callbacks from './commands';
 import { launchClient } from './terminals';
 import { getBuildGradleFSWatcher } from './watchers';
-import { cordaCheckAndLoad } from './projectUtils';
+import { cordaCheckAndLoad, areNodesDeployed } from './projectUtils';
 import { loginToNodes } from './nodeexplorer/login';
+import { WorkStateKeys, GlobalStateKeys } from './CONSTANTS';
 
 const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
 
@@ -28,10 +29,16 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * <webviewpanels> - entry per active webview
  * deployNodesConfig - list of nodes that are configured in build.gradle
  * deployNodesBuildGradle - path to active/deployNodes build.gradle
+ * nodesDeployed (boolean) - if the nodes are currently running
+ * isNetworkRunning - is the mockNetwork running?
  * 
  * context.globalState entries:
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
  * runningNodes - list of nodes that are currently in running state - global tracking due to port allocations
+ * 
+ * 'when' clause contexts:
+ * vscode-corda:nodesDeployed (boolean) - if nodes are currently deployed
+ * vscode-corda:networkRunning (boolean) - if the nodes are currently running
  *  */ 
 
 
@@ -42,7 +49,7 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
 export async function activate(context: vscode.ExtensionContext) {
 
 	// FOR DEVELOPMENT TEST -- clear global state
-	await context.globalState.update("runningNodes", undefined);
+	await context.globalState.update(GlobalStateKeys.RUNNING_NODES, undefined);
 
 	let projectObjects: {projectClasses: any, projectInterfaces:any};
 
@@ -121,12 +128,16 @@ export async function activate(context: vscode.ExtensionContext) {
 		// mockNetwork actions
 		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => panelStart('networkmap', context)),
 		vscode.commands.registerCommand('corda.mockNetwork.edit', () => {
-			const buildGradleFile: string | undefined = context.workspaceState.get("deployNodesBuildGradle");
+			const buildGradleFile: string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
 			callbacks.openFile(vscode.Uri.parse(buildGradleFile!));
 			vscode.window.showInformationMessage("Configure your network in the deployNodes task.");
 			// TODO: set the cursor on the deployNodes Task
 		}),
-		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', () => callbacks.runGradleTaskCallback("deployNodes"))
+		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', async () => {
+			callbacks.deployNodesCallBack(context).then(() => {
+				cordaMockNetworkProvider.refresh(); // refresh the MockNetworkProvider to update actions
+			});
+		})
 	); // end context subscriptions
 
 
