@@ -117,13 +117,16 @@ export async function activate(context: vscode.ExtensionContext) {
 				} as WindowMessage)
 			})
 		}),
+
+		// mockNetwork actions
 		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => panelStart('networkmap', context)),
 		vscode.commands.registerCommand('corda.mockNetwork.edit', () => {
 			const buildGradleFile: string | undefined = context.workspaceState.get("deployNodesBuildGradle");
 			callbacks.openFile(vscode.Uri.parse(buildGradleFile!));
 			vscode.window.showInformationMessage("Configure your network in the deployNodes task.");
 			// TODO: set the cursor on the deployNodes Task
-		})
+		}),
+		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', () => callbacks.runGradleTaskCallback("deployNodes"))
 	); // end context subscriptions
 
 

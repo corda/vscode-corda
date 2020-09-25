@@ -149,24 +149,23 @@ const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, 
  * @param task 
  */
 export const runGradleTaskCallback = async (task: string) => {
-    const extension = vscode.extensions.getExtension(GRADLE_TASKS_EXTENSION_ID);
-    const gradleApi = extension!.exports as GradleApi;
-    const runTaskOpts: RunTaskOpts = {
-        projectFolder: vscode.workspace.workspaceFolders![0].uri.fsPath,
-        taskName: task,
-        showOutputColors: false,
-        onOutput: (output: Output): void => {
-            const message = new util.TextDecoder("utf-8").decode(
-              output.getOutputBytes_asU8()
-            );
-            if (output.getOutputType()) {
-                console.log(message);
-            } else {
-                console.error(message);
+    const targetTask = (await vscode.tasks.fetchTasks({ type: 'gradle' })).find(
+        ({ name }) => name === task
+    );
+    
+    await new Promise(async (resolve) => {
+        const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
+            if (e.execution.task === targetTask) {
+            disposable.dispose();
+            resolve();
             }
-        },
-    };
-    await gradleApi.runTask(runTaskOpts).then(() => vscode.window.showInformationMessage("CorDapp " + task + " complete."));
+        });
+        try {
+            await (await vscode.tasks.executeTask(targetTask!));
+        } catch (e) {
+            console.error('There was an error starting the task:', e.message);
+        }
+    });
 }
 
 export const openFile = async (uri: vscode.Uri) => {
