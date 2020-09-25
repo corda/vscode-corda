@@ -27,6 +27,7 @@ export interface CordaNodesConfig {
 
 // tslint:disable-next-line: class-name
 export interface CordaTaskConfig {
+    file: string,
 	task: CordaNodesConfig;
 }
 

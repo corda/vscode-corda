@@ -2,10 +2,9 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { LogSeverities, MessageType, WindowMessage } from "./logviewer/types";
-import * as request from "./logviewer/request";
-import { PathLike } from "fs";
+import { MessageType, WindowMessage } from "./logviewer/types";
 
+import * as request from "./logviewer/request";
 import { CordaOperationsProvider } from './treeDataProviders/cordaOperations';
 import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
@@ -28,6 +27,7 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * projectIsCorda - is the workspace a valid Corda Project, set in cordaCheckAndLoad().
  * <webviewpanels> - entry per active webview
  * deployNodesConfig - list of nodes that are configured in build.gradle
+ * deployNodesBuildGradle - path to active/deployNodes build.gradle
  * 
  * context.globalState entries:
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
@@ -117,7 +117,13 @@ export async function activate(context: vscode.ExtensionContext) {
 				} as WindowMessage)
 			})
 		}),
-		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => panelStart('networkmap', context))
+		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => panelStart('networkmap', context)),
+		vscode.commands.registerCommand('corda.mockNetwork.edit', () => {
+			const buildGradleFile: string | undefined = context.workspaceState.get("deployNodesBuildGradle");
+			callbacks.openFile(vscode.Uri.parse(buildGradleFile!));
+			vscode.window.showInformationMessage("Configure your network in the deployNodes task.");
+			// TODO: set the cursor on the deployNodes Task
+		})
 	); // end context subscriptions
 
 

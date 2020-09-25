@@ -78,14 +78,18 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     let gradleTaskConfigs: CordaTaskConfig[] | undefined = []
     let files = fileSync(/build.gradle$/, projectCwd);
     for(let i = 0; i < files.length; i++){
-        gradleTaskConfigs.push(await gjs.parseFile(files[i]));
+        let parsed: any = await gjs.parseFile(files[i]);
+        // NOTE: currently only concerned with a partial parse of the gradle (task)
+        let entry: CordaTaskConfig = {file: files[i], task: parsed.task};
+        gradleTaskConfigs.push(entry);
     }
-    let deployNodesConfigs: CordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value) => {
-        return value.task && value.task.node;
+    let deployNodesConfigs: CordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value: CordaTaskConfig) => {
+        return value.task?.node && true;
     })
 
     // currently allow ONE deployNodesConfig per project but future will allow multiple w/ selection
     let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0].task);
+    await context.workspaceState.update("deployNodesBuildGradle", deployNodesConfigs![0].file)
     await context.workspaceState.update("deployNodesConfig", deployedNodes);
 
     return true;
