@@ -159,7 +159,7 @@ export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
 }
 
 export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
-    let result = true;
+    let result = false;
     await context.workspaceState.update(WorkStateKeys.NETWORK_RUNNING, result)
     vscode.commands.executeCommand('setContext', 'vscode-corda:networkRunning', result);
     return result;

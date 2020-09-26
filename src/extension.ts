@@ -16,7 +16,7 @@ import { ClassSig, parseJavaFiles } from './typeParsing';
 import { panelStart } from './panels';
 import * as callbacks from './commands';
 import { getBuildGradleFSWatcher } from './watchers';
-import { cordaCheckAndLoad, areNodesDeployed } from './projectUtils';
+import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning } from './projectUtils';
 import { loginToNodes } from './nodeexplorer/serverClient';
 import { WorkStateKeys, GlobalStateKeys } from './CONSTANTS';
 import { server_awake } from './nodeexplorer/serverClient';
@@ -47,6 +47,9 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * @param context 
  */
 export async function activate(context: vscode.ExtensionContext) {
+
+	areNodesDeployed(context);
+	isNetworkRunning(context);
 
 	// FOR DEVELOPMENT TEST -- clear global state
 	await context.globalState.update(GlobalStateKeys.RUNNING_NODES, undefined);
@@ -106,7 +109,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig)),
 		vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig)),
 		vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig)),
-		
+
 		// webviews
 		vscode.commands.registerCommand('corda.Node.logViewer', async () => {
 			await panelStart('logviewer', context);

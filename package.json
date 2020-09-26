@@ -141,9 +141,19 @@
 				"icon": "$(rocket)"
 			},
 			{
+				"command": "corda.mockNetwork.runNodesDisabled",
+				"title": "Run Local Network - Please Deploy Nodes first",
+				"icon": "$(debug-stackframe-dot)"
+			},
+			{
 				"command": "corda.mockNetwork.runNodes",
-				"title": "Run Mock Network",
-				"icon": "$(run-all)"
+				"title": "Run Local Network",
+				"icon": "$(debug-start)"
+			},
+			{
+				"command": "corda.mockNetwork.runNodesStop",
+				"title": "Stop Local Network",
+				"icon": "$(debug-stop)"
 			},
 			{
 				"command": "corda.Node.runFlow",
@@ -200,8 +210,18 @@
 					"group": "navigation@2"
 				},
 				{
+					"command": "corda.mockNetwork.runNodesDisabled",
+					"when": "view == cordaMockNetwork && !vscode-corda:nodesDeployed && !vscode-corda:networkRunning",
+					"group": "navigation@3"
+				},
+				{
 					"command": "corda.mockNetwork.runNodes",
-					"when": "view == cordaMockNetwork",
+					"when": "view == cordaMockNetwork && vscode-corda:nodesDeployed && !vscode-corda:networkRunning",
+					"group": "navigation@3"
+				},
+				{
+					"command": "corda.mockNetwork.runNodesStop",
+					"when": "view == cordaMockNetwork && vscode-corda:nodesDeployed && vscode-corda:networkRunning",
 					"group": "navigation@3"
 				}
 			],
