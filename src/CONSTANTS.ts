@@ -17,10 +17,10 @@ export const SERVER_JAR = "explorer-server-0.1.0.jar";
 
 export abstract class WorkStateKeys {
     static readonly PROJECT_IS_CORDA = 'projectIsCorda';
-    static readonly DEPLOY_NODES_CONFIG = 'deployNodesConfig';
+    static readonly DEPLOY_NODES_LIST = 'deployNodesList';
     static readonly DEPLOY_NODES_BUILD_GRADLE = 'deployNodesBuildGradle';
-    static readonly NODES_DEPLOYED = 'nodesDeployed';
-    static readonly NETWORK_RUNNING = 'networkRunning';
+    static readonly ARE_NODES_DEPLOYED = 'areNodesDeployed';
+    static readonly IS_NETWORK_RUNNING = 'isNetworkRunning';
 }
 
 export abstract class GlobalStateKeys {

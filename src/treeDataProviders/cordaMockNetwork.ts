@@ -15,7 +15,7 @@ export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.
 		return element;
 	}
 	getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-		let deployNodesConfig:DeployedNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_CONFIG);
+		let deployNodesConfig:DeployedNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
 		if (!element) { // children of TOP level Mock Network
 			let nodeElements: Node[] = [];
 			deployNodesConfig?.forEach((node) => {

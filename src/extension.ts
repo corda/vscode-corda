@@ -27,9 +27,9 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * context.workSpaceState entries:
  * projectIsCorda - is the workspace a valid Corda Project, set in cordaCheckAndLoad().
  * <webviewpanels> - entry per active webview
- * deployNodesConfig - list of nodes that are configured in build.gradle
+ * deployNodesList - list of nodes that are configured in build.gradle
  * deployNodesBuildGradle - path to active/deployNodes build.gradle
- * nodesDeployed (boolean) - if the nodes are currently running
+ * nodesDeployed (boolean) - are the nodes are currently deployed?
  * isNetworkRunning - is the mockNetwork running?
  * 
  * context.globalState entries:
@@ -137,9 +137,25 @@ export async function activate(context: vscode.ExtensionContext) {
 			callbacks.deployNodesCallBack(context).then(() => {
 				cordaMockNetworkProvider.refresh(); // refresh the MockNetworkProvider to update actions
 			});
-		})
+		}),
+		vscode.commands.registerCommand('corda.mockNetwork.runNodesDisabled', () => 
+			vscode.window.showInformationMessage("Network must be deployed - Deploy now?", "Yes", "No")
+				.then((selection) => {
+					switch (selection) {
+						case "Yes":
+							vscode.commands.executeCommand('corda.mockNetwork.deployNodes');
+							break;
+					}
+				})
+		),
+		vscode.commands.registerCommand('corda.mockNetwork.runNodes', () => {
+			let deployed
+		}),
+		vscode.commands.registerCommand('corda.mockNetwork.runNodesStop', () => {})
 	); // end context subscriptions
 
+
+	// WATCHER ON BUILD/NODES for updating deployment
 
 }
 

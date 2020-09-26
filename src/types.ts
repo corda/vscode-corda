@@ -1,3 +1,5 @@
+import * as vscode from 'vscode';
+
 // tslint:disable-next-line: class-name
 export interface CordaNode {
     name: string,
@@ -40,7 +42,8 @@ export interface LoginRequest {
 
 export interface RunningNode {
     id: string,
-    deployedNode: DeployedNode
+    deployedNode: DeployedNode,
+    terminal: vscode.Terminal
 }
 
  export interface DeployedNode {

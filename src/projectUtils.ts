@@ -93,7 +93,7 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0].task);
 
     await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE, deployNodesConfigs![0].file)
-    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_CONFIG, deployedNodes);
+    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_LIST, deployedNodes);
 
     return true;
 }
@@ -153,14 +153,14 @@ export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
     let nodesPath:string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
     nodesPath = nodesPath!.split('build.gradle')[0] + 'build/nodes';
     let result = fs.existsSync(nodesPath);
-    await context.workspaceState.update(WorkStateKeys.NODES_DEPLOYED, result);
+    await context.workspaceState.update(WorkStateKeys.ARE_NODES_DEPLOYED, result);
     vscode.commands.executeCommand('setContext', 'vscode-corda:nodesDeployed', result);
     return result
 }
 
 export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
     let result = false;
-    await context.workspaceState.update(WorkStateKeys.NETWORK_RUNNING, result)
+    await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, result)
     vscode.commands.executeCommand('setContext', 'vscode-corda:networkRunning', result);
     return result;
 }
