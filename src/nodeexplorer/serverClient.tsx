@@ -2,7 +2,7 @@ import axios from "axios";
 import * as vscode from 'vscode';
 import axiosRetry from "axios-retry";
 import { SERVER_BASE_URL, WorkStateKeys, GlobalStateKeys } from '../CONSTANTS';
-import { RunningNode, DeployedNode } from '../types';
+import { RunningNode, DefinedNode } from '../types';
 import { findTerminal } from '../terminals';
 import { SERVER_JAR } from '../CONSTANTS';
 
@@ -33,8 +33,8 @@ export const server_awake = async () => {
 export const loginToNodes = async (context: vscode.ExtensionContext) => {
     await server_awake();
 
-    let deployNodesConf: DeployedNode[] | undefined  = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
-    let node: DeployedNode | undefined = (deployNodesConf !== undefined) ? deployNodesConf[1] : undefined; // first node for test : make sure to FILTER NOTARY
+    let deployNodesList: DefinedNode[] | undefined  = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
+    let node: DefinedNode | undefined = (deployNodesList !== undefined) ? deployNodesList[1] : undefined; // first node for test : make sure to FILTER NOTARY
 
     let runningNodes: RunningNode[] | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
     if (runningNodes === undefined) { runningNodes = [] }

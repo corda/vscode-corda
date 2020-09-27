@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CordaNodesConfig, CordaNodeConfig, DeployedNode, CordaNode } from '../types'
+import { CordaNodesConfig, CordaNodeConfig, DefinedNode, CordaNode } from '../types'
 import { WorkStateKeys } from '../CONSTANTS'
 import { isNetworkRunning } from '../projectUtils';
 
@@ -15,10 +15,10 @@ export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.
 		return element;
 	}
 	getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-		let deployNodesConfig:DeployedNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
+		let deployNodesList:DefinedNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
 		if (!element) { // children of TOP level Mock Network
 			let nodeElements: Node[] = [];
-			deployNodesConfig?.forEach((node) => {
+			deployNodesList?.forEach((node) => {
 				// format to existing structure for display
 				nodeElements.push(new Node(
 					node.x500.name,
@@ -98,7 +98,7 @@ export class Node extends vscode.TreeItem {
 
 	constructor(
 		public readonly label: string,
-		public readonly nodeDetails: DeployedNode,
+		public readonly nodeDetails: DefinedNode,
 		public readonly collapsibleState?: vscode.TreeItemCollapsibleState
 	) {
 		super(label, collapsibleState);

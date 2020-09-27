@@ -150,9 +150,9 @@ export const parseJavaFiles = async (context: ExtensionContext) => {
  * @returns dictionary of project classes and project interfaces.
  */
 const extractTypes = (ctVisitor: ClassTypeVisitor) => {
-    const flowBaseClassSig = [new ClassSig(Constants.flowBaseClass[0], '', [], undefined)];
-    const contractStateInterfaceSigs = Constants.contractStateBaseInterfaces.map(itr => { return new InterfaceSig(itr, '', undefined); });
-    const contractInterfaceSig = Constants.contractBaseInterface.map(itr => { return new InterfaceSig(itr, '', undefined); });
+    const flowBaseClassSig = [new ClassSig(Constants.FLOW_BASE_CLASS[0], '', [], undefined)];
+    const contractStateInterfaceSigs = Constants.CONTRACTSTATE_BASE_INTERFACES.map(itr => { return new InterfaceSig(itr, '', undefined); });
+    const contractInterfaceSig = Constants.CONTRACT_BASE_INTERFACE.map(itr => { return new InterfaceSig(itr, '', undefined); });
 
     // ContractState
     const contractStatesData = extractTypesFromBase(contractStateInterfaceSigs, ctVisitor.interfaceSigs,  ctVisitor.classSigs);

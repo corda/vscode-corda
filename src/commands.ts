@@ -15,7 +15,7 @@ import { areNodesDeployed } from './projectUtils';
 export const fetchTemplateOrSampleCallback = async () => {
 
     // quickPick choose template or sample
-    const qpickItems = Object.keys(Constants.gitHubApi).map((key, index) => { return key; });
+    const qpickItems = Object.keys(Constants.GITHUB_API).map((key, index) => { return key; });
     const requestedProject = await vscode.window.showQuickPick(qpickItems,
         {
             placeHolder: 'Choose a template or sample project'
@@ -35,7 +35,7 @@ export const fetchTemplateOrSampleCallback = async () => {
 
     // fetch the template or sample
     const zipFile = await Axios.get(
-        Constants.gitHubApi[requestedProject],
+        Constants.GITHUB_API[requestedProject],
         {responseType: 'arraybuffer'}
     );
 
@@ -52,14 +52,14 @@ export const fetchTemplateOrSampleCallback = async () => {
 }
 
 /**
- * 
+ * Creates a new Flow in project
  * @param projectObjects dictionary of Corda types, used for inheritance selection
  */
 export const cordaFlowsAddCallback = async (projectObjects): Promise<void> => {
 	
     const qpickItems = (projectObjects.projectClasses.flowClasses as ClassSig[]).map((sig) => {
             return sig.name
-        }).concat(Constants.flowBaseClass);
+        }).concat(Constants.FLOW_BASE_CLASS);
     const qpickPlaceHolder = 'Choose a parent flow to extend';
     const inputPlaceHolder = 'Enter the name of the flow';
     const commandSource = 'cordaFlows';
@@ -69,13 +69,17 @@ export const cordaFlowsAddCallback = async (projectObjects): Promise<void> => {
     addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
+/**
+ * Creates a new Contract in project
+ * @param projectObjects 
+ */
 export const cordaContractsAddCallback = async (projectObjects): Promise<void> => {
 	
     const qpickItems = (projectObjects.projectClasses.contractClasses as ObjectSig[])
         .concat(projectObjects.projectInterfaces.contractInterfaces)
         .map((sig) => {
             return sig.name
-        }).concat(Constants.contractBaseInterface);
+        }).concat(Constants.CONTRACT_BASE_INTERFACE);
     const qpickPlaceHolder = 'Choose a parent contract interface or class to extend';
     const inputPlaceHolder = 'Enter the name of the contract';
     const commandSource = 'cordaContracts';
@@ -85,12 +89,16 @@ export const cordaContractsAddCallback = async (projectObjects): Promise<void> =
     addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
+/**
+ * Creates a new ContractState in project
+ * @param projectObjects 
+ */
 export const cordaContractStatesAddCallback = async (projectObjects): Promise<void> => {
     const qpickItems = (projectObjects.projectClasses.contractStateClasses as ObjectSig[])
         .concat(projectObjects.projectInterfaces.contractStateInterfaces)
         .map((sig) => {
             return sig.name
-        }).concat(Constants.contractStateBaseInterfaces);
+        }).concat(Constants.CONTRACTSTATE_BASE_INTERFACES);
     const qpickPlaceHolder = 'Choose a parent state interface or class to extend';
     const inputPlaceHolder = 'Enter the name of the state';
     const commandSource = 'cordaStates';
@@ -162,6 +170,7 @@ export const runGradleTaskCallback = async (task: string) => {
             }
         });
         try {
+            // TODO: grab return value for option to cancel
             await (await vscode.tasks.executeTask(targetTask!));
         } catch (e) {
             console.error('There was an error starting the task:', e.message);
@@ -169,12 +178,20 @@ export const runGradleTaskCallback = async (task: string) => {
     });
 }
 
+/**
+ * helper for opening a URI/file in the current editor.
+ * @param uri 
+ */
 export const openFile = async (uri: vscode.Uri) => {
     vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
         vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
     })
 }
 
+/**
+ * Deploys nodes in project with pre-req checking
+ * @param context 
+ */
 export const deployNodesCallBack = async (context: vscode.ExtensionContext) => {
     if (await areNodesDeployed(context)) {
         vscode.window.showInformationMessage("Network is already deployed. Re-deploy will reset node data.", 'Run Network', 'Re-deploy', 'Cancel')
