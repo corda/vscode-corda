@@ -35,14 +35,7 @@
 	"icon": "./media/vscode-corda.png",
 	"homepage": "https://www.corda.net/develop/",
 	"activationEvents": [
-		"onView:cordaTemplates",
-		"onView:cordaOperations",
-		"onView:cordaDependencies",
-		"onView:cordaFlows",
-		"onView:cordaContracts",
-		"onView:cordaStates",
-		"onView:cordaMockNetwork",
-		"onView:cordaSamples"
+		"onStartupFinished"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -211,17 +204,17 @@
 				},
 				{
 					"command": "corda.mockNetwork.runNodesDisabled",
-					"when": "view == cordaMockNetwork && !vscode-corda:nodesDeployed && !vscode-corda:networkRunning",
+					"when": "view == cordaMockNetwork && !vscode-corda:areNodesDeployed && !vscode-corda:isNetworkRunning",
 					"group": "navigation@3"
 				},
 				{
 					"command": "corda.mockNetwork.runNodes",
-					"when": "view == cordaMockNetwork && vscode-corda:nodesDeployed && !vscode-corda:networkRunning",
+					"when": "view == cordaMockNetwork && vscode-corda:areNodesDeployed && !vscode-corda:isNetworkRunning",
 					"group": "navigation@3"
 				},
 				{
 					"command": "corda.mockNetwork.runNodesStop",
-					"when": "view == cordaMockNetwork && vscode-corda:nodesDeployed && vscode-corda:networkRunning",
+					"when": "view == cordaMockNetwork && vscode-corda:areNodesDeployed && vscode-corda:isNetworkRunning",
 					"group": "navigation@3"
 				}
 			],
