@@ -1,4 +1,3 @@
-import { Class } from '@material-ui/icons';
 import * as vscode from 'vscode';
 import { ClassSig } from '../typeParsing';
 
