@@ -1,3 +1,4 @@
+import { Class } from '@material-ui/icons';
 import * as vscode from 'vscode';
 import { ClassSig } from '../typeParsing';
 
@@ -6,7 +7,7 @@ import { ClassSig } from '../typeParsing';
  */
 export class CordaContractsProvider implements vscode.TreeDataProvider<CordaContract> {
 	
-	constructor(private contractFiles: ClassSig[]) {}
+	constructor(private contractFiles: ClassSig[] = []) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaContract | undefined | void> = new vscode.EventEmitter<CordaContract | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaContract | undefined | void> = this._onDidChangeTreeData.event;
@@ -36,8 +37,9 @@ export class CordaContractsProvider implements vscode.TreeDataProvider<CordaCont
 	 * - refreshes the tree view
 	 * @param classSig global classSig listing Contracts in project
 	 */
-	refresh(classSig: ClassSig): void {
-		(classSig) ? this.contractFiles.push(classSig) : '';
+	refresh(classSig: ClassSig | ClassSig[]): void {
+		if (classSig instanceof Array) { this.contractFiles = classSig }
+		else if (classSig instanceof ClassSig) { this.contractFiles.push(classSig) } 
 		this._onDidChangeTreeData.fire();
 	}
 }

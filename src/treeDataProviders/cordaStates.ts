@@ -6,7 +6,7 @@ import { ClassSig } from '../typeParsing';
  */
 export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> {
 	
-	constructor(private contractStateFiles: ClassSig[]) {}
+	constructor(private contractStateFiles: ClassSig[] = []) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaState | undefined | void> = new vscode.EventEmitter<CordaState | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaState | undefined | void> = this._onDidChangeTreeData.event;
@@ -38,7 +38,8 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 	 * @param classSig global classSig listing States in project
 	 */
 	refresh(classSig: ClassSig): void {
-		(classSig) ? this.contractStateFiles.push(classSig) : '';
+		if (classSig instanceof Array) { this.contractStateFiles = classSig }
+		else if (classSig instanceof ClassSig) { this.contractStateFiles.push(classSig) } 
 		this._onDidChangeTreeData.fire();
 	}
 }

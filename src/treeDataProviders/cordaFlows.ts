@@ -6,7 +6,7 @@ import { ClassSig } from '../typeParsing';
  */
 export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	
-	constructor(private flowFiles: ClassSig[]) {}
+	constructor(private flowFiles: ClassSig[] = []) {}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaFlow | undefined | void> = new vscode.EventEmitter<CordaFlow | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaFlow | undefined | void> = this._onDidChangeTreeData.event;
@@ -37,7 +37,8 @@ export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	 * @param classSig global classSig listing Flows in project
 	 */
 	refresh(classSig: ClassSig): void {
-		(classSig) ? this.flowFiles.push(classSig) : '';
+		if (classSig instanceof Array) { this.flowFiles = classSig }
+		else if (classSig instanceof ClassSig) { this.flowFiles.push(classSig) } 
 		this._onDidChangeTreeData.fire();
 	}
 }
