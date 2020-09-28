@@ -1,10 +1,6 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as path from 'path';
-import { MessageType, WindowMessage } from "./logviewer/types";
-
-import * as request from "./logviewer/request";
 import { CordaOperationsProvider } from './treeDataProviders/cordaOperations';
 import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
@@ -13,16 +9,12 @@ import { CordaStatesProvider } from './treeDataProviders/cordaStates';
 import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 
 import { ClassSig, parseJavaFiles } from './typeParsing';
-import { panelStart } from './panels';
 import * as watchers from './watchers';
 import * as addCommands from './commandHandlers/addCommands';
 import * as general from './commandHandlers/general';
 import * as network from './commandHandlers/network';
-import { fetchTemplateOrSampleCallback } from './commandHandlers/fetchTemplateOrSample';
 import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning, disposeRunningNodes } from './projectUtils';
-import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD } from './CONSTANTS';
 import { server_awake } from './nodeexplorer/serverClient';
-import { DefinedNode, RunningNode, RunningNodesList } from './types';
 
 const cordaWatchers: vscode.FileSystemWatcher[] = [];
 const fsWatchers: any[] = [];
@@ -95,7 +87,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	// Register Commands
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('cordaProjects.new', () => fetchTemplateOrSampleCallback()),
+		vscode.commands.registerCommand('cordaProjects.new', () => general.fetchTemplateOrSampleCallback()),
 
 		// ops
 		vscode.commands.registerCommand('corda.operations.assembleCommand', () => general.runGradleTaskCallback("assemble")),
@@ -115,31 +107,12 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig)),
 
 		// webviews
-		vscode.commands.registerCommand('corda.Node.logViewer', async () => {
-			await panelStart('logviewer', context);
-
-			const filepath = path.join(context.extensionPath, "smalllog.log");
-			request.countEntries(filepath).then(count => {
-				let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
-				panel?.webview.postMessage({
-					messageType: MessageType.NEW_LOG_ENTRIES,
-					filepath,
-					entriesCount: count
-				} as WindowMessage)
-			})
-		}),
+		vscode.commands.registerCommand('corda.Node.logViewer', async () => network.logViewer(context)),
+		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => network.networkMap(context)),
 
 		// mockNetwork actions
-		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => panelStart('networkmap', context)),
-		vscode.commands.registerCommand('corda.mockNetwork.edit', () => {
-			const buildGradleFile: string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
-			general.openFile(vscode.Uri.parse(buildGradleFile!));
-			vscode.window.showInformationMessage("Configure your network in the deployNodes task.");
-			// TODO: set the cursor on the deployNodes Task
-		}),
-		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', async () => {
-			network.deployNodesCallBack(context)
-		}),
+		vscode.commands.registerCommand('corda.mockNetwork.edit', () => network.editDeployNodes(context)),
+		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', async () => network.deployNodesCallBack(context)),
 		vscode.commands.registerCommand('corda.mockNetwork.runNodesDisabled', () => 
 			vscode.window.showInformationMessage("Network must be deployed - Deploy now?", "Yes", "No")
 				.then((selection) => {
@@ -152,40 +125,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		),
 		vscode.commands.registerCommand('corda.mockNetwork.runNodes', async () => {
 		
-			await disposeRunningNodes(context);
-			let globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
-			globalRunningNodesList = (globalRunningNodesList === undefined) ? {} : globalRunningNodesList;
-
-			const workspaceName:string = vscode.workspace.name!;
-
-			let runningNodes: RunningNode[] = []; // running nodes for this workspace
-			const deployedNodes:DefinedNode[] | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
-			deployedNodes!.forEach((node: DefinedNode) => {
-				// Create terminal instance
-				const nodeTerminal = vscode.window.createTerminal({
-					name: node.x500.name + " : " + node.rpcPort,
-					cwd: node.nodeConf.jarDir
-				})
-				nodeTerminal.sendText(RUN_CORDA_CMD); // run Corda.jar
-
-				// Define RunningNode
-				const thisRunningNode: RunningNode = {
-					id: node.id,
-					rpcClientId: undefined,
-					deployedNode: node,
-					terminal: nodeTerminal
-				}
-
-				// Add to runningNodes
-				runningNodes.push(thisRunningNode);
-			})
-
-			// LOGIN to each node
 			
-			
-			globalRunningNodesList![workspaceName] = {runningNodes};
-			await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList); // Update global runnodes list
-			await isNetworkRunning(context); // update context
 		}),
 		vscode.commands.registerCommand('corda.mockNetwork.runNodesStop', () => {
 			disposeRunningNodes(context);
@@ -194,7 +134,6 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 			console.log("temp break");
 		})
 	); // end context subscriptions
-	// WATCHER ON BUILD/NODES for updating deployment
 }
 
 export const deactivate = (context: vscode.ExtensionContext) => {
