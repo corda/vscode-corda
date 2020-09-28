@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { GlobalStateKeys, WorkStateKeys } from './CONSTANTS';
 import { CordaNodesConfig, CordaTaskConfig, CordaNode, DefinedNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from './types'
 import context from 'react-bootstrap/esm/AccordionContext';
-import { findTerminal } from './terminals';
+import { findTerminal, terminalIsOpenForNode } from './terminals';
 const gjs = require('../gradleParser');
 
 /**
@@ -187,14 +187,44 @@ export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
 /**
  * Determines if this projects local network is running by searching for global list of runningNodes
  * tied to the workspace and confirming against the terminals
+ * 
+ * Also FILTERS and discards records of runningNodes that are no longer active
  * @param context 
  */
 export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
+    let result = false;
     const globalRunningNodes: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
+    const workspaceName = vscode.workspace.name!;
+    if (globalRunningNodes && (workspaceName in globalRunningNodes)) { 
+        
+        // Check a node terminal IS active and adjust RUNNING_NODES if needed
+        const runningNodes: RunningNode[] = globalRunningNodes[workspaceName].runningNodes;
+        // const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
 
-    // True if workspace is a key in the global list
-    let result: boolean = (globalRunningNodes != undefined && (vscode.workspace.name! in globalRunningNodes));
+        // const nameCheckPred = (t, n:RunningNode) => { // predicate to check composed name
+        //     return t.name == (n.deployedNode.x500.name + " : " + n.deployedNode.rpcPort)
+        // }
 
+        runningNodes.forEach((node, index) => {
+            // ODD that no access to node.terminal.name ?? using composed name
+            if (!terminalIsOpenForNode(node)) { // no matching terminal (may have manually closed this)
+                runningNodes.splice(index, 1); // removes the item from list
+            }
+        })
+        // if there has been a change in workspace running nodes - update global list
+        if (runningNodes.length > 0 && runningNodes.length < globalRunningNodes[workspaceName].runningNodes.length) { 
+            globalRunningNodes[workspaceName] = {runningNodes};
+            await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodes);
+            result = true;
+        } else if (runningNodes.length == 0) { // there are NO running nodes - remove workspace from global list
+            delete globalRunningNodes[workspaceName];
+            await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodes);
+            result = false;
+        } else { // all nodes are running as expected
+            result = true;
+        }
+    };
+  
     await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, result);
     vscode.commands.executeCommand('setContext', 'vscode-corda:isNetworkRunning', result);
     return result;
@@ -208,13 +238,11 @@ export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
     const globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
 	const workspaceName = vscode.workspace.name;
 	if (globalRunningNodesList && globalRunningNodesList[workspaceName!] != undefined) {
+
         const runningNodes: RunningNode[] = globalRunningNodesList[workspaceName!].runningNodes;
     
         runningNodes.forEach((node: RunningNode) => {
-            if (findTerminal(node.terminal?.name)) {
-                node?.terminal?.dispose();
-            }
-            
+            terminalIsOpenForNode(node, true); // find node and dispose            
         });
 
 		delete globalRunningNodesList[workspaceName!]; // remove on deactivate

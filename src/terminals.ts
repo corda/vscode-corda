@@ -1,13 +1,26 @@
 import * as vscode from 'vscode';
+import { RunningNode } from './types';
  
-/**
- * findTerminal returns the instance of the terminal identified by the argument
- * @param termName - terminal to find
- */
-export function findTerminal(termName : string) {
-	const terminals = <vscode.Terminal[]>(<any>vscode.window).terminals;
-	const terminal : any = terminals.filter(t => {
-		return t.name == termName;
-	});
-	return terminal.length > 0 ? terminal[0] : undefined;
+
+
+export const terminalIsOpenForNode = (n: RunningNode, dispose: boolean = false) => {
+	const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
+	const nodeNameCheckPred = (t, n) => { // predicate to check composed name
+		return t.name == (n.deployedNode.x500.name + " : " + n.deployedNode.rpcPort)
+	}
+
+	let hit = openTerminals.find((t) => nodeNameCheckPred(t, n));
+	
+	if (hit && dispose) { // dispose if requested
+		hit?.dispose();	
+	} 
+	
+	return (hit != undefined);
+}
+
+export const findTerminal = (termName: string) => {
+	const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
+	return openTerminals.find((t) => {
+		return t.name == termName
+	})
 }

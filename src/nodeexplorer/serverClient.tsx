@@ -14,7 +14,7 @@ import { SERVER_JAR } from '../CONSTANTS';
  */
 export const server_awake = async () => {
     // client check
-    launchClient();
+    // launchClient();
     
     const retryClient = axios.create({ baseURL: SERVER_BASE_URL })
     axiosRetry(retryClient, { retries: 15, retryDelay: (retryCount) => {
@@ -56,7 +56,7 @@ export function launchClient() {
 
 	// Launch client
 	const name = 'Node Client Server'
-	let terminal : vscode.Terminal = findTerminal(name);
+	let terminal : vscode.Terminal | undefined = findTerminal(name);
 	if (!terminal) { // check if client already launched
 		const jarPath = vscode.extensions.getExtension("R3.vscode-corda")?.extensionPath;
 		const cmd1 = 'cd ' + jarPath;

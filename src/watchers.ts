@@ -36,3 +36,18 @@ export const nodesFSWatcher = (context: vscode.ExtensionContext) => {
     })
     return watcher;
 }
+
+export const activateEventListeners = (context: vscode.ExtensionContext) => {
+    vscode.tasks.onDidEndTask((taskEndEvent) => {
+		const task = taskEndEvent.execution.task;
+		switch (task.name) {
+			case 'deployNodes':
+				areNodesDeployed(context);
+				isNetworkRunning(context);
+				break;
+		}
+	})
+	vscode.window.onDidCloseTerminal(async (terminal) => {
+		await isNetworkRunning(context);
+	})
+}

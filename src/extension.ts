@@ -15,7 +15,7 @@ import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 import { ClassSig, parseJavaFiles } from './typeParsing';
 import { panelStart } from './panels';
 import * as callbacks from './commands';
-import { getBuildGradleFSWatcher, nodesFSWatcher } from './watchers';
+import * as watchers from './watchers';
 import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning, disposeRunningNodes } from './projectUtils';
 import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD } from './CONSTANTS';
 import { server_awake } from './nodeexplorer/serverClient';
@@ -66,18 +66,10 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 
 	projectObjects = await parseJavaFiles(context); // scan all project java files and build inventory
 		
-	cordaWatchers.push(getBuildGradleFSWatcher()); // Initiate watchers
-	// cordaWatchers.push(nodesFSWatcher(context));
-	fsWatchers.push(nodesFSWatcher(context));
-	vscode.tasks.onDidEndTask((taskEndEvent) => {
-		const task = taskEndEvent.execution.task;
-		switch (task.name) {
-			case 'deployNodes':
-				areNodesDeployed(context);
-				isNetworkRunning(context);
-				break;
-		}
-	})
+	// Initiate watchers
+	cordaWatchers.push(watchers.getBuildGradleFSWatcher()); 
+	fsWatchers.push(watchers.nodesFSWatcher(context));
+	watchers.activateEventListeners(context);
 
 	server_awake(); // launch client and check server is up
 
@@ -192,7 +184,9 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 			await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList); // Update global runnodes list
 			await isNetworkRunning(context); // update context
 		}),
-		vscode.commands.registerCommand('corda.mockNetwork.runNodesStop', () => {})
+		vscode.commands.registerCommand('corda.mockNetwork.runNodesStop', () => {
+			disposeRunningNodes(context);
+		})
 	); // end context subscriptions
 	// WATCHER ON BUILD/NODES for updating deployment
 }
