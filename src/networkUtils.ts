@@ -34,14 +34,8 @@ export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
         
         // Check a node terminal IS active and adjust RUNNING_NODES if needed
         const runningNodes: RunningNode[] = [...globalRunningNodes[workspaceName].runningNodes];
-        // const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
-
-        // const nameCheckPred = (t, n:RunningNode) => { // predicate to check composed name
-        //     return t.name == (n.deployedNode.x500.name + " : " + n.deployedNode.rpcPort)
-        // }
-
+        
         runningNodes.forEach((node, index) => {
-            // ODD that no access to node.terminal.name ?? using composed name
             if (!terminalIsOpenForNode(node)) { // no matching terminal (may have manually closed this)
                 runningNodes.splice(index, 1); // removes the item from list
             }
