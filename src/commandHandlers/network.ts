@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import { panelStart } from '../panels';
-import { areNodesDeployed } from '../projectUtils';
 import { runGradleTaskCallback, openFile } from './general';
 import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands } from '../CONSTANTS';
-import { isNetworkRunning, disposeRunningNodes } from '../projectUtils';
+import { areNodesDeployed, isNetworkRunning, disposeRunningNodes } from '../networkUtils';
 import { RunningNode, RunningNodesList, DefinedNode } from '../types';
 import { MessageType, WindowMessage } from "../logviewer/types";
 import * as request from "../logviewer/request";

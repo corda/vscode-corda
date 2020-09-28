@@ -6,14 +6,15 @@ import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
 import { CordaContractsProvider } from './treeDataProviders/cordaContracts';
 import { CordaStatesProvider } from './treeDataProviders/cordaStates';
-import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
+import { CordaLocalNetworkProvider } from './treeDataProviders/cordaLocalNetwork';
 
 import { ClassSig, parseJavaFiles } from './typeParsing';
 import * as watchers from './watchers';
 import * as addCommands from './commandHandlers/addCommands';
 import * as general from './commandHandlers/general';
 import * as network from './commandHandlers/network';
-import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning, disposeRunningNodes } from './projectUtils';
+import { cordaCheckAndLoad } from './projectUtils';
+import { disposeRunningNodes, areNodesDeployed, isNetworkRunning } from './networkUtils';
 import { server_awake } from './nodeexplorer/serverClient';
 import { Contexts, Views, Commands } from './CONSTANTS';
 
@@ -28,7 +29,7 @@ var projectObjects: {projectClasses: any, projectInterfaces:any};
  * deployNodesList - list of nodes that are configured in build.gradle
  * deployNodesBuildGradle - path to active/deployNodes build.gradle
  * areNodesDeployed (boolean) - are the nodes are currently deployed?
- * isNetworkRunning - is the mockNetwork of THIS project running?
+ * isNetworkRunning - is the local Network of THIS project running?
  * 
  * context.globalState entries:
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
@@ -57,11 +58,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 const cordaExt = async (context: vscode.ExtensionContext) => {
 
-	areNodesDeployed(context);
-	isNetworkRunning(context);
-
 	projectObjects = await parseJavaFiles(context); // scan all project java files and build inventory
-		
+
 	// Initiate watchers
 	cordaWatchers.push(watchers.getBuildGradleFSWatcher()); 
 	fsWatchers.push(watchers.nodesFSWatcher(context));
@@ -75,7 +73,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	const cordaFlowsProvider = new CordaFlowsProvider(projectObjects!.projectClasses.flowClasses as ClassSig[]);
 	const cordaContractsProvider = new CordaContractsProvider(projectObjects!.projectClasses.contractClasses as ClassSig[]);
 	const cordaStatesProvider = new CordaStatesProvider(projectObjects!.projectClasses.contractStateClasses as ClassSig[]);
-	const cordaMockNetworkProvider = new CordaMockNetworkProvider(context);
+	const cordaLocalNetworkProvider = new CordaLocalNetworkProvider(context);
 
 	// Register DataProviders
 	vscode.window.registerTreeDataProvider(Views.CORDA_OPERATIONS_VIEW, cordaOperationsProvider);
@@ -83,7 +81,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	vscode.window.registerTreeDataProvider(Views.CORDA_FLOWS_VIEW, cordaFlowsProvider);
 	vscode.window.registerTreeDataProvider(Views.CORDA_CONTRACTS_VIEW, cordaContractsProvider);
 	vscode.window.registerTreeDataProvider(Views.CORDA_STATES_VIEW, cordaStatesProvider);
-	vscode.window.registerTreeDataProvider(Views.CORDA_LOCALNETWORK_VIEW, cordaMockNetworkProvider);
+	vscode.window.registerTreeDataProvider(Views.CORDA_LOCALNETWORK_VIEW, cordaLocalNetworkProvider);
 	
 	// Register Commands
 
@@ -106,8 +104,9 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.FLOWS_REFRESH, (classSig) => cordaFlowsProvider.refresh(classSig)),
 		vscode.commands.registerCommand(Commands.CONTRACTS_REFRESH, (classSig) => cordaContractsProvider.refresh(classSig)),
 		vscode.commands.registerCommand(Commands.STATES_REFRESH, (classSig) => cordaStatesProvider.refresh(classSig)),
+		vscode.commands.registerCommand(Commands.NETWORK_REFRESH, () => cordaLocalNetworkProvider.refresh()),
 
-		// mockNetwork actions
+		// Local Network actions
 		vscode.commands.registerCommand(Commands.NETWORK_MAP_SHOW, () => network.networkMap(context)),
 		vscode.commands.registerCommand(Commands.NETWORK_EDIT, () => network.editDeployNodes(context)),
 		vscode.commands.registerCommand(Commands.NETWORK_DEPLOYNODES, async () => network.deployNodesCallBack(context)),

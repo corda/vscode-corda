@@ -131,6 +131,11 @@
 				"icon": "$(refresh)"
 			},
 			{
+				"command": "corda.localNetwork.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
 				"command": "corda.localNetwork.networkMap",
 				"title": "View Network Map",
 				"icon": "$(globe)"

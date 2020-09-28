@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { WorkStateKeys } from './CONSTANTS';
-import { areNodesDeployed, isNetworkRunning } from './projectUtils';
+import { areNodesDeployed, isNetworkRunning } from './networkUtils';
 import * as fs from 'fs';
 
 // Watcher for gradle.build refresh
@@ -42,6 +42,7 @@ export const activateEventListeners = (context: vscode.ExtensionContext) => {
 		const task = taskEndEvent.execution.task;
 		switch (task.name) {
 			case 'deployNodes':
+            case 'clean':
 				areNodesDeployed(context);
 				isNetworkRunning(context);
 				break;

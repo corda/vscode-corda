@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
-import { CordaNodesConfig, CordaNodeConfig, DefinedNode, CordaNode } from '../types'
-import { WorkStateKeys } from '../CONSTANTS'
-import { isNetworkRunning } from '../projectUtils';
+import { DefinedNode, RunningNode, RunningNodesList } from '../types'
+import { GlobalStateKeys, WorkStateKeys } from '../CONSTANTS'
+import {} from '../commandHandlers/network';
+import { terminalIsOpenForNode } from '../terminals';
 
-export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 	
 	private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<vscode.TreeItem | undefined | void> = this._onDidChangeTreeData.event;
@@ -33,7 +34,7 @@ export class CordaMockNetworkProvider implements vscode.TreeDataProvider<vscode.
 				new NodeDetail('Location', element.nodeDetails.x500.city + ", " + element.nodeDetails.x500.country), // details are derived from element (Node)
 				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port)
 			];
-			if (isNetworkRunning(this.context)) {
+			if ((this.context.workspaceState.get(WorkStateKeys.IS_NETWORK_RUNNING) as boolean) && terminalIsOpenForNode(element)) {
 				items.push(new CorDapps('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed))
 			}
 			return items;
