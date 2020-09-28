@@ -14,8 +14,11 @@ import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 
 import { ClassSig, parseJavaFiles } from './typeParsing';
 import { panelStart } from './panels';
-import * as callbacks from './commands';
 import * as watchers from './watchers';
+import * as addCommands from './commandHandlers/addCommands';
+import * as general from './commandHandlers/general';
+import * as network from './commandHandlers/network';
+import { fetchTemplateOrSampleCallback } from './commandHandlers/fetchTemplateOrSample';
 import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning, disposeRunningNodes } from './projectUtils';
 import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD } from './CONSTANTS';
 import { server_awake } from './nodeexplorer/serverClient';
@@ -92,19 +95,19 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	// Register Commands
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('cordaProjects.new', () => callbacks.fetchTemplateOrSampleCallback()),
+		vscode.commands.registerCommand('cordaProjects.new', () => fetchTemplateOrSampleCallback()),
 
 		// ops
-		vscode.commands.registerCommand('corda.operations.assembleCommand', () => callbacks.runGradleTaskCallback("assemble")),
-		vscode.commands.registerCommand('corda.operations.buildCommand', () => callbacks.runGradleTaskCallback("build")),
-		vscode.commands.registerCommand('corda.operations.testCommand', () => callbacks.runGradleTaskCallback("test")),
-		vscode.commands.registerCommand('corda.operations.cleanCommand', () => callbacks.runGradleTaskCallback("clean")),
+		vscode.commands.registerCommand('corda.operations.assembleCommand', () => general.runGradleTaskCallback("assemble")),
+		vscode.commands.registerCommand('corda.operations.buildCommand', () => general.runGradleTaskCallback("build")),
+		vscode.commands.registerCommand('corda.operations.testCommand', () => general.runGradleTaskCallback("test")),
+		vscode.commands.registerCommand('corda.operations.cleanCommand', () => general.runGradleTaskCallback("clean")),
 
 		// add classes
-		vscode.commands.registerCommand('cordaFlows.add', () => callbacks.cordaFlowsAddCallback(projectObjects)),
-		vscode.commands.registerCommand('cordaContracts.add', () => callbacks.cordaContractsAddCallback(projectObjects)),
-		vscode.commands.registerCommand('cordaStates.add', () => callbacks.cordaContractStatesAddCallback(projectObjects)),
-		vscode.commands.registerCommand('corda.openFile', (uri) => callbacks.openFile(uri)),
+		vscode.commands.registerCommand('cordaFlows.add', () => addCommands.cordaFlowsAddCallback(projectObjects)),
+		vscode.commands.registerCommand('cordaContracts.add', () => addCommands.cordaContractsAddCallback(projectObjects)),
+		vscode.commands.registerCommand('cordaStates.add', () => addCommands.cordaContractStatesAddCallback(projectObjects)),
+		vscode.commands.registerCommand('corda.openFile', (uri) => general.openFile(uri)),
 
 		// refreshes
 		vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig)),
@@ -130,12 +133,12 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => panelStart('networkmap', context)),
 		vscode.commands.registerCommand('corda.mockNetwork.edit', () => {
 			const buildGradleFile: string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
-			callbacks.openFile(vscode.Uri.parse(buildGradleFile!));
+			general.openFile(vscode.Uri.parse(buildGradleFile!));
 			vscode.window.showInformationMessage("Configure your network in the deployNodes task.");
 			// TODO: set the cursor on the deployNodes Task
 		}),
 		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', async () => {
-			callbacks.deployNodesCallBack(context)
+			network.deployNodesCallBack(context)
 		}),
 		vscode.commands.registerCommand('corda.mockNetwork.runNodesDisabled', () => 
 			vscode.window.showInformationMessage("Network must be deployed - Deploy now?", "Yes", "No")
@@ -186,6 +189,9 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		}),
 		vscode.commands.registerCommand('corda.mockNetwork.runNodesStop', () => {
 			disposeRunningNodes(context);
+		}),
+		vscode.commands.registerCommand('corda.Node.runFlow', () => { 
+			console.log("temp break");
 		})
 	); // end context subscriptions
 	// WATCHER ON BUILD/NODES for updating deployment
