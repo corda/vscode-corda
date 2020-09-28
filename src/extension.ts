@@ -15,13 +15,15 @@ import { CordaMockNetworkProvider } from './treeDataProviders/cordaMockNetwork';
 import { ClassSig, parseJavaFiles } from './typeParsing';
 import { panelStart } from './panels';
 import * as callbacks from './commands';
-import { getBuildGradleFSWatcher } from './watchers';
-import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning } from './projectUtils';
-import { loginToNodes } from './nodeexplorer/serverClient';
-import { WorkStateKeys, GlobalStateKeys } from './CONSTANTS';
+import { getBuildGradleFSWatcher, nodesFSWatcher } from './watchers';
+import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning, disposeRunningNodes } from './projectUtils';
+import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD } from './CONSTANTS';
 import { server_awake } from './nodeexplorer/serverClient';
+import { DefinedNode, RunningNode, RunningNodesList } from './types';
 
-const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
+const cordaWatchers: vscode.FileSystemWatcher[] = [];
+const fsWatchers: any[] = [];
+var projectObjects: {projectClasses: any, projectInterfaces:any};
 
 /**
  * context.workSpaceState entries:
@@ -29,16 +31,17 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * <webviewpanels> - entry per active webview
  * deployNodesList - list of nodes that are configured in build.gradle
  * deployNodesBuildGradle - path to active/deployNodes build.gradle
- * nodesDeployed (boolean) - are the nodes are currently deployed?
- * isNetworkRunning - is the mockNetwork running?
+ * areNodesDeployed (boolean) - are the nodes are currently deployed?
+ * isNetworkRunning - is the mockNetwork of THIS project running?
  * 
  * context.globalState entries:
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
  * runningNodes - list of nodes that are currently in running state - global tracking due to port allocations
  * 
  * 'when' clause contexts:
- * vscode-corda:nodesDeployed (boolean) - if nodes are currently deployed
- * vscode-corda:networkRunning (boolean) - if the nodes are currently running
+ * vscode-corda:projectIsCorda (boolean) - if the current workspace is a corda project
+ * vscode-corda:areNodesDeployed (boolean) - if nodes are currently deployed
+ * vscode-corda:isNetworkRunning (boolean) - if the nodes are currently running
  *  */ 
 
 
@@ -47,30 +50,36 @@ const cordaWatchers: vscode.FileSystemWatcher[] | undefined = undefined;
  * @param context 
  */
 export async function activate(context: vscode.ExtensionContext) {
+	if (vscode.workspace.workspaceFolders && (await cordaCheckAndLoad(context))) {
+		vscode.window.setStatusBarMessage("Corda-Project");
+		cordaExt(context);
+	} else {
+		vscode.commands.executeCommand('setContext', 'vscode-corda:projectIsCorda', false);
+		vscode.window.showInformationMessage("Interstitial here when not Corda");
+	}
+}
+
+const cordaExt = async (context: vscode.ExtensionContext) => {
 
 	areNodesDeployed(context);
 	isNetworkRunning(context);
 
-	// FOR DEVELOPMENT TEST -- clear global state
-	await context.globalState.update(GlobalStateKeys.RUNNING_NODES, undefined);
-
-	let projectObjects: {projectClasses: any, projectInterfaces:any};
-
-	// determine Corda project and setup
-	await cordaCheckAndLoad(context).then(async (result) => {
-		if (!result) {
-			vscode.window.setStatusBarMessage("INTERSTITIAL for Project");
-			return;
-		}
-
-		vscode.window.setStatusBarMessage("Corda-Project"); // identify project as Corda
-
-		projectObjects= await parseJavaFiles(context); // scan all project java files and build inventory
+	projectObjects = await parseJavaFiles(context); // scan all project java files and build inventory
 		
-		cordaWatchers?.push(getBuildGradleFSWatcher()); // Initiate watchers
+	cordaWatchers.push(getBuildGradleFSWatcher()); // Initiate watchers
+	// cordaWatchers.push(nodesFSWatcher(context));
+	fsWatchers.push(nodesFSWatcher(context));
+	vscode.tasks.onDidEndTask((taskEndEvent) => {
+		const task = taskEndEvent.execution.task;
+		switch (task.name) {
+			case 'deployNodes':
+				areNodesDeployed(context);
+				isNetworkRunning(context);
+				break;
+		}
+	})
 
-		server_awake(); // wait up server and launch client
-	});
+	server_awake(); // launch client and check server is up
 
 	// Corda TreeDataProviders
 	const cordaOperationsProvider = new CordaOperationsProvider();
@@ -134,9 +143,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			// TODO: set the cursor on the deployNodes Task
 		}),
 		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', async () => {
-			callbacks.deployNodesCallBack(context).then(() => {
-				cordaMockNetworkProvider.refresh(); // refresh the MockNetworkProvider to update actions
-			});
+			callbacks.deployNodesCallBack(context)
 		}),
 		vscode.commands.registerCommand('corda.mockNetwork.runNodesDisabled', () => 
 			vscode.window.showInformationMessage("Network must be deployed - Deploy now?", "Yes", "No")
@@ -148,15 +155,48 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 				})
 		),
-		vscode.commands.registerCommand('corda.mockNetwork.runNodes', () => {
-			let deployed
+		vscode.commands.registerCommand('corda.mockNetwork.runNodes', async () => {
+		
+			await disposeRunningNodes(context);
+			let globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
+			globalRunningNodesList = (globalRunningNodesList === undefined) ? {} : globalRunningNodesList;
+
+			const workspaceName:string = vscode.workspace.name!;
+
+			let runningNodes: RunningNode[] = []; // running nodes for this workspace
+			const deployedNodes:DefinedNode[] | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
+			deployedNodes!.forEach((node: DefinedNode) => {
+				// Create terminal instance
+				const nodeTerminal = vscode.window.createTerminal({
+					name: node.x500.name + " : " + node.rpcPort,
+					cwd: node.nodeConf.jarDir
+				})
+				nodeTerminal.sendText(RUN_CORDA_CMD); // run Corda.jar
+
+				// Define RunningNode
+				const thisRunningNode: RunningNode = {
+					id: node.id,
+					rpcClientId: undefined,
+					deployedNode: node,
+					terminal: nodeTerminal
+				}
+
+				// Add to runningNodes
+				runningNodes.push(thisRunningNode);
+			})
+
+			// LOGIN to each node
+			
+			
+			globalRunningNodesList![workspaceName] = {runningNodes};
+			await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList); // Update global runnodes list
+			await isNetworkRunning(context); // update context
 		}),
 		vscode.commands.registerCommand('corda.mockNetwork.runNodesStop', () => {})
 	); // end context subscriptions
-
-
 	// WATCHER ON BUILD/NODES for updating deployment
-
 }
 
-export const deactivate = () => {};
+export const deactivate = (context: vscode.ExtensionContext) => {
+	disposeRunningNodes(context);
+};

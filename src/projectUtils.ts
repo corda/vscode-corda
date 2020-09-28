@@ -4,13 +4,16 @@ import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
 import { GlobalStateKeys, WorkStateKeys } from './CONSTANTS';
-import { CordaNodesConfig, CordaTaskConfig, CordaNode, DeployedNode, LoginRequest, CordaNodeConfig } from './types'
+import { CordaNodesConfig, CordaTaskConfig, CordaNode, DefinedNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from './types'
 import context from 'react-bootstrap/esm/AccordionContext';
+import { findTerminal } from './terminals';
 const gjs = require('../gradleParser');
 
 /**
  * Fix which is used for JUnit testrunner to correctly work
  * - may not be necessary if using 'vscode-gradle' must confirm
+ * 
+ * HELPER for cordaCheckAndLoad
  * TODO: move from fs to vscode.workspace API
  * @param projectCwd 
  */
@@ -36,6 +39,7 @@ const setJDTpref = (projectCwd: string) => { // for java-testrunner compat. in g
 
 /**
  * Returns whether project is a CorDapp project
+ * HELPER for cordaCheckAndLoad
  * TODO: Move this check to representation.buildscript.ext dep on the parsing
  * @param buildGradleFile 
  * @param context 
@@ -46,11 +50,13 @@ const setIsProjectCorda = async (buildGradleFile: string, context: vscode.Extens
         let contents = fs.readFileSync(buildGradleFile);
         if (contents.includes('corda')) {
             console.log("Project is Corda");
-            isGradle = true;
-            await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, true);
+            isGradle = true;  
         }
-    }
-    if (!isGradle) await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, false);
+    } 
+
+    await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, isGradle); // set state
+    vscode.commands.executeCommand('setContext', 'vscode-corda:projectIsCorda', isGradle); // set context
+    return isGradle;
 }
 
 /**
@@ -58,18 +64,18 @@ const setIsProjectCorda = async (buildGradleFile: string, context: vscode.Extens
  * @param context 
  */
 export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
-    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length < 1) {
-		// no active workspace folders, abort
-		return 0;
-    }
+
+    await resetCordaWorkspaceState(context); // reset Corda Keys in workspaceState
+    await disposeRunningNodes(context);
 
     const projectCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
     const projectGradle = path.join(projectCwd, '/build.gradle');
 
-    setJDTpref(projectCwd); // inject java testrunner fix setting
-    setIsProjectCorda(projectGradle, context); // confirm CordaProject
+    // EXIT IF NOT CORDA
+    if (!(await setIsProjectCorda(projectGradle, context))) { return false } 
+    // PROJECT IS CORDA continue -------->
 
-    if (!context.workspaceState.get(WorkStateKeys.PROJECT_IS_CORDA)) { return false } // EXIT fun
+    setJDTpref(projectCwd); // inject java testrunner fix setting
 
     // No client token set for Corda -> set a new token
     if (context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) === undefined) {
@@ -90,7 +96,7 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     })
 
     // currently allow ONE deployNodesConfig per project but future will allow multiple w/ selection
-    let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0].task);
+    let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0]);
 
     await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE, deployNodesConfigs![0].file)
     await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_LIST, deployedNodes);
@@ -99,16 +105,31 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 }
 
 /**
+ * Resets Corda keys in workspaceState
+ * @param context 
+ */
+export const resetCordaWorkspaceState = async (context: vscode.ExtensionContext) => {
+	WorkStateKeys.ALL_KEYS.forEach(async (key) => {
+		await context.workspaceState.update(key, undefined);
+    })
+}
+
+/**
  * structures parsing and write to workspaceState
+ * 
+ * HELPER for cordaCheckAndLoad
  * @param nodesConfig 
  */
-const taskToDeployedNodes = (nodesConfig: CordaNodesConfig):DeployedNode[] => {
-    let nodes:CordaNodeConfig = nodesConfig.node;
-    let nodeDefaults = nodesConfig.nodeDefaults;
-    let deployedNodes: DeployedNode[] = [];
+const taskToDeployedNodes = (nodesTaskConfig: CordaTaskConfig):DefinedNode[] => {
+    let {file, task}:{file:string, task:CordaNodesConfig} = nodesTaskConfig; 
+
+    let nodes:CordaNodeConfig = task.node;
+    let nodeDefaults = task.nodeDefaults;
+    let deployedNodes: DefinedNode[] = [];
     Object.keys(nodes).forEach((val) => {
         // build up composites
         let node:CordaNode = nodes[val]
+
         let hostAndPort = node.rpcSettings.address.split(":");
         
         let cred:{user:string, pass:string} = {user:"", pass:""};
@@ -134,10 +155,14 @@ const taskToDeployedNodes = (nodesConfig: CordaNodesConfig):DeployedNode[] => {
             country: node.name.match("C=(.*)")![1]
         }
 
+        // add jarDir to node
+        node.jarDir = file.split('build.gradle')[0] + 'build/nodes/' + x500.name;
+
         // push on DeployedNode
         deployedNodes.push({
             loginRequest: loginRequest,
             id: node.name,
+            rpcPort: hostAndPort[1],
             x500: x500,
             nodeConf: node,
         })
@@ -151,16 +176,50 @@ const taskToDeployedNodes = (nodesConfig: CordaNodesConfig):DeployedNode[] => {
  */
 export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
     let nodesPath:string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
-    nodesPath = nodesPath!.split('build.gradle')[0] + 'build/nodes';
-    let result = fs.existsSync(nodesPath);
+    nodesPath = nodesPath?.split('build.gradle')[0] + 'build/nodes';
+    
+    const result = fs.existsSync(nodesPath); // check if the NODES persistant structure exists
     await context.workspaceState.update(WorkStateKeys.ARE_NODES_DEPLOYED, result);
-    vscode.commands.executeCommand('setContext', 'vscode-corda:nodesDeployed', result);
+    vscode.commands.executeCommand('setContext', 'vscode-corda:areNodesDeployed', result);
     return result
 }
 
+/**
+ * Determines if this projects local network is running by searching for global list of runningNodes
+ * tied to the workspace and confirming against the terminals
+ * @param context 
+ */
 export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
-    let result = false;
-    await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, result)
-    vscode.commands.executeCommand('setContext', 'vscode-corda:networkRunning', result);
+    const globalRunningNodes: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
+
+    // True if workspace is a key in the global list
+    let result: boolean = (globalRunningNodes != undefined && (vscode.workspace.name! in globalRunningNodes));
+
+    await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, result);
+    vscode.commands.executeCommand('setContext', 'vscode-corda:isNetworkRunning', result);
     return result;
+}
+
+/**
+ * Destroys instances of all running nodes of this project
+ * @param context 
+ */
+export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
+    const globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
+	const workspaceName = vscode.workspace.name;
+	if (globalRunningNodesList && globalRunningNodesList[workspaceName!] != undefined) {
+        const runningNodes: RunningNode[] = globalRunningNodesList[workspaceName!].runningNodes;
+    
+        runningNodes.forEach((node: RunningNode) => {
+            if (findTerminal(node.terminal?.name)) {
+                node?.terminal?.dispose();
+            }
+            
+        });
+
+		delete globalRunningNodesList[workspaceName!]; // remove on deactivate
+	}
+
+    await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList);
+    return true;
 }

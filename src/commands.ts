@@ -171,7 +171,8 @@ export const runGradleTaskCallback = async (task: string) => {
         });
         try {
             // TODO: grab return value for option to cancel
-            await (await vscode.tasks.executeTask(targetTask!));
+            await vscode.tasks.executeTask(targetTask!).then(async () => {
+            });
         } catch (e) {
             console.error('There was an error starting the task:', e.message);
         }
@@ -193,21 +194,31 @@ export const openFile = async (uri: vscode.Uri) => {
  * @param context 
  */
 export const deployNodesCallBack = async (context: vscode.ExtensionContext) => {
-    if (await areNodesDeployed(context)) {
-        vscode.window.showInformationMessage("Network is already deployed. Re-deploy will reset node data.", 'Run Network', 'Re-deploy', 'Cancel')
-            .then((selection) => {
-                switch (selection) {
-                    case 'Run Network':
-                        // RUN TASK
-                        break;
-                    case 'Re-deploy':
-                        runGradleTaskCallback("deployNodes");
-                        break;
-                    default:
-                        return; // quit the command
-                }
-            })
-    } else {
-        runGradleTaskCallback("deployNodes")
+    const userConf = async () => { // confirm with user and decide whether to deploy nodes.
+        let shouldDeploy = true;
+        if (await areNodesDeployed(context)) {
+            await vscode.window.showInformationMessage("Network is already deployed. Re-deploy will reset node data.", 'Run Network', 'Re-deploy', 'Cancel')
+                .then((selection) => {
+                    switch (selection) {
+                        case 'Run Network':
+                            // RUN TASK
+                            vscode.commands.executeCommand('corda.mockNetwork.runNodes');
+                            shouldDeploy = false; // quit the command
+                            break;
+                        case 'Re-deploy':
+                            shouldDeploy = true;
+                            break;
+                        default:
+                            shouldDeploy = false; // quit the command
+                    }
+                })
+        }
+        return shouldDeploy;
     }
+    await userConf().then((deployNodes) => {
+        if (!deployNodes) return;
+        runGradleTaskCallback("deployNodes").then(async () => {
+            await areNodesDeployed(context); // double check in case of interruption of task
+        });
+    })
 }
