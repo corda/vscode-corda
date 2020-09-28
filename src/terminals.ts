@@ -1,19 +1,24 @@
 import * as vscode from 'vscode';
 import { Node } from './treeDataProviders/cordaLocalNetwork';
-import { RunningNode } from './types';
+import { DefinedNode, RunningNode } from './types';
  
 
 
-export const terminalIsOpenForNode = (n: RunningNode | Node, dispose: boolean = false) => {
+export const terminalIsOpenForNode = (n: RunningNode | Node | DefinedNode, dispose: boolean = false) => {
 	const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
 
 	const isRunningNode = (object: any): object is RunningNode => {
-		return 'id' in object;
+		return 'deployedNode' in object;
+	}
+	const isDefinedNode = (object: any): object is DefinedNode => {
+		return 'x500' in object;
 	}
 
 	const nodeNameCheckPred = (t, n) => { // predicate to check composed name
 		if (isRunningNode(n)) {
-			return t.name == (n.deployedNode.x500.name + " : " + n.deployedNode.rpcPort)
+			return t.name == (n.deployedNode.x500.name + " : " + n.deployedNode.rpcPort);
+		} else if (isDefinedNode(n)) { 
+			return t.name == (n.x500.name + " : " + n.rpcPort);
 		} else {
 			return t.name == (n as Node).nodeDetails.x500.name + " : " + (n as Node).nodeDetails.rpcPort;
 		}

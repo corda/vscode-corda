@@ -11,6 +11,11 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 	}
+
+	// check if node is currently running
+	isNodeRunning = (n: Node | DefinedNode):boolean => { 
+		return (this.context.workspaceState.get(WorkStateKeys.IS_NETWORK_RUNNING) as boolean) && terminalIsOpenForNode(n);
+	}
 	
 	getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
 		return element;
@@ -24,6 +29,7 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 				nodeElements.push(new Node(
 					node.x500.name,
 					node,
+					(this.isNodeRunning(node)), // whether node is Online
 					vscode.TreeItemCollapsibleState.Collapsed
 				));
 			})
@@ -34,7 +40,7 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 				new NodeDetail('Location', element.nodeDetails.x500.city + ", " + element.nodeDetails.x500.country), // details are derived from element (Node)
 				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port)
 			];
-			if ((this.context.workspaceState.get(WorkStateKeys.IS_NETWORK_RUNNING) as boolean) && terminalIsOpenForNode(element)) {
+			if (element.isOnline) {
 				items.push(new CorDapps('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed))
 			}
 			return items;
@@ -100,13 +106,15 @@ export class Node extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly nodeDetails: DefinedNode,
-		public readonly collapsibleState?: vscode.TreeItemCollapsibleState
+		public readonly isOnline: boolean,
+		public readonly collapsibleState?: vscode.TreeItemCollapsibleState,
 	) {
 		super(label, collapsibleState);
-		this.description = 'Corda OS v4.3 | Platform v5'; // STATIC Placeholder
+		const onlineTag = (isOnline) ? ' - online' : ' - offline'
+		this.description = 'Corda OS v4.3 | Platform v5' + onlineTag; // STATIC Placeholder, replace with live data
+		this.contextValue = (isOnline) ? 'nodeOnline' : 'nodeOffline';
 	}
 
 	iconPath = new vscode.ThemeIcon('person');
-	contextValue = 'node';
 }
 
