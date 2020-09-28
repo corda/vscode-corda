@@ -63,7 +63,7 @@
 					"visibility": "collapsed"
 				},
 				{
-					"id": "cordaMockNetwork",
+					"id": "cordaLocalNetwork",
 					"name": "Cordform Test Network",
 					"when": "vscode-corda:projectIsCorda",
 					"visibility": "collapsed"
@@ -126,32 +126,37 @@
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "corda.mockNetwork.networkMap",
+				"command": "cordaStates.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "corda.localNetwork.networkMap",
 				"title": "View Network Map",
 				"icon": "$(globe)"
 			},
 			{
-				"command": "corda.mockNetwork.edit",
-				"title": "Edit Mock Network",
+				"command": "corda.localNetwork.edit",
+				"title": "Edit Local Network",
 				"icon": "$(wrench)"
 			},
 			{
-				"command": "corda.mockNetwork.deployNodes",
+				"command": "corda.localNetwork.deployNodes",
 				"title": "Deply Nodes on Mock Network",
 				"icon": "$(rocket)"
 			},
 			{
-				"command": "corda.mockNetwork.runNodesDisabled",
+				"command": "corda.localNetwork.runNodesDisabled",
 				"title": "Run Local Network - Please Deploy Nodes first",
 				"icon": "$(debug-stackframe-dot)"
 			},
 			{
-				"command": "corda.mockNetwork.runNodes",
+				"command": "corda.localNetwork.runNodes",
 				"title": "Run Local Network",
 				"icon": "$(debug-start)"
 			},
 			{
-				"command": "corda.mockNetwork.runNodesStop",
+				"command": "corda.localNetwork.runNodesStop",
 				"title": "Stop Local Network",
 				"icon": "$(debug-stop)"
 			},
@@ -195,50 +200,50 @@
 					"group": "navigation"
 				},
 				{
-					"command": "corda.mockNetwork.networkMap",
-					"when": "view == cordaMockNetwork",
+					"command": "corda.localNetwork.networkMap",
+					"when": "view == cordaLocalNetwork",
 					"group": "navigation@0"
 				},
 				{
-					"command": "corda.mockNetwork.edit",
-					"when": "view == cordaMockNetwork",
+					"command": "corda.localNetwork.edit",
+					"when": "view == cordaLocalNetwork",
 					"group": "navigation@1"
 				},
 				{
-					"command": "corda.mockNetwork.deployNodes",
-					"when": "view == cordaMockNetwork",
+					"command": "corda.localNetwork.deployNodes",
+					"when": "view == cordaLocalNetwork",
 					"group": "navigation@2"
 				},
 				{
-					"command": "corda.mockNetwork.runNodesDisabled",
-					"when": "view == cordaMockNetwork && !vscode-corda:areNodesDeployed && !vscode-corda:isNetworkRunning",
+					"command": "corda.localNetwork.runNodesDisabled",
+					"when": "view == cordaLocalNetwork && !vscode-corda:areNodesDeployed && !vscode-corda:isNetworkRunning",
 					"group": "navigation@3"
 				},
 				{
-					"command": "corda.mockNetwork.runNodes",
-					"when": "view == cordaMockNetwork && vscode-corda:areNodesDeployed && !vscode-corda:isNetworkRunning",
+					"command": "corda.localNetwork.runNodes",
+					"when": "view == cordaLocalNetwork && vscode-corda:areNodesDeployed && !vscode-corda:isNetworkRunning",
 					"group": "navigation@3"
 				},
 				{
-					"command": "corda.mockNetwork.runNodesStop",
-					"when": "view == cordaMockNetwork && vscode-corda:areNodesDeployed && vscode-corda:isNetworkRunning",
+					"command": "corda.localNetwork.runNodesStop",
+					"when": "view == cordaLocalNetwork && vscode-corda:areNodesDeployed && vscode-corda:isNetworkRunning",
 					"group": "navigation@3"
 				}
 			],
 			"view/item/context": [
 				{
 					"command": "corda.Node.runFlow",
-					"when": "view == cordaMockNetwork && viewItem == node",
+					"when": "view == cordaLocalNetwork && viewItem == node",
 					"group": "inline@0"
 				},
 				{
 					"command": "corda.Node.vaultQuery",
-					"when": "view == cordaMockNetwork && viewItem == node",
+					"when": "view == cordaLocalNetwork && viewItem == node",
 					"group": "inline@1"
 				},
 				{
 					"command": "corda.Node.logViewer",
-					"when": "view == cordaMockNetwork && viewItem == node",
+					"when": "view == cordaLocalNetwork && viewItem == node",
 					"group": "inline@2"
 				}
 			]

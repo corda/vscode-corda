@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { Commands } from '../CONSTANTS';
 
 export class CordaOperationsProvider implements vscode.TreeDataProvider<CordaOperation> {
 	
@@ -12,7 +13,7 @@ export class CordaOperationsProvider implements vscode.TreeDataProvider<CordaOpe
 		return Promise.resolve([
 			new CordaOperation("Assemble", vscode.TreeItemCollapsibleState.None, 
 				{
-					command: 'corda.operations.assembleCommand',
+					command: Commands.OPERATIONS_ASSEMBLE,
 					title: '',
 					arguments: ["Doing Assemble"]
 				},
@@ -20,7 +21,7 @@ export class CordaOperationsProvider implements vscode.TreeDataProvider<CordaOpe
 			),
 			new CordaOperation("Build", vscode.TreeItemCollapsibleState.None, 
 				{
-					command: 'corda.operations.buildCommand',
+					command: Commands.OPERATIONS_BUILD,
 					title: '',
 					arguments: ["Doing Build"]
 				},
@@ -28,7 +29,7 @@ export class CordaOperationsProvider implements vscode.TreeDataProvider<CordaOpe
 			),
 			new CordaOperation("Test", vscode.TreeItemCollapsibleState.None, 
 				{
-					command: 'corda.operations.testCommand',
+					command: Commands.OPERATIONS_TEST,
 					title: '',
 					arguments: ["Doing Test"]
 				},
@@ -36,7 +37,7 @@ export class CordaOperationsProvider implements vscode.TreeDataProvider<CordaOpe
 			),
 			new CordaOperation("Clean", vscode.TreeItemCollapsibleState.None, 
 				{
-					command: 'corda.operations.cleanCommand',
+					command: Commands.OPERATIONS_CLEAN,
 					title: '',
 					arguments: ["Doing Clean"]
 				},

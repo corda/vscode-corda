@@ -1,4 +1,4 @@
-import { Constants } from '../CONSTANTS';
+import { Constants, Commands } from '../CONSTANTS';
 import * as vscode from 'vscode';
 import { ClassSig, ObjectSig } from '../typeParsing';
 import Axios from 'axios';
@@ -102,5 +102,5 @@ const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, 
 	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(() => {
 		const classToAdd: ClassSig = new ClassSig(fileName!.replace('.java',''), '', [stateBase!], fileUri);
 		vscode.commands.executeCommand(commandSource + '.refresh', classToAdd);
-	}).then(() => vscode.commands.executeCommand('corda.openFile', fileUri));
+	}).then(() => vscode.commands.executeCommand(Commands.CORDA_OPEN_FILE, fileUri));
 }

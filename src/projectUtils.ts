@@ -3,9 +3,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-import { GlobalStateKeys, WorkStateKeys } from './CONSTANTS';
+import { GlobalStateKeys, WorkStateKeys, Contexts } from './CONSTANTS';
 import { CordaNodesConfig, CordaTaskConfig, CordaNode, DefinedNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from './types'
-import context from 'react-bootstrap/esm/AccordionContext';
 import { findTerminal, terminalIsOpenForNode } from './terminals';
 const gjs = require('../gradleParser');
 
@@ -55,7 +54,7 @@ const setIsProjectCorda = async (buildGradleFile: string, context: vscode.Extens
     } 
 
     await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, isGradle); // set state
-    vscode.commands.executeCommand('setContext', 'vscode-corda:projectIsCorda', isGradle); // set context
+    vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, isGradle); // set context
     return isGradle;
 }
 
@@ -180,7 +179,7 @@ export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
     
     const result = fs.existsSync(nodesPath); // check if the NODES persistant structure exists
     await context.workspaceState.update(WorkStateKeys.ARE_NODES_DEPLOYED, result);
-    vscode.commands.executeCommand('setContext', 'vscode-corda:areNodesDeployed', result);
+    vscode.commands.executeCommand('setContext', Contexts.ARE_NODES_DEPLOYED_CONTEXT, result);
     return result
 }
 
@@ -226,7 +225,7 @@ export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
     };
   
     await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, result);
-    vscode.commands.executeCommand('setContext', 'vscode-corda:isNetworkRunning', result);
+    vscode.commands.executeCommand('setContext', Contexts.IS_NETWORK_RUNNING_CONTEXT, result);
     return result;
 }
 

@@ -32,7 +32,50 @@ export abstract class WorkStateKeys {
     ]
 }
 
+export abstract class Views {
+    static readonly CORDA_PROJECTS_VIEW = "cordaProjects";
+    static readonly CORDA_OPERATIONS_VIEW = "cordaOperations";
+    static readonly CORDA_LOCALNETWORK_VIEW = "cordaLocalNetwork";
+    static readonly CORDA_DEPENDENCIES_VIEW = "cordaDependencies";
+    static readonly CORDA_FLOWS_VIEW = "cordaFlows";
+    static readonly CORDA_CONTRACTS_VIEW = "cordaContracts";
+    static readonly CORDA_STATES_VIEW = "cordaStates";
+}
+
 export abstract class GlobalStateKeys {
     static readonly CLIENT_TOKEN = 'clientToken';
     static readonly RUNNING_NODES = 'runningNodes';
+}
+
+export abstract class Contexts {
+    static readonly PROJECT_IS_CORDA_CONTEXT = "vscode-corda:projectIsCorda";
+    static readonly ARE_NODES_DEPLOYED_CONTEXT = "vscode-corda:areNodesDeployed";
+    static readonly IS_NETWORK_RUNNING_CONTEXT = "vscode-corda:isNetworkRunning";
+}
+
+export abstract class Commands {
+    static readonly PROJECT_NEW = "cordaProjects.net";
+    static readonly FLOWS_ADD = "cordaFlows.add";
+    static readonly CONTRACTS_ADD = "cordaContracts.add";
+    static readonly STATES_ADD = "cordaStates.add";
+    static readonly FLOWS_REFRESH = "cordaFlows.refresh";
+    static readonly CONTRACTS_REFRESH = "cordaContracts.refresh";
+    static readonly STATES_REFRESH = "cordaStates.refresh";
+    static readonly NETWORK_MAP_SHOW = "corda.localNetwork.networkMap";
+    static readonly NETWORK_EDIT = "corda.localNetwork.edit";
+    static readonly NETWORK_DEPLOYNODES = "corda.localNetwork.deployNodes";
+    static readonly NETWORK_RUN_DISABLED = "corda.localNetwork.runNodesDisabled";
+    static readonly NETWORK_RUN = "corda.localNetwork.runNodes";
+    static readonly NETWORK_STOP = "corda.localNetwork.runNodesStop";
+    static readonly NODE_RUN_FLOW = "corda.Node.runFlow";
+    static readonly NODE_VAULT_QUERY = "corda.Node.vaultQuery";
+    static readonly NODE_LOGVIEWER = "corda.Node.logViewer";
+
+    // DEFINED IN TREE-PROVIDER
+    static readonly OPERATIONS_ASSEMBLE = 'corda.operations.assembleCommand';
+    static readonly OPERATIONS_BUILD = 'corda.operations.buildCommand';
+    static readonly OPERATIONS_TEST = 'corda.operations.testCommand';
+    static readonly OPERATIONS_CLEAN = 'corda.operations.cleanCommand';
+
+    static readonly CORDA_OPEN_FILE = 'corda.openFile';
 }

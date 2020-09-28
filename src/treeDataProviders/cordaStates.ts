@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ClassSig } from '../typeParsing';
+import { Commands } from '../CONSTANTS';
 
 /**
  * States provider for generating TreeViews
@@ -22,7 +23,7 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 					vscode.TreeItemCollapsibleState.None, 
 					sig,
 					{
-						command: 'corda.openFile',
+						command: Commands.CORDA_OPEN_FILE,
 						title: '',
 						arguments: [sig.file]
 					});

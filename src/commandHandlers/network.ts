@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { panelStart } from '../panels';
 import { areNodesDeployed } from '../projectUtils';
 import { runGradleTaskCallback, openFile } from './general';
-import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD } from '../CONSTANTS';
+import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands } from '../CONSTANTS';
 import { isNetworkRunning, disposeRunningNodes } from '../projectUtils';
 import { RunningNode, RunningNodesList, DefinedNode } from '../types';
 import { MessageType, WindowMessage } from "../logviewer/types";
@@ -21,7 +21,7 @@ export const deployNodesCallBack = async (context: vscode.ExtensionContext) => {
                     switch (selection) {
                         case 'Run Network':
                             // RUN TASK
-                            vscode.commands.executeCommand('corda.mockNetwork.runNodes');
+                            vscode.commands.executeCommand(Commands.NETWORK_RUN);
                             shouldDeploy = false; // quit the command
                             break;
                         case 'Re-deploy':

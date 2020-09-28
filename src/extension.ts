@@ -15,6 +15,7 @@ import * as general from './commandHandlers/general';
 import * as network from './commandHandlers/network';
 import { cordaCheckAndLoad, areNodesDeployed, isNetworkRunning, disposeRunningNodes } from './projectUtils';
 import { server_awake } from './nodeexplorer/serverClient';
+import { Contexts, Views, Commands } from './CONSTANTS';
 
 const cordaWatchers: vscode.FileSystemWatcher[] = [];
 const fsWatchers: any[] = [];
@@ -49,7 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.window.setStatusBarMessage("Corda-Project");
 		cordaExt(context);
 	} else {
-		vscode.commands.executeCommand('setContext', 'vscode-corda:projectIsCorda', false);
+		vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, false);
 		vscode.window.showInformationMessage("Interstitial here when not Corda");
 	}
 }
@@ -77,62 +78,60 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	const cordaMockNetworkProvider = new CordaMockNetworkProvider(context);
 
 	// Register DataProviders
-	vscode.window.registerTreeDataProvider('cordaOperations', cordaOperationsProvider);
-	vscode.window.registerTreeDataProvider('cordaDependencies', cordaDepProvider);
-	vscode.window.registerTreeDataProvider('cordaFlows', cordaFlowsProvider);
-	vscode.window.registerTreeDataProvider('cordaContracts', cordaContractsProvider);
-	vscode.window.registerTreeDataProvider('cordaStates', cordaStatesProvider);
-	vscode.window.registerTreeDataProvider('cordaMockNetwork', cordaMockNetworkProvider);
+	vscode.window.registerTreeDataProvider(Views.CORDA_OPERATIONS_VIEW, cordaOperationsProvider);
+	vscode.window.registerTreeDataProvider(Views.CORDA_DEPENDENCIES_VIEW, cordaDepProvider);
+	vscode.window.registerTreeDataProvider(Views.CORDA_FLOWS_VIEW, cordaFlowsProvider);
+	vscode.window.registerTreeDataProvider(Views.CORDA_CONTRACTS_VIEW, cordaContractsProvider);
+	vscode.window.registerTreeDataProvider(Views.CORDA_STATES_VIEW, cordaStatesProvider);
+	vscode.window.registerTreeDataProvider(Views.CORDA_LOCALNETWORK_VIEW, cordaMockNetworkProvider);
 	
 	// Register Commands
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('cordaProjects.new', () => general.fetchTemplateOrSampleCallback()),
+		vscode.commands.registerCommand(Commands.PROJECT_NEW, () => general.fetchTemplateOrSampleCallback()),
 
 		// ops
-		vscode.commands.registerCommand('corda.operations.assembleCommand', () => general.runGradleTaskCallback("assemble")),
-		vscode.commands.registerCommand('corda.operations.buildCommand', () => general.runGradleTaskCallback("build")),
-		vscode.commands.registerCommand('corda.operations.testCommand', () => general.runGradleTaskCallback("test")),
-		vscode.commands.registerCommand('corda.operations.cleanCommand', () => general.runGradleTaskCallback("clean")),
+		vscode.commands.registerCommand(Commands.OPERATIONS_ASSEMBLE, () => general.runGradleTaskCallback("assemble")),
+		vscode.commands.registerCommand(Commands.OPERATIONS_BUILD, () => general.runGradleTaskCallback("build")),
+		vscode.commands.registerCommand(Commands.OPERATIONS_TEST, () => general.runGradleTaskCallback("test")),
+		vscode.commands.registerCommand(Commands.OPERATIONS_CLEAN, () => general.runGradleTaskCallback("clean")),
 
 		// add classes
-		vscode.commands.registerCommand('cordaFlows.add', () => addCommands.cordaFlowsAddCallback(projectObjects)),
-		vscode.commands.registerCommand('cordaContracts.add', () => addCommands.cordaContractsAddCallback(projectObjects)),
-		vscode.commands.registerCommand('cordaStates.add', () => addCommands.cordaContractStatesAddCallback(projectObjects)),
-		vscode.commands.registerCommand('corda.openFile', (uri) => general.openFile(uri)),
+		vscode.commands.registerCommand(Commands.FLOWS_ADD, () => addCommands.cordaFlowsAddCallback(projectObjects)),
+		vscode.commands.registerCommand(Commands.CONTRACTS_ADD, () => addCommands.cordaContractsAddCallback(projectObjects)),
+		vscode.commands.registerCommand(Commands.STATES_ADD, () => addCommands.cordaContractStatesAddCallback(projectObjects)),
+		vscode.commands.registerCommand(Commands.CORDA_OPEN_FILE, (uri) => general.openFile(uri)),
 
 		// refreshes
-		vscode.commands.registerCommand('cordaFlows.refresh', (classSig) => cordaFlowsProvider.refresh(classSig)),
-		vscode.commands.registerCommand('cordaContracts.refresh', (classSig) => cordaContractsProvider.refresh(classSig)),
-		vscode.commands.registerCommand('cordaStates.refresh', (classSig) => cordaStatesProvider.refresh(classSig)),
-
-		// webviews
-		vscode.commands.registerCommand('corda.Node.logViewer', async () => network.logViewer(context)),
-		vscode.commands.registerCommand('corda.mockNetwork.networkMap', () => network.networkMap(context)),
+		vscode.commands.registerCommand(Commands.FLOWS_REFRESH, (classSig) => cordaFlowsProvider.refresh(classSig)),
+		vscode.commands.registerCommand(Commands.CONTRACTS_REFRESH, (classSig) => cordaContractsProvider.refresh(classSig)),
+		vscode.commands.registerCommand(Commands.STATES_REFRESH, (classSig) => cordaStatesProvider.refresh(classSig)),
 
 		// mockNetwork actions
-		vscode.commands.registerCommand('corda.mockNetwork.edit', () => network.editDeployNodes(context)),
-		vscode.commands.registerCommand('corda.mockNetwork.deployNodes', async () => network.deployNodesCallBack(context)),
-		vscode.commands.registerCommand('corda.mockNetwork.runNodesDisabled', () => 
+		vscode.commands.registerCommand(Commands.NETWORK_MAP_SHOW, () => network.networkMap(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_EDIT, () => network.editDeployNodes(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_DEPLOYNODES, async () => network.deployNodesCallBack(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_RUN_DISABLED, () => 
 			vscode.window.showInformationMessage("Network must be deployed - Deploy now?", "Yes", "No")
 				.then((selection) => {
 					switch (selection) {
 						case "Yes":
-							vscode.commands.executeCommand('corda.mockNetwork.deployNodes');
+							vscode.commands.executeCommand(Commands.NETWORK_DEPLOYNODES);
 							break;
 					}
 				})
 		),
-		vscode.commands.registerCommand('corda.mockNetwork.runNodes', async () => {
-		
-			
-		}),
-		vscode.commands.registerCommand('corda.mockNetwork.runNodesStop', () => {
-			disposeRunningNodes(context);
-		}),
-		vscode.commands.registerCommand('corda.Node.runFlow', () => { 
+		vscode.commands.registerCommand(Commands.NETWORK_RUN, async () => network.runNetwork(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_STOP, () => disposeRunningNodes(context)),
+
+		// Node actions
+		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, () => { 
 			console.log("temp break");
-		})
+		}),
+		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, () => {
+			console.log("temp vault query");
+		}),
+		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async () => network.logViewer(context)),
 	); // end context subscriptions
 }
 
