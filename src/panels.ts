@@ -14,7 +14,7 @@ export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) 
 			break;
 		case 'networkmap':
 			title = "Network Map";
-			resourceRoot = "out/nodeexplorer/";
+			resourceRoot = "out/network/networkmap/";
 			file = "networkmap.js";
 			break;
 		default:

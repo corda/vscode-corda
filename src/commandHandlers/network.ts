@@ -6,6 +6,8 @@ import { areNodesDeployed, isNetworkRunning, disposeRunningNodes } from '../netw
 import { RunningNode, RunningNodesList, DefinedNode } from '../types';
 import { MessageType, WindowMessage } from "../logviewer/types";
 import * as request from "../logviewer/request";
+import * as requests from '../network/requests'
+import { NetworkMap_Data } from '../network/types';
 
 /**
  * Deploys nodes in project with pre-req checking
@@ -61,8 +63,14 @@ export const logViewer = async (context: vscode.ExtensionContext) => {
  * Launches the network map webview
  * @param context 
  */
-export const networkMap = (context: vscode.ExtensionContext) => {
+export const networkMap = async (context: vscode.ExtensionContext) => {
     panelStart('networkmap', context);
+    const networkData:NetworkMap_Data = await requests.getNetworkMap();
+    console.log(JSON.stringify(networkData));
+
+    let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
+    
+    panel?.webview.postMessage(networkData);
 }
 
 /**
