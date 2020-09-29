@@ -123,13 +123,9 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.NETWORK_STOP, () => disposeRunningNodes(context)),
 
 		// Node actions
-		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, () => { 
-			console.log("temp break");
-		}),
-		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, () => {
-			console.log("temp vault query");
-		}),
-		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async () => network.logViewer(context)),
+		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async () => network.transactions(context)),
+		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, () => network.vaultquery(context)),
+		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async () => network.logviewer(context)),
 	); // end context subscriptions
 }
 

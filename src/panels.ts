@@ -17,23 +17,33 @@ export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) 
 			resourceRoot = "out/network/networkmap/";
 			file = "networkmap.js";
 			break;
+		case 'transactions':
+			title = "Transactions";
+			resourceRoot = "out/network/transactions/";
+			file = "transactions.js";
+			break;
+		case 'vaultquery':
+			title = "Vault Query";
+			resourceRoot = "out/network/vaultquery/";
+			file = "vaultquery.js";
+			break;
 		default:
 			title = "";
 			resourceRoot = "";
 			file = "";
 	}
 	
-	let logViewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, view, title, resourceRoot);
-	logViewPanel.webview.html = getReactPanelContent(context, title, resourceRoot, file);
-	logViewPanel.onDidDispose(
+	let viewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, view, title, resourceRoot);
+	viewPanel.webview.html = getReactPanelContent(context, title, resourceRoot, file);
+	viewPanel.onDidDispose(
 		async () => {
 			await context.workspaceState.update(view, "");
-			logViewPanel = undefined;
+			viewPanel = undefined;
 		},
 		null,
 		context.subscriptions
 	)
-	return logViewPanel;
+	return viewPanel;
 }
 
 /**

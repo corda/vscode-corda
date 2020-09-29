@@ -43,7 +43,7 @@ export const deployNodesCallBack = async (context: vscode.ExtensionContext) => {
     })
 }
 
-export const logViewer = async (context: vscode.ExtensionContext) => {
+export const logviewer = async (context: vscode.ExtensionContext) => {
     const path = require('path');
     
     await panelStart('logviewer', context);
@@ -69,8 +69,23 @@ export const networkMap = async (context: vscode.ExtensionContext) => {
     console.log(JSON.stringify(networkData));
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
-    
     panel?.webview.postMessage(networkData);
+}
+
+/**
+ * Launches the transactions webview
+ * @param context 
+ */
+export const transactions = async (context: vscode.ExtensionContext) => {
+    panelStart('transactions', context);
+}
+
+/**
+ * Launches the vaultquery webview
+ * @param context 
+ */
+export const vaultquery = async (context: vscode.ExtensionContext) => {
+    panelStart('vaultquery', context);
 }
 
 /**

@@ -65,4 +65,24 @@ const networkMapConfig = Object.assign({}, config, {
     }
 });
 
-module.exports = [ logViewerConfig, networkMapConfig ];
+const transactionsConfig = Object.assign({}, config, {
+  entry: "./src/network/transactions/transactions.tsx",
+    output: {
+        path: path.resolve(__dirname, 'out/network/transactions'),
+        filename: "transactions.js",
+        libraryTarget: 'umd',
+      devtoolModuleFilenameTemplate: '../[resource-path]'
+    }
+});
+
+const vaultqueryConfig = Object.assign({}, config, {
+  entry: "./src/network/vaultquery/vaultquery.tsx",
+    output: {
+        path: path.resolve(__dirname, 'out/network/vaultquery'),
+        filename: "vaultquery.js",
+        libraryTarget: 'umd',
+      devtoolModuleFilenameTemplate: '../[resource-path]'
+    }
+});
+
+module.exports = [ logViewerConfig, networkMapConfig, transactionsConfig, vaultqueryConfig ];

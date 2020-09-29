@@ -8,6 +8,9 @@ import Pin from '../components/Pin';
 import WorldMapSquare from './WorldMapSquare.png';
 import { NetworkMap_Data, NetworkMap_Node } from '../types'
 
+/**
+ * Listener for data from extension
+ */
 window.addEventListener("message", event => {
     const networkMapData = event.data as NetworkMap_Data;
     ReactDOM.render(
@@ -16,7 +19,9 @@ window.addEventListener("message", event => {
     );
 })
 
-
+/**
+ * React class component for displaying Corda Network
+ */
 class CordaNetwork extends Component<NetworkMap_Data>{
     private mapPane;
 
