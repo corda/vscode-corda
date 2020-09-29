@@ -15,7 +15,7 @@ import * as general from './commandHandlers/general';
 import * as network from './commandHandlers/network';
 import { cordaCheckAndLoad } from './projectUtils';
 import { disposeRunningNodes, areNodesDeployed, isNetworkRunning } from './networkUtils';
-import { server_awake } from './nodeexplorer/serverClient';
+import { server_awake } from './network/serverClient';
 import { Contexts, Views, Commands } from './CONSTANTS';
 
 const cordaWatchers: vscode.FileSystemWatcher[] = [];

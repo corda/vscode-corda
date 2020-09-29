@@ -48,9 +48,9 @@ const logViewerConfig = Object.assign({}, config, {
 });
 
 const networkMapConfig = Object.assign({}, config, {
-  entry: "./src/nodeexplorer/networkmap.tsx",
+  entry: "./src/network/networkmap/networkmap.tsx",
     output: {
-        path: path.resolve(__dirname, 'out/nodeexplorer/'),
+        path: path.resolve(__dirname, 'out/network/networkmap'),
         filename: "networkmap.js",
         libraryTarget: 'umd',
       devtoolModuleFilenameTemplate: '../[resource-path]'
