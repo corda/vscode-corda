@@ -64,7 +64,8 @@ export const logviewer = async (context: vscode.ExtensionContext) => {
  * @param context 
  */
 export const networkMap = async (context: vscode.ExtensionContext) => {
-    panelStart('networkmap', context);
+    await panelStart('networkmap', context);
+    
     const networkData:NetworkMap_Data = await requests.getNetworkMap();
     console.log(JSON.stringify(networkData));
 
@@ -77,7 +78,20 @@ export const networkMap = async (context: vscode.ExtensionContext) => {
  * @param context 
  */
 export const transactions = async (context: vscode.ExtensionContext) => {
-    panelStart('transactions', context);
+    await panelStart('transactions', context);
+
+    let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('transactions');
+    panel?.webview.onDidReceiveMessage(
+        message => {
+            switch (message.command) {
+                case 'alert':
+                    vscode.window.showInformationMessage(message.text);
+                    return;
+            }
+        },
+        undefined,
+        context.subscriptions
+    );
 }
 
 /**
@@ -85,7 +99,7 @@ export const transactions = async (context: vscode.ExtensionContext) => {
  * @param context 
  */
 export const vaultquery = async (context: vscode.ExtensionContext) => {
-    panelStart('vaultquery', context);
+    await panelStart('vaultquery', context);
 }
 
 /**
