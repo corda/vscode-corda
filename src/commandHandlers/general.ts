@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { Constants } from '../CONSTANTS';
+import { Constants, Commands } from '../CONSTANTS';
 import Axios from 'axios';
 import * as fs from 'fs';
+import { CordaOperation } from '../treeDataProviders/cordaOperations';
 
 /**
  * This function is for creating new projects from TEMPLATE or SAMPLE
@@ -50,7 +51,7 @@ export const fetchTemplateOrSampleCallback = async () => {
  * Executing callback for running Gradle task
  * @param task 
  */
-export const runGradleTaskCallback = async (task: string) => {
+export const runGradleTaskCallback = async (task: string, cordaOp?: CordaOperation) => {
     const targetTask = (await vscode.tasks.fetchTasks({ type: 'gradle' })).find(
         ({ name }) => name === task
     );
@@ -64,7 +65,11 @@ export const runGradleTaskCallback = async (task: string) => {
         });
         try {
             // TODO: grab return value for option to cancel
-            await vscode.tasks.executeTask(targetTask!).then(async () => {
+            await vscode.tasks.executeTask(targetTask!).then((taskExecution) => {
+                if (cordaOp !== undefined) {
+                    cordaOp.setRunningTask(taskExecution);
+                    vscode.commands.executeCommand(Commands.OPERATIONS_REFRESH);
+                }
             });
         } catch (e) {
             console.error('There was an error starting the task:', e.message);

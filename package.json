@@ -131,6 +131,16 @@
 				"icon": "$(refresh)"
 			},
 			{
+				"command": "corda.operations.run",
+				"title": "Run",
+				"icon": "$(run)"
+			},
+			{
+				"command": "corda.operations.stop",
+				"title": "Stop",
+				"icon": "$(stop)"
+			},
+			{
 				"command": "corda.localNetwork.refresh",
 				"title": "Refresh",
 				"icon": "$(refresh)"
@@ -143,7 +153,7 @@
 			{
 				"command": "corda.localNetwork.edit",
 				"title": "Edit Local Network",
-				"icon": "$(wrench)"
+				"icon": "$(gear)"
 			},
 			{
 				"command": "corda.localNetwork.deployNodes",
@@ -236,6 +246,16 @@
 				}
 			],
 			"view/item/context": [
+				{
+					"command": "corda.operations.run",
+					"when": "view == cordaOperations && viewItem == opNotRunning",
+					"group": "inline"
+				},
+				{
+					"command": "corda.operations.stop",
+					"when": "view == cordaOperations && viewItem == opRunning",
+					"group": "inline"
+				},
 				{
 					"command": "corda.Node.runFlow",
 					"when": "view == cordaLocalNetwork && viewItem == nodeOnline",

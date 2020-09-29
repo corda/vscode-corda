@@ -77,6 +77,9 @@ export abstract class Commands {
     static readonly OPERATIONS_BUILD = 'corda.operations.buildCommand';
     static readonly OPERATIONS_TEST = 'corda.operations.testCommand';
     static readonly OPERATIONS_CLEAN = 'corda.operations.cleanCommand';
+    static readonly OPERATIONS_RUN = 'corda.operations.run';
+    static readonly OPERATIONS_REFRESH = 'corda.operations.refresh';
+    static readonly OPERATIONS_STOP = 'corda.operations.stop';
 
     static readonly CORDA_OPEN_FILE = 'corda.openFile';
 }

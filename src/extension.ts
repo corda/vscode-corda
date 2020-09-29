@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { CordaOperationsProvider } from './treeDataProviders/cordaOperations';
+import { CordaOperation, CordaOperationsProvider } from './treeDataProviders/cordaOperations';
 import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
 import { CordaContractsProvider } from './treeDataProviders/cordaContracts';
@@ -89,10 +89,9 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.PROJECT_NEW, () => general.fetchTemplateOrSampleCallback()),
 
 		// ops
-		vscode.commands.registerCommand(Commands.OPERATIONS_ASSEMBLE, () => general.runGradleTaskCallback("assemble")),
-		vscode.commands.registerCommand(Commands.OPERATIONS_BUILD, () => general.runGradleTaskCallback("build")),
-		vscode.commands.registerCommand(Commands.OPERATIONS_TEST, () => general.runGradleTaskCallback("test")),
-		vscode.commands.registerCommand(Commands.OPERATIONS_CLEAN, () => general.runGradleTaskCallback("clean")),
+		vscode.commands.registerCommand(Commands.OPERATIONS_RUN, (op: CordaOperation) => general.runGradleTaskCallback(op.taskName, op)),
+		vscode.commands.registerCommand(Commands.OPERATIONS_REFRESH, (done?) => cordaOperationsProvider.refresh(done)),
+		vscode.commands.registerCommand(Commands.OPERATIONS_STOP, (op: CordaOperation) => op.stopRunningTask()),
 
 		// add classes
 		vscode.commands.registerCommand(Commands.FLOWS_ADD, () => addCommands.cordaFlowsAddCallback(projectObjects)),

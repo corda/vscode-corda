@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { WorkStateKeys } from './CONSTANTS';
+import { WorkStateKeys, Commands } from './CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from './networkUtils';
 import * as fs from 'fs';
 
@@ -38,14 +38,34 @@ export const nodesFSWatcher = (context: vscode.ExtensionContext) => {
 }
 
 export const activateEventListeners = (context: vscode.ExtensionContext) => {
+    vscode.tasks.onDidStartTask((taskStartEvent) => {
+        const task = taskStartEvent.execution.task;
+        switch (task.name) {
+            case 'assemble':
+            case 'build':
+            case 'test':
+            case 'clean':
+                // vscode.commands.executeCommand(Commands.OPERATIONS_REFRESH);
+                break;
+        }
+    })
     vscode.tasks.onDidEndTask((taskEndEvent) => {
 		const task = taskEndEvent.execution.task;
 		switch (task.name) {
 			case 'deployNodes':
-            case 'clean':
-				areNodesDeployed(context);
+                areNodesDeployed(context);
 				isNetworkRunning(context);
 				break;
+            case 'clean':
+				areNodesDeployed(context);
+                isNetworkRunning(context);
+                vscode.commands.executeCommand(Commands.OPERATIONS_REFRESH, true);
+                break;
+            case 'assemble':
+            case 'build':
+            case 'test':
+                vscode.commands.executeCommand(Commands.OPERATIONS_REFRESH, true);
+                break;
 		}
 	})
 	vscode.window.onDidCloseTerminal(async (terminal) => {
