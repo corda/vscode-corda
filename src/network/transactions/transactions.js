@@ -7,25 +7,28 @@ import Modal from '@material-ui/core/Modal';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ForwardIcon from '@material-ui/icons/Forward';
-import { SelectedFlow, Transaction_State } from '../types';
+import { testRESTApi } from './transactionRequestTests';
 
-// declare var acquireVsCodeApi: any;
+let responses = [];
 
-const testAPI = () => {
-    const vscode = acquireVsCodeApi();
-    vscode.postMessage({
-        request: 'TestingRequest',
-        text: 'This is a test message from webview'
-    });
-}
+window.addEventListener("message", event => {
+    console.log(event.data);
+    responses.push(
+        <p>{JSON.stringify(event.data)}</p>    
+    );
 
-ReactDOM.render(
-    <>
-    Transactions View
-    {testAPI()}
-    </>, 
-    document.getElementById('root')
-);
+    ReactDOM.render(
+        <>
+        Transactions View
+        {responses}
+        </>, 
+        document.getElementById('root')
+    );
+});
+
+testRESTApi();
+
+
 
 // TESTING ABOVE ============================
 

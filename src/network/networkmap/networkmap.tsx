@@ -6,13 +6,13 @@ import BoxWithTitle from '../components/BoxWithTitle';
 import ListBoxWithTitle from '../components/ListBoxWithTitle';
 import Pin from '../components/Pin';
 import WorldMapSquare from './WorldMapSquare.png';
-import { NetworkMap_Props, NetworkMap_Node } from '../types'
+import { NetworkMap, NodeData } from '../types'
 
 /**
  * Listener for data from extension
  */
 window.addEventListener("message", event => {
-    const networkMapData = event.data as NetworkMap_Props;
+    const networkMapData = event.data as NetworkMap;
     ReactDOM.render(
         <CordaNetwork {...networkMapData} />, 
         document.getElementById('root')
@@ -22,14 +22,14 @@ window.addEventListener("message", event => {
 /**
  * React class component for displaying Corda Network
  */
-class CordaNetwork extends Component<NetworkMap_Props>{
+class CordaNetwork extends Component<NetworkMap>{
     private mapPane;
 
     componentDidMount() {
         this.update();
     }
 
-    constructor(props: NetworkMap_Props){
+    constructor(props: NetworkMap){
       super(props);
       this.mapPane = React.createRef();
       this.updateWindowDimensions = this.updateWindowDimensions.bind(this);

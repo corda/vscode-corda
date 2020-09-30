@@ -1,6 +1,11 @@
+/**
+ * Backend Types
+ * These types map to model in https://github.com/corda/node-server
+ */
+
 // network map types
 
-export interface NetworkMap_Node {
+export interface NodeData {
     publicKey: string,
     name: string,
     city: string,
@@ -10,10 +15,10 @@ export interface NetworkMap_Node {
     address: string
 }
 
-export interface NetworkMap_Props {
-    self: NetworkMap_Node | undefined,
-    notaries: NetworkMap_Node[] | undefined,
-    peers: NetworkMap_Node[] | undefined
+export interface NetworkMap {
+    self: NodeData | undefined,
+    notaries: NodeData[] | undefined,
+    peers: NodeData[] | undefined
 }
 
 // transaction types
@@ -21,6 +26,25 @@ export interface Page {
     pageSize: number,
     offset: number
 }
+
+export interface FlowParam {
+    paramName: string,
+    paramType: any,
+    paramValue: any,
+    parameterizedType: any,
+    hasParameterizedType: boolean,
+    flowParams: FlowParam[]
+}
+
+export interface FlowInfo {
+    flowName: string,
+    flowParams: FlowParam[],
+    flowParamsMap: {[index:string]:FlowParam[]}
+}
+
+/**
+ * Frontend Types
+ */
 
 export interface SelectedFlow {
     name: any,

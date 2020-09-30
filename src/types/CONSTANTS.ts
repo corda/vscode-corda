@@ -16,6 +16,22 @@ export const SERVER_BASE_URL = 'http://localhost:8580';
 export const SERVER_JAR = 'explorer-server-0.1.0.jar';
 export const RUN_CORDA_CMD = 'java -jar corda.jar';
 
+/**
+ * represets views defined in package.json
+ */
+export abstract class Views {
+    static readonly CORDA_PROJECTS_VIEW = "cordaProjects";
+    static readonly CORDA_OPERATIONS_VIEW = "cordaOperations";
+    static readonly CORDA_LOCALNETWORK_VIEW = "cordaLocalNetwork";
+    static readonly CORDA_DEPENDENCIES_VIEW = "cordaDependencies";
+    static readonly CORDA_FLOWS_VIEW = "cordaFlows";
+    static readonly CORDA_CONTRACTS_VIEW = "cordaContracts";
+    static readonly CORDA_STATES_VIEW = "cordaStates";
+}
+
+/**
+ * Keys stored in the vscode workspace state
+ */
 export abstract class WorkStateKeys {
     static readonly PROJECT_IS_CORDA = 'projectIsCorda';
     static readonly DEPLOY_NODES_LIST = 'deployNodesList';
@@ -32,27 +48,26 @@ export abstract class WorkStateKeys {
     ]
 }
 
-export abstract class Views {
-    static readonly CORDA_PROJECTS_VIEW = "cordaProjects";
-    static readonly CORDA_OPERATIONS_VIEW = "cordaOperations";
-    static readonly CORDA_LOCALNETWORK_VIEW = "cordaLocalNetwork";
-    static readonly CORDA_DEPENDENCIES_VIEW = "cordaDependencies";
-    static readonly CORDA_FLOWS_VIEW = "cordaFlows";
-    static readonly CORDA_CONTRACTS_VIEW = "cordaContracts";
-    static readonly CORDA_STATES_VIEW = "cordaStates";
-}
-
+/**
+ * Keys stored in the vscode global state
+ */
 export abstract class GlobalStateKeys {
     static readonly CLIENT_TOKEN = 'clientToken';
     static readonly RUNNING_NODES = 'runningNodes';
 }
 
+/**
+ * Contexts for tracking 'when' clauses for items defined in package.json
+ */
 export abstract class Contexts {
     static readonly PROJECT_IS_CORDA_CONTEXT = "vscode-corda:projectIsCorda";
     static readonly ARE_NODES_DEPLOYED_CONTEXT = "vscode-corda:areNodesDeployed";
     static readonly IS_NETWORK_RUNNING_CONTEXT = "vscode-corda:isNetworkRunning";
 }
 
+/**
+ * Registered commands
+ */
 export abstract class Commands {
     static readonly PROJECT_NEW = "cordaProjects.net";
     static readonly FLOWS_ADD = "cordaFlows.add";
@@ -82,4 +97,19 @@ export abstract class Commands {
     static readonly OPERATIONS_STOP = 'corda.operations.stop';
 
     static readonly CORDA_OPEN_FILE = 'corda.openFile';
+}
+
+/**
+ * REST requests from transactions
+ */
+export abstract class TxRequests {
+    static readonly FETCHTXLIST = 'txFetchTxList';
+    static readonly STARTFLOW = 'txStartFlow';
+    static readonly FETCHFLOWLIST = 'txFetchFlowList';
+    static readonly FETCHPARTIES = 'txFetchParties';
+    static readonly LOADFLOWPARAMS = 'txLoadFlowParams';
+    // static readonly CLOSETXMODAL = 'txCloseTxModal';
+    // static readonly OPENTXMODAL = 'txOpenTxModal';
+    // static readonly SETFLOWSELECTIONFLAG = 'txSetFlowSelectionFlag';
+    // static readonly INFLIGHTFLOW = 'txInFlightFlow';
 }

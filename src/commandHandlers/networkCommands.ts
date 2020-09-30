@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import { panelStart } from '../utils/panelsUtils';
 import { runGradleTaskCallback, openFileCallback } from './generalCommands';
-import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts } from '../types/CONSTANTS';
+import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts, TxRequests } from '../types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from '../utils/networkUtils';
 import { RunningNode, RunningNodesList, DefinedNode } from '../types/types';
 import { MessageType, WindowMessage } from "../logviewer/types";
 import * as request from "../logviewer/request";
-import * as requests from '../network/requests'
-import { NetworkMap_Props, Page } from '../network/types';
+import * as requests from '../network/ext_requests'
+import { NetworkMap, Page } from '../network/types';
 import { terminalIsOpenForNode } from '../utils/terminalUtils';
 
 /**
@@ -67,7 +67,7 @@ export const logviewerCallback = async (context: vscode.ExtensionContext) => {
 export const networkMapCallback = async (context: vscode.ExtensionContext) => {
     await panelStart('networkmap', context);
     
-    const networkData:NetworkMap_Props | undefined = await requests.getNetworkMap();
+    const networkData:NetworkMap | undefined = await requests.getNetworkMap();
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
     panel?.webview.postMessage(networkData);
@@ -89,17 +89,18 @@ export const transactionsCallback = async (context: vscode.ExtensionContext) => 
             switch (message.request) {
                 case 'TestingRequest':
                     vscode.window.showInformationMessage(text);
+                    response = "full loop";
                     break;
-                case 'txFetchTxList':
+                case TxRequests.FETCHTXLIST:
                     response = await requests.txFetchTxList(data as Page);
                     break;
-                case 'txStartFlow':
+                case TxRequests.STARTFLOW:
                     break;
-                case 'txFetchFlowList':
+                case TxRequests.FETCHFLOWLIST:
                     break;
-                case 'txFetchParties':
+                case TxRequests.FETCHPARTIES:
                     break;
-                case 'txLoadFlowParams':
+                case TxRequests.LOADFLOWPARAMS:
                     break;
                 case 'txCloseTxModal':
                     break;
