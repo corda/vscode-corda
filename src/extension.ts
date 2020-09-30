@@ -8,15 +8,15 @@ import { CordaContractsProvider } from './treeDataProviders/cordaContracts';
 import { CordaStatesProvider } from './treeDataProviders/cordaStates';
 import { CordaLocalNetworkProvider } from './treeDataProviders/cordaLocalNetwork';
 
-import { ClassSig, parseJavaFiles } from './typeParsing';
+import { ClassSig, parseJavaFiles } from './types/typeParsing';
 import * as watchers from './watchers';
 import * as addCommands from './commandHandlers/addCommands';
-import * as general from './commandHandlers/general';
-import * as network from './commandHandlers/network';
-import { cordaCheckAndLoad } from './projectUtils';
-import { disposeRunningNodes, areNodesDeployed, isNetworkRunning } from './networkUtils';
-import { server_awake } from './network/serverClient';
-import { Contexts, Views, Commands } from './CONSTANTS';
+import * as general from './commandHandlers/generalCommands';
+import * as network from './commandHandlers/networkCommands';
+import { cordaCheckAndLoad } from './utils/projectUtils';
+import { server_awake } from './serverClient';
+import { Contexts, Views, Commands } from './types/CONSTANTS';
+import { disposeRunningNodes } from './commandHandlers/networkCommands';
 
 const cordaWatchers: vscode.FileSystemWatcher[] = [];
 const fsWatchers: any[] = [];
@@ -97,7 +97,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.FLOWS_ADD, () => addCommands.cordaFlowsAddCallback(projectObjects)),
 		vscode.commands.registerCommand(Commands.CONTRACTS_ADD, () => addCommands.cordaContractsAddCallback(projectObjects)),
 		vscode.commands.registerCommand(Commands.STATES_ADD, () => addCommands.cordaContractStatesAddCallback(projectObjects)),
-		vscode.commands.registerCommand(Commands.CORDA_OPEN_FILE, (uri) => general.openFile(uri)),
+		vscode.commands.registerCommand(Commands.CORDA_OPEN_FILE, (uri) => general.openFileCallback(uri)),
 
 		// refreshes
 		vscode.commands.registerCommand(Commands.FLOWS_REFRESH, (classSig) => cordaFlowsProvider.refresh(classSig)),
@@ -106,9 +106,9 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.NETWORK_REFRESH, () => cordaLocalNetworkProvider.refresh()),
 
 		// Local Network actions
-		vscode.commands.registerCommand(Commands.NETWORK_MAP_SHOW, () => network.networkMap(context)),
-		vscode.commands.registerCommand(Commands.NETWORK_EDIT, () => network.editDeployNodes(context)),
-		vscode.commands.registerCommand(Commands.NETWORK_DEPLOYNODES, async () => network.deployNodesCallBack(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_MAP_SHOW, () => network.networkMapCallback(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_EDIT, () => network.editDeployNodesCallback(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_DEPLOYNODES, async () => network.deployNodesCallback(context)),
 		vscode.commands.registerCommand(Commands.NETWORK_RUN_DISABLED, () => 
 			vscode.window.showInformationMessage("Network must be deployed - Deploy now?", "Yes", "No")
 				.then((selection) => {
@@ -119,13 +119,13 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 					}
 				})
 		),
-		vscode.commands.registerCommand(Commands.NETWORK_RUN, async () => network.runNetwork(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_RUN, async () => network.runNetworkCallback(context)),
 		vscode.commands.registerCommand(Commands.NETWORK_STOP, () => disposeRunningNodes(context)),
 
 		// Node actions
-		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async () => network.transactions(context)),
-		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, () => network.vaultquery(context)),
-		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async () => network.logviewer(context)),
+		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async () => network.transactionsCallback(context)),
+		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, () => network.vaultqueryCallback(context)),
+		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async () => network.logviewerCallback(context)),
 	); // end context subscriptions
 }
 

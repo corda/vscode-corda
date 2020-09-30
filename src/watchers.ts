@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { WorkStateKeys, Commands } from './CONSTANTS';
-import { areNodesDeployed, isNetworkRunning } from './networkUtils';
+import { WorkStateKeys, Commands } from './types/CONSTANTS';
+import { areNodesDeployed, isNetworkRunning } from './utils/networkUtils';
 import * as fs from 'fs';
 
 // Watcher for gradle.build refresh

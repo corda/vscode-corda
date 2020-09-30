@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Constants, Commands } from '../CONSTANTS';
+import { Constants, Commands } from '../types/CONSTANTS';
 import Axios from 'axios';
 import * as fs from 'fs';
 import { CordaOperation } from '../treeDataProviders/cordaOperations';
@@ -81,7 +81,7 @@ export const runGradleTaskCallback = async (task: string, cordaOp?: CordaOperati
  * helper for opening a URI/file in the current editor.
  * @param uri 
  */
-export const openFile = async (uri: vscode.Uri) => {
+export const openFileCallback = async (uri: vscode.Uri) => {
     vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
         vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
     })

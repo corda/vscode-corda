@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { DefinedNode, RunningNode, RunningNodesList } from '../types'
-import { GlobalStateKeys, WorkStateKeys } from '../CONSTANTS'
-import {} from '../commandHandlers/network';
-import { terminalIsOpenForNode } from '../terminals';
+import { DefinedNode, RunningNode, RunningNodesList } from '../types/types'
+import { GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS'
+import {} from '../commandHandlers/networkCommands';
+import { terminalIsOpenForNode } from '../utils/terminalUtils';
 
 export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 	

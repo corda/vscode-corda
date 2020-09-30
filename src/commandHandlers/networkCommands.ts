@@ -1,19 +1,20 @@
 import * as vscode from 'vscode';
-import { panelStart } from '../panels';
-import { runGradleTaskCallback, openFile } from './general';
-import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands } from '../CONSTANTS';
-import { areNodesDeployed, isNetworkRunning, disposeRunningNodes } from '../networkUtils';
-import { RunningNode, RunningNodesList, DefinedNode } from '../types';
+import { panelStart } from '../utils/panelsUtils';
+import { runGradleTaskCallback, openFileCallback } from './generalCommands';
+import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts } from '../types/CONSTANTS';
+import { areNodesDeployed, isNetworkRunning } from '../utils/networkUtils';
+import { RunningNode, RunningNodesList, DefinedNode } from '../types/types';
 import { MessageType, WindowMessage } from "../logviewer/types";
 import * as request from "../logviewer/request";
 import * as requests from '../network/requests'
-import { NetworkMap_Data } from '../network/types';
+import { NetworkMap_Props, Page } from '../network/types';
+import { terminalIsOpenForNode } from '../utils/terminalUtils';
 
 /**
  * Deploys nodes in project with pre-req checking
  * @param context 
  */
-export const deployNodesCallBack = async (context: vscode.ExtensionContext) => {
+export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
     const userConf = async () => { // confirm with user and decide whether to deploy nodes.
         let shouldDeploy = true;
         if (await areNodesDeployed(context)) {
@@ -43,7 +44,7 @@ export const deployNodesCallBack = async (context: vscode.ExtensionContext) => {
     })
 }
 
-export const logviewer = async (context: vscode.ExtensionContext) => {
+export const logviewerCallback = async (context: vscode.ExtensionContext) => {
     const path = require('path');
     
     await panelStart('logviewer', context);
@@ -63,11 +64,10 @@ export const logviewer = async (context: vscode.ExtensionContext) => {
  * Launches the network map webview
  * @param context 
  */
-export const networkMap = async (context: vscode.ExtensionContext) => {
+export const networkMapCallback = async (context: vscode.ExtensionContext) => {
     await panelStart('networkmap', context);
     
-    const networkData:NetworkMap_Data = await requests.getNetworkMap();
-    console.log(JSON.stringify(networkData));
+    const networkData:NetworkMap_Props | undefined = await requests.getNetworkMap();
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
     panel?.webview.postMessage(networkData);
@@ -77,16 +77,41 @@ export const networkMap = async (context: vscode.ExtensionContext) => {
  * Launches the transactions webview
  * @param context 
  */
-export const transactions = async (context: vscode.ExtensionContext) => {
+export const transactionsCallback = async (context: vscode.ExtensionContext) => {
     await panelStart('transactions', context);
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('transactions');
     panel?.webview.onDidReceiveMessage(
-        message => {
-            switch (message.command) {
-                case 'alert':
-                    vscode.window.showInformationMessage(message.text);
-                    return;
+        async (message) => {
+            let response:any;
+            let data = message.data;
+            let text = message.text;
+            switch (message.request) {
+                case 'TestingRequest':
+                    vscode.window.showInformationMessage(text);
+                    break;
+                case 'txFetchTxList':
+                    response = await requests.txFetchTxList(data as Page);
+                    break;
+                case 'txStartFlow':
+                    break;
+                case 'txFetchFlowList':
+                    break;
+                case 'txFetchParties':
+                    break;
+                case 'txLoadFlowParams':
+                    break;
+                case 'txCloseTxModal':
+                    break;
+                case 'txOpenTxModal':
+                    break;
+                case 'txSetFlowSelectionFlag':
+                    break;
+                case 'txInFlightFlow':
+                    break;
+            }
+            if (response) {
+                panel?.webview.postMessage(response);
             }
         },
         undefined,
@@ -98,7 +123,7 @@ export const transactions = async (context: vscode.ExtensionContext) => {
  * Launches the vaultquery webview
  * @param context 
  */
-export const vaultquery = async (context: vscode.ExtensionContext) => {
+export const vaultqueryCallback = async (context: vscode.ExtensionContext) => {
     await panelStart('vaultquery', context);
 }
 
@@ -106,9 +131,9 @@ export const vaultquery = async (context: vscode.ExtensionContext) => {
  * Opens up the relevant build.gradle for editing local network
  * @param context 
  */
-export const editDeployNodes = (context: vscode.ExtensionContext) => {
+export const editDeployNodesCallback = (context: vscode.ExtensionContext) => {
     const buildGradleFile: string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
-	openFile(vscode.Uri.parse(buildGradleFile!));
+	openFileCallback(vscode.Uri.parse(buildGradleFile!));
 	vscode.window.showInformationMessage("Configure your network in the deployNodes task.");
 	// TODO: set the cursor on the deployNodes Task
 }
@@ -117,7 +142,7 @@ export const editDeployNodes = (context: vscode.ExtensionContext) => {
  * Runs the local test network as defined in the build.gradle
  * @param context 
  */
-export const runNetwork = async (context: vscode.ExtensionContext) => {
+export const runNetworkCallback = async (context: vscode.ExtensionContext) => {
     await disposeRunningNodes(context);
     let globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
     globalRunningNodesList = (globalRunningNodesList === undefined) ? {} : globalRunningNodesList;
@@ -152,4 +177,29 @@ export const runNetwork = async (context: vscode.ExtensionContext) => {
     globalRunningNodesList![workspaceName] = {runningNodes};
     await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList); // Update global runnodes list
     await isNetworkRunning(context); // update context
+}
+
+/**
+ * Destroys instances of all running nodes of this project
+ * @param context 
+ */
+export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
+    const globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
+	const workspaceName = vscode.workspace.name;
+	if (globalRunningNodesList && globalRunningNodesList[workspaceName!] != undefined) {
+
+        const runningNodes: RunningNode[] = globalRunningNodesList[workspaceName!].runningNodes;
+    
+        runningNodes.forEach((node: RunningNode) => {
+            terminalIsOpenForNode(node, true); // find node and dispose            
+        });
+
+		delete globalRunningNodesList[workspaceName!]; // remove on deactivate
+	}
+
+    await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList);
+    // set workspace state and context
+    await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, false);
+    vscode.commands.executeCommand('setContext', Contexts.IS_NETWORK_RUNNING_CONTEXT, false);
+    return true;
 }

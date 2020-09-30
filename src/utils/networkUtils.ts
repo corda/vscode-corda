@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { GlobalStateKeys, WorkStateKeys, Contexts, Commands } from './CONSTANTS';
-import { RunningNode, RunningNodesList } from './types';
-import { terminalIsOpenForNode } from './terminals';
+import { GlobalStateKeys, WorkStateKeys, Contexts, Commands } from '../types/CONSTANTS';
+import { RunningNode, RunningNodesList } from '../types/types';
+import { terminalIsOpenForNode } from './terminalUtils';
 import * as fs from 'fs';
 
 
@@ -62,29 +62,4 @@ export const isNetworkRunning = async (context: vscode.ExtensionContext) => {
     await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, result);
     vscode.commands.executeCommand('setContext', Contexts.IS_NETWORK_RUNNING_CONTEXT, result);
     return result;
-}
-
-/**
- * Destroys instances of all running nodes of this project
- * @param context 
- */
-export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
-    const globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
-	const workspaceName = vscode.workspace.name;
-	if (globalRunningNodesList && globalRunningNodesList[workspaceName!] != undefined) {
-
-        const runningNodes: RunningNode[] = globalRunningNodesList[workspaceName!].runningNodes;
-    
-        runningNodes.forEach((node: RunningNode) => {
-            terminalIsOpenForNode(node, true); // find node and dispose            
-        });
-
-		delete globalRunningNodesList[workspaceName!]; // remove on deactivate
-	}
-
-    await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList);
-    // set workspace state and context
-    await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, false);
-    vscode.commands.executeCommand('setContext', Contexts.IS_NETWORK_RUNNING_CONTEXT, false);
-    return true;
 }

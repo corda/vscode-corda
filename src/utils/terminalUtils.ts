@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Node } from './treeDataProviders/cordaLocalNetwork';
-import { DefinedNode, RunningNode } from './types';
+import { Node } from '../treeDataProviders/cordaLocalNetwork';
+import { DefinedNode, RunningNode } from '../types/types';
  
 
 

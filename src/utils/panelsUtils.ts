@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { server_awake } from './network/serverClient';
+import { server_awake } from '../serverClient';
 
 
 export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) => {

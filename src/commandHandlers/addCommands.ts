@@ -1,6 +1,6 @@
-import { Constants, Commands } from '../CONSTANTS';
+import { Constants, Commands } from '../types/CONSTANTS';
 import * as vscode from 'vscode';
-import { ClassSig, ObjectSig } from '../typeParsing';
+import { ClassSig, ObjectSig } from '../types/typeParsing';
 import Axios from 'axios';
 
 /**

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Commands } from '../CONSTANTS';
+import { Commands } from '../types/CONSTANTS';
 
 export class CordaOperationsProvider implements vscode.TreeDataProvider<CordaOperation> {
 	

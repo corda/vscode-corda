@@ -1,10 +1,10 @@
 import axios from "axios";
 import * as vscode from 'vscode';
 import axiosRetry from "axios-retry";
-import { SERVER_BASE_URL, WorkStateKeys, GlobalStateKeys } from '../CONSTANTS';
-import { RunningNode, DefinedNode } from '../types';
-import { findTerminal } from '../terminals';
-import { SERVER_JAR } from '../CONSTANTS';
+import { SERVER_BASE_URL, WorkStateKeys, GlobalStateKeys } from './types/CONSTANTS';
+import { RunningNode, DefinedNode } from './types/types';
+import { findTerminal } from './utils/terminalUtils';
+import { SERVER_JAR } from './types/CONSTANTS';
 
 
 /**

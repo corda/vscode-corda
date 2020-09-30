@@ -66,7 +66,7 @@ const networkMapConfig = Object.assign({}, config, {
 });
 
 const transactionsConfig = Object.assign({}, config, {
-  entry: "./src/network/transactions/transactions.tsx",
+  entry: "./src/network/transactions/transactions.js",
     output: {
         path: path.resolve(__dirname, 'out/network/transactions'),
         filename: "transactions.js",

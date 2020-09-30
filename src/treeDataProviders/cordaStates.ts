@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ClassSig } from '../typeParsing';
-import { Commands } from '../CONSTANTS';
+import { ClassSig } from '../types/typeParsing';
+import { Commands } from '../types/CONSTANTS';
 
 /**
  * States provider for generating TreeViews

@@ -3,10 +3,11 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-import { GlobalStateKeys, WorkStateKeys, Contexts } from './CONSTANTS';
-import { CordaNodesConfig, CordaTaskConfig, CordaNode, DefinedNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from './types'
-const gjs = require('../gradleParser');
-import { disposeRunningNodes, areNodesDeployed } from './networkUtils';
+import { GlobalStateKeys, WorkStateKeys, Contexts } from '../types/CONSTANTS';
+import { CordaNodesConfig, CordaTaskConfig, CordaNode, DefinedNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from '../types/types'
+const gjs = require('../../gradleParser');
+import { areNodesDeployed } from '../utils/networkUtils';
+import { disposeRunningNodes } from '../commandHandlers/networkCommands';
 
 /**
  * Fix which is used for JUnit testrunner to correctly work
