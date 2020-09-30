@@ -1,5 +1,5 @@
-import { FlowInfo, Page } from '../types';
-import * as Requests from './view_requests';
+import { FlowInfo, Page } from '../network/types';
+import * as Requests from '../network/transactions/view_requests';
 
 export const testRESTApi = () => {
     testVTxFetchTxList();

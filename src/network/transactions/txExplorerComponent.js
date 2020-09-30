@@ -1,17 +1,55 @@
-import React, { Component } from 'react';
-import * as ReactDOM from 'react-dom';
-import { ThemeProvider } from '@material-ui/core';
-import { theme } from './theme'
 import { Button, FormControl, Grid, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, FormHelperText } from '@material-ui/core';
 import Modal from '@material-ui/core/Modal';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ForwardIcon from '@material-ui/icons/Forward';
-import { vTxStartFlow, vTxFetchFlowList, vTxFetchTxList, vTxFetchParties } from './view_requests';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import * as ActionType from './txExplorerActions';
+import '../styles/Transaction.css';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 
-export class TransactionExplorer extends Component{
+const theme = createMuiTheme({
+
+    overrides: {
+        MuiTableCell: {
+            stickyHeader: {
+                backgroundColor: 'var(--vscode-sideBarSectionHeader-background)',
+                color: 'var(--vscode-editor-foreground)'
+            },
+            body: {
+                color: 'var(--vscode-editor-foreground)'
+            }
+        },
+        MuiButton: {
+            outlinedPrimary: {
+                backgroundColor: 'var(--vscode-button-hoverBackground)',
+                color: '#FFFFFF',
+                border: '0px',
+                '&:hover': {
+                    backgroundColor: 'var(--vscode-list-highlightForeground)',
+                    border: '0px',
+                    color: '#FFFFFF'
+                },
+            },
+            containedPrimary: {
+                backgroundColor: 'var(--vscode-button-hoverBackground)',
+                color: '#FFFFFF',
+                '&:hover': {
+                    backgroundColor: 'var(--vscode-list-highlightForeground)',
+                    color: '#FFFFFF'
+                },
+            },
+            containedSecondary: {
+                backgroundColor: 'var(--vscode-list-highlightForeground)',
+                color: 'var(--vscode-sideBarSectionHeader-foreground)'
+            }
+        }
+    }
+});
+
+class TransactionExplorer extends Component{
     state = {
-        txProps: {},
         page: {
             pageSize: 10,
             offset: 0
@@ -22,97 +60,29 @@ export class TransactionExplorer extends Component{
         paramList: []
     }
 
-    constructor(props){
-        super(props);
-        this.state = {
-            ...this.state,
-            txProps: props
-        }
-        vTxFetchFlowList();
-        vTxFetchTxList(this.state.page);
-        vTxFetchParties();
-    }
-
-    componentDidUpdate() {
-        if (this.state.txProps != this.props) {
-            this.setState({
-                ...this.state,
-                txProps: this.props
-            })
-        }
-    }
-
-    loadFlowParams = (data) => {
-        this.setState({
-            ...this.state,
-            txProps: {
-                ...this.state.txProps,
-                flowParams: data,
-                flowResultMsg: "",
-                flowResultMsgType: true
-            }
-        });
-    }
-
-    closeTxModal = () => {
-        this.setState({
-            ...this.state,
-            txProps: {
-                ...this.state.txProps,
-                open: false,
-                flowSelected: false,
-                flowResultMsg: "",
-                flowResultMsgType: true
-            }
-        });
-    }
-
-    openTxModal = () => {
-        this.setState({
-            ...this.state,
-            txProps: {
-                ...this.state.txProps,
-                open: true
-            }
-        });
-    }
-
-    setFlowSelectionFlag = () => {
-        this.setState({
-            ...this.state,
-            txProps: {
-                ...this.state.txProps,
-                flowSelected: true
-            }
-        });
-    }
-
-    inFlightFLow = (flag) => {
-        this.setState({
-            ...this.state,
-            txProps: {
-                ...this.state.txProps,
-                flowInFlight: flag
-            }
-        });
-    }
-
     handleClose = () => {
         this.setState({paramList: [], selectedFlow: {}})
-        this.loadFlowParams([]);
-        this.closeTxModal();
+        this.props.loadFlowParams([]);
+        this.props.closeTxModal();
     }
 
     handleOpen = () => {
-        this.openTxModal();
-        this.loadFlowParams([]);
+        this.props.openTxModal();
+        this.props.loadFlowParams([]);
+    }
+
+    constructor(props){
+        super(props);
+        props.fetchFlowList();
+        props.fetchTrnxList(this.state.page);
+        props.fetchParties();
     }
 
     handleFlowSelection = (event) => {
-        for(var i=0; i<this.state.txProps.registeredFlows.length;i++){
-            const flow = this.state.txProps.registeredFlows[i];
+        for(var i=0; i<this.props.registeredFlows.length;i++){
+            const flow = this.props.registeredFlows[i];
             if(flow.flowName === event.target.value){
-                this.loadFlowParams(flow.flowParamsMap.Constructor_1);
+                this.props.loadFlowParams(flow.flowParamsMap.Constructor_1);
                 this.setState({
                     selectedFlow: {
                         name: event.target.value,
@@ -123,11 +93,11 @@ export class TransactionExplorer extends Component{
                 break;
             }
         }
-        this.setFlowSelectionFlag();
+        this.props.setFlowSelectionFlag();
     }
 
     handleFlowConstructorSelection = (event) => {   
-        this.loadFlowParams(this.state.selectedFlow.constructors[event.target.value]);
+        this.props.loadFlowParams(this.state.selectedFlow.constructors[event.target.value]);
         this.setState({
             selectedFlow: {
                 name: this.state.selectedFlow.name,
@@ -151,7 +121,7 @@ export class TransactionExplorer extends Component{
     }
 
     loadNewPage = () => {
-        vTxFetchTxList(this.state.page);
+        this.props.fetchTrnxList(this.state.page);
     }
 
     handleChangeRowsPerPage = (event) => {
@@ -165,13 +135,13 @@ export class TransactionExplorer extends Component{
     }
 
     prepareFlowDataToStart = () => {
-        this.inFlightFLow(true);
+        this.props.inFlightFLow(true);
         this.setState({
             flowInfo: {
                 flowName: this.state.selectedFlow.name,
-                flowParams: this.state.txProps.flowParams
+                flowParams: this.props.flowParams
             },
-        }, () => vTxStartFlow(this.state.flowInfo));
+        }, () => this.props.startFlow(this.state.flowInfo));
     }
 
     showTrnxDetails = (trnx, index) => {
@@ -221,7 +191,7 @@ export class TransactionExplorer extends Component{
                         </div>
                     </div>
                 :
-                this.state.txProps.flowParams?this.state.txProps.flowParams.map((param, index) => this.renderInnerForm(param, index, false)):null
+                this.props.flowParams?this.props.flowParams.map((param, index) => this.renderInnerForm(param, index, false)):null
             }
             </React.Fragment>
         );
@@ -256,7 +226,7 @@ export class TransactionExplorer extends Component{
                             <InputLabel>{param.paramName}</InputLabel>
                                 <Select onChange={e => {param.paramValue = e.target.value}} autoWidth>
                                     {
-                                        this.state.txProps.parties.map((party, index) => {
+                                        this.props.parties.map((party, index) => {
                                             return(
                                                 <MenuItem key={index} value={party}>{party}</MenuItem>
                                             );
@@ -303,7 +273,7 @@ export class TransactionExplorer extends Component{
                                 <InputLabel>{param.paramName}</InputLabel>
                                 <Select onChange={e => this.updateListParam(param, e.target.value, true)} autoWidth>
                                     {
-                                        this.state.txProps.parties.map((party, index) => {
+                                        this.props.parties.map((party, index) => {
                                             return(
                                                 <MenuItem key={index} value={party}>{party}</MenuItem>
                                             );
@@ -369,6 +339,38 @@ export class TransactionExplorer extends Component{
         );
     }
 
+    // updateCmplxListParam(param, flag, idx){
+    //     if(flag){
+    //         let obj = JSON.parse(JSON.stringify(param.paramValue[0]));
+    //         param.paramValue.push(obj);
+
+    //         let keyVal = [];
+    //         if(!(this.state.paramList[param.paramName] === undefined || this.state.paramList[param.paramName] === null)){
+    //             keyVal[param.paramName] = this.state.paramList[param.paramName];
+    //         }else{
+    //             keyVal[param.paramName] = [];
+    //         }
+    //         if(keyVal[param.paramName].length === 0){
+    //             obj.key = 0;
+    //         }else{
+    //             obj.key = keyVal[param.paramName][keyVal[param.paramName].length -1].key + 1;
+    //         }
+    //         keyVal[param.paramName].push(obj);
+    //         this.setState({
+    //             paramList: keyVal
+    //         });
+    //     }else{
+    //         param.paramValue.splice(idx+1, 1);
+    //         this.state.paramList[param.paramName].splice(idx, 1);
+    //         let keyVal = [];
+    //         keyVal[param.paramName] = this.state.paramList[param.paramName];
+    //         this.setState({
+    //             paramList: keyVal
+    //         });
+    //     }
+    // }
+
+
     updateListParam(param, val, flag, idx) {
         if(flag){
             if(param.paramValue === undefined || param.paramValue === null)
@@ -421,20 +423,20 @@ export class TransactionExplorer extends Component{
                     <span>Transaction Explorer</span>
                     <Button style={{float: "right"}} variant="contained" color="primary" onClick={this.handleOpen}>New Transaction</Button>
                     <Modal
-                        open={this.state.txProps.open}
+                        open={this.props.open}
                         onClose={this.handleClose}
                         style={{overflow:"scroll"}}
                         >
                         <div className="paper">
                             <h3 id="simple-modal-title">Please Select a Flow to Execute</h3>
-                            <div style={{color: "red"}}>{this.state.txProps.registeredFlows.length === 0? 'No Flows Found! Make sure you have the cordapp directory set in the Settings Tab':null}</div>
+                            <div style={{color: "red"}}>{this.props.registeredFlows.length === 0? 'No Flows Found! Make sure you have the cordapp directory set in the Settings Tab':null}</div>
                             <div>
                             <div style={{width: "70%", float:"left"}}>
                                 <FormControl style={{minWidth: 250, maxWidth:"100%", paddingRight: 10}}>
                                         <InputLabel id="flow-select-label">Select A Flow to Execute</InputLabel>
                                         <Select labelId="flow-select-label" onChange={this.handleFlowSelection}>
                                             {
-                                                this.state.txProps.registeredFlows.map((flow, index) => {
+                                                this.props.registeredFlows.map((flow, index) => {
                                                     return(
                                                         <MenuItem key={index} value={flow.flowName}>{flow.flowName}</MenuItem>
                                                     );
@@ -472,20 +474,20 @@ export class TransactionExplorer extends Component{
                                 
                                         <div style={{width: "100%", float:"left", marginTop: 10, scroll: "auto"}}>
                                             {
-                                            this.state.txProps.flowResultMsg    ?
+                                            this.props.flowResultMsg    ?
                                                 <div style={{float: "left", fontSize: 14}}>
-                                                    <p style={{color: this.state.txProps.flowResultMsgType?"green":"red"}}>
-                                                        <span>{this.state.txProps.flowResultMsgType?'Flow Successful :': 'Flow Errored :'}</span>
-                                                        {this.state.txProps.flowResultMsg}
+                                                    <p style={{color: this.props.flowResultMsgType?"green":"red"}}>
+                                                        <span>{this.props.flowResultMsgType?'Flow Successful :': 'Flow Errored :'}</span>
+                                                        {this.props.flowResultMsg}
                                                     </p>
                                                 </div>
                                                 :null
                                             }
                                 {
-                                    this.state.txProps.flowSelected?
+                                    this.props.flowSelected?
                                             <Button onClick={() => this.prepareFlowDataToStart()} style={{float: "right", marginTop: 10}} 
-                                                    variant="contained" color="primary" disabled={this.state.txProps.flowInFlight}>
-                                                {this.state.txProps.flowInFlight?'Please Wait...':'Execute'}
+                                                    variant="contained" color="primary" disabled={this.props.flowInFlight}>
+                                                {this.props.flowInFlight?'Please Wait...':'Execute'}
                                             </Button>
                                     :null
                                 }
@@ -508,8 +510,8 @@ export class TransactionExplorer extends Component{
                             </TableHead>
                             <TableBody>
                             {
-                                this.state.txProps.transactionList && this.state.txProps.transactionList.length > 0 ?
-                                this.state.txProps.transactionList.map((trnx, index) => {
+                                this.props.transactionList && this.props.transactionList.length > 0 ?
+                                this.props.transactionList.map((trnx, index) => {
                                     return (
                                         <React.Fragment>
                                             <TableRow key={index} style={{cursor: "pointer"}} onClick={() => this.showTrnxDetails(trnx, index)}
@@ -629,11 +631,11 @@ export class TransactionExplorer extends Component{
                         </Table>
                     </TableContainer>
                     {
-                    this.state.txProps.totalRecords?
+                    this.props.totalRecords?
                         <TablePagination
                         rowsPerPageOptions={[10, 25, 50, 100]}
                         component="div"
-                        count={this.state.txProps.totalRecords}
+                        count={this.props.totalRecords}
                         rowsPerPage={this.state.page.pageSize}
                         page={this.state.page.offset}
                         onChangePage={this.handleChangePage}
@@ -647,3 +649,35 @@ export class TransactionExplorer extends Component{
         );
     }
 }
+
+const mapStateToProps = state => {
+    return {
+        registeredFlows: state.trnx.registeredFlows,
+        flowParams: state.trnx.flowParams,
+        transactionList: state.trnx.trnxList,
+        totalRecords: state.trnx.trnxListPage,
+        parties: state.trnx.parties,
+        open: state.trnx.showTxPopup,
+        flowSelected: state.trnx.isFlowSelected,
+        flowInFlight: state.trnx.isFlowInFlight,
+        flowResultMsg: state.trnx.flowMessage,
+        flowResultMsgType: state.trnx.messageType
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        fetchTrnxList: (page) => dispatch(ActionType.fetchTransactions(page)),
+        startFlow: (flowInfo) => dispatch(ActionType.startFlow(flowInfo)),
+        fetchFlowList: () => dispatch(ActionType.fetchFlows()),
+        fetchParties: () => dispatch(ActionType.fetchParties()),
+        loadFlowParams: (data) => dispatch({type: ActionType.LOAD_FLOW_PARAMS, data: data}),
+        closeTxModal: () => dispatch({type: ActionType.CLOSE_TX_MODAL}),
+        openTxModal: () => dispatch({type: ActionType.OPEN_TX_MODAL}),
+        setFlowSelectionFlag: () => dispatch({type: ActionType.SET_FLOW_SELECTION_FLAG}),
+        inFlightFLow: (flag) => dispatch({type: ActionType.SET_INFLIGHT_FLOW_FLAG, data: flag})
+
+    }
+}
+  
+export default connect(mapStateToProps, mapDispatchToProps)(TransactionExplorer);
