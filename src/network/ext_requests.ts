@@ -1,5 +1,5 @@
 import axios from "axios";
-import { NetworkMap, Page } from "./types";
+import { FlowInfo, NetworkMap, Page } from "./types";
 import { SERVER_BASE_URL } from '../types/CONSTANTS';
 
 /**
@@ -32,19 +32,19 @@ export const txFetchTxList = async (page: Page) => {
     }
 }
 
-export const txStartFlow = async () => {
-    // try {
-    //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
-    //     return response.data.data;
-    // } catch (error) {
-    //     console.log(error.response);
-    //     // return error.response;
-    // }
+export const txStartFlow = async (flowInfo: FlowInfo) => {
+    try {
+        const response = await axios.post(SERVER_BASE_URL + "/start-flow", flowInfo);
+        return response.data.data;
+    } catch (error) {
+        console.log(error.response);
+        // return error.response;
+    }
 }
 
-export const txFetchFlowList = async (page: Page) => {
+export const txFetchFlowList = async () => {
     try {
-        const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
+        const response = await axios.get(SERVER_BASE_URL + "/flow-list");
         return response.data.data;
     } catch (error) {
         console.log(error.response);
@@ -53,61 +53,61 @@ export const txFetchFlowList = async (page: Page) => {
 }
 
 export const txFetchParties = async () => {
-    // try {
-    //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
-    //     return response.data.data;
-    // } catch (error) {
-    //     console.log(error.response);
-    //     // return error.response;
-    // }
+    try {
+        const response = await axios.get(SERVER_BASE_URL + "/party-list");
+        return response.data.data;
+    } catch (error) {
+        console.log(error.response);
+        // return error.response;
+    }
 }
 
-export const txLoadFlowParams = async () => {
-    // try {
-    //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
-    //     return response.data.data;
-    // } catch (error) {
-    //     console.log(error.response);
-    //     // return error.response;
-    // }
-}
+// export const txLoadFlowParams = async () => {
+//     // try {
+//     //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
+//     //     return response.data.data;
+//     // } catch (error) {
+//     //     console.log(error.response);
+//     //     // return error.response;
+//     // }
+// }
 
-export const txCloseTxModal = async () => {
-    // try {
-    //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
-    //     return response.data.data;
-    // } catch (error) {
-    //     console.log(error.response);
-    //     // return error.response;
-    // }
-}
+// export const txCloseTxModal = async () => {
+//     // try {
+//     //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
+//     //     return response.data.data;
+//     // } catch (error) {
+//     //     console.log(error.response);
+//     //     // return error.response;
+//     // }
+// }
 
-export const txOpenTxModal = async () => {
-    // try {
-    //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
-    //     return response.data.data;
-    // } catch (error) {
-    //     console.log(error.response);
-    //     // return error.response;
-    // }
-}
+// export const txOpenTxModal = async () => {
+//     // try {
+//     //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
+//     //     return response.data.data;
+//     // } catch (error) {
+//     //     console.log(error.response);
+//     //     // return error.response;
+//     // }
+// }
 
-export const txSetFlowSelectionFlag = async () => {
-    // try {
-    //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
-    //     return response.data.data;
-    // } catch (error) {
-    //     console.log(error.response);
-    //     // return error.response;
-    // }
-}
+// export const txSetFlowSelectionFlag = async () => {
+//     // try {
+//     //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
+//     //     return response.data.data;
+//     // } catch (error) {
+//     //     console.log(error.response);
+//     //     // return error.response;
+//     // }
+// }
 
-export const txInFlightFlow = async () => {
-    // try {
-    //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
-    //     return response.data.data;
-    // } catch (error) {
-    //     console.log(error.response);
-    //     // return error.response;
-    // }
-}
+// export const txInFlightFlow = async () => {
+//     // try {
+//     //     const response = await axios.post(SERVER_BASE_URL + "/transaction-list", page);
+//     //     return response.data.data;
+//     // } catch (error) {
+//     //     console.log(error.response);
+//     //     // return error.response;
+//     // }
+// }

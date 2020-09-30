@@ -7,7 +7,7 @@ import { RunningNode, RunningNodesList, DefinedNode } from '../types/types';
 import { MessageType, WindowMessage } from "../logviewer/types";
 import * as request from "../logviewer/request";
 import * as requests from '../network/ext_requests'
-import { NetworkMap, Page } from '../network/types';
+import { AxResponse, FlowInfo, NetworkMap, Page } from '../network/types';
 import { terminalIsOpenForNode } from '../utils/terminalUtils';
 
 /**
@@ -95,24 +95,18 @@ export const transactionsCallback = async (context: vscode.ExtensionContext) => 
                     response = await requests.txFetchTxList(data as Page);
                     break;
                 case TxRequests.STARTFLOW:
+                    response = await requests.txStartFlow(data as FlowInfo)
                     break;
                 case TxRequests.FETCHFLOWLIST:
+                    response = await requests.txFetchFlowList();
                     break;
                 case TxRequests.FETCHPARTIES:
-                    break;
-                case TxRequests.LOADFLOWPARAMS:
-                    break;
-                case 'txCloseTxModal':
-                    break;
-                case 'txOpenTxModal':
-                    break;
-                case 'txSetFlowSelectionFlag':
-                    break;
-                case 'txInFlightFlow':
+                    response = await requests.txFetchParties();
                     break;
             }
             if (response) {
-                panel?.webview.postMessage(response);
+                let reply: AxResponse = {request: message.request, response: response}
+                panel?.webview.postMessage(reply);
             }
         },
         undefined,

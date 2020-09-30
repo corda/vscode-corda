@@ -6,6 +6,8 @@ const config = {
   node: {
     fs: "empty"
   },
+  // Enable sourcemaps for debugging webpack's output.
+  devtool: "eval-source-map",
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.json']
   },

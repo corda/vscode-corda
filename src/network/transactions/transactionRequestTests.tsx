@@ -1,9 +1,11 @@
-import { Page } from '../types';
+import { FlowInfo, Page } from '../types';
 import * as Requests from './view_requests';
 
 export const testRESTApi = () => {
-    console.log('in testRESTApi');
     testVTxFetchTxList();
+    // testVTxStartFlow();
+    testVTxFetchFlowList();
+    testVTxFetchParties();
 }
 
 const testVTxFetchTxList = () => {
@@ -15,5 +17,25 @@ const testVTxFetchTxList = () => {
 }
 
 const testVTxStartFlow = () => {
-    
+    const data:FlowInfo = {
+        "flowName" : "com.template.flows.Initiator",
+        "flowParams" : [ {
+          "paramName" : "sendTo",
+          "paramType" : "net.corda.core.identity.Party",
+          "paramValue" : "PartyB",
+          "parameterizedType" : null,
+          "hasParameterizedType" : false,
+          "flowParams" : null
+        } ],
+        "flowParamsMap" : null
+    }
+    Requests.vTxStartFlow(data);   
+}
+
+const testVTxFetchFlowList = () => {
+    Requests.vTxFetchFlowList();
+}
+
+const testVTxFetchParties = () => {
+    Requests.vTxFetchParties();
 }

@@ -33,18 +33,27 @@ export interface FlowParam {
     paramValue: any,
     parameterizedType: any,
     hasParameterizedType: boolean,
-    flowParams: FlowParam[]
+    flowParams: FlowParam[] | null
 }
 
 export interface FlowInfo {
     flowName: string,
     flowParams: FlowParam[],
-    flowParamsMap: {[index:string]:FlowParam[]}
+    flowParamsMap: {[index:string]:FlowParam[]} | null
 }
 
 /**
  * Frontend Types
  */
+
+export interface AxResponse {
+    request: string,
+    response: any
+}
+
+export interface FlowData {
+    flowInfoList: FlowInfo[]
+}
 
 export interface SelectedFlow {
     name: any,
