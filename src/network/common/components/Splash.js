@@ -1,5 +1,5 @@
 import React from 'react';
-import CrdaLogo from '../assets/crda-logo.svg';
+import CrdaLogo from '../../../assets/crda-logo.svg';
 
 const splashScreen = () => {
 

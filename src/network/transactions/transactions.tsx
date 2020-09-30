@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr'
@@ -8,7 +8,7 @@ import thunk from 'redux-thunk';
 import txReducer from './txExplorerReducer';
 import TransactionExplorer from './txExplorerComponent';
 import { composeWithDevTools } from 'redux-devtools-extension';
-import '../styles/index.css';
+import '../common/styles/index.css';
 import 'react-redux-toastr/lib/css/react-redux-toastr.min.css'
 
 const rootReducer = combineReducers({

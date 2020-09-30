@@ -1,4 +1,4 @@
-import * as ActionType from './txExplorerActions';
+import * as ActionType from '../common/actions';
 
 const initialState = {
     registeredFlows: [],

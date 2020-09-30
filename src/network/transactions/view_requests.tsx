@@ -1,6 +1,11 @@
 import { TxRequests } from "../../types/CONSTANTS";
 import { FlowInfo, Page } from "../types";
 
+/**
+ * NOT YET IN USE - CURRENTLY calling REST from front-end react
+ * - in future will go through extension
+ */
+
 declare var acquireVsCodeApi;
 
 const vscode = acquireVsCodeApi(); // access to API 

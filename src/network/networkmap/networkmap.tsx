@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import * as ReactDOM from 'react-dom';
 
-import '../styles/Network.css';
-import BoxWithTitle from '../components/BoxWithTitle';
-import ListBoxWithTitle from '../components/ListBoxWithTitle';
-import Pin from '../components/Pin';
+import '../common/styles/Network.css';
+import BoxWithTitle from '../common/components/BoxWithTitle';
+import ListBoxWithTitle from '../common/components/ListBoxWithTitle';
+import Pin from '../common/components/Pin';
 import WorldMapSquare from './WorldMapSquare.png';
-import { NetworkMap, NodeData } from '../types'
+import { NetworkMap } from '../types'
 
 /**
  * Listener for data from extension

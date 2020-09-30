@@ -1,9 +1,9 @@
 import React from 'react';
 import '../styles/Header.css';
 import { Button, Popper, Paper, Grow, ClickAwayListener, MenuList, MenuItem } from '@material-ui/core';
-import * as ActionType from '../store/Actions'
+import * as ActionType from '../actions'
 import { connect } from 'react-redux';
-import CrdaLogo from '../assets/crda-logo.svg';
+import CrdaLogo from '../../../assets/crda-logo.svg';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core';
 
 const theme = createMuiTheme({
