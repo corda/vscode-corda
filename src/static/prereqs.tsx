@@ -8,11 +8,17 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Prerequisites</title>
+        <style>
+            .img-container {
+                text-align: center;
+                display: block;
+            }
+        </style>
     </head>
     <body>
         <table border="0">
         <tr>
-        <td><img src="https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0_views/assets/crda-logo.svg" alt="" width="182" height="182" /><span style="font-size: 36pt; margin :0 0 0 75px;"></td>
+        <td><img style="float: left;" src="https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0_views/assets/crda-logo.svg" alt="" width="182" height="182" /><span style="font-size: 36pt; margin :0 0 0 75px;"></td>
         </tr>
         </table>
         <p></p>
@@ -40,38 +46,47 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
         <tr>
         <td style="width: 33.0189%;">Java OpenJDK 11</td>
         <td style="width: 33.4905%;">11.0.8</td>
-        <td style="width: 33.4905%;">installed</td>
+        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
         </tr>
         <tr>
         <td style="width: 33.0189%;">Java OpenJDK 8</td>
         <td style="width: 33.4905%;">1.8.0.261</td>
-        <td style="width: 33.4905%;">installed</td>
+        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
         </tr>
         <tr>
         <td style="width: 33.0189%;">Java Language Support Extension</td>
         <td style="width: 33.4905%;">0.68.0</td>
-        <td style="width: 33.4905%;">installed</td>
+        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
         </tr>
         <tr>
         <td style="width: 33.0189%;">Java Debugger Extension</td>
         <td style="width: 33.4905%;">0.28.0</td>
-        <td style="width: 33.4905%;">installed</td>
+        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
         </tr>
         <tr>
         <td style="width: 33.0189%;">Java Test Runner Extension</td>
         <td style="width: 33.4905%;">0.24.2</td>
-        <td style="width: 33.4905%;">installed</td>
+        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
         </tr>
         <tr>
         <td style="width: 33.0189%;">Gradle Tasks Extension</td>
         <td style="width: 33.4905%;">3.4.5</td>
-        <td style="width: 33.4905%;">installed</td>
+        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
         </tr>
         </tbody>
         </table>
         <p>&nbsp;</p>
         <p></p>
         <p></p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <h2>Once you're ready to go, check out these starter projects:</h2>
+        <hr />
+        <p>&nbsp;</p>
+        <span class="img-container">
+        <img src="https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0_viewsRedux/media/templateCards.png" alt="" />
+        </span>
     </body>
     </html>`
 }
