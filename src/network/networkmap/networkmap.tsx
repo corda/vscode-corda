@@ -72,14 +72,16 @@ class CordaNetwork extends Component<NetworkMap>{
     }
   
     render(){
+      const allParties = (this.props.peers) ? [...this.props.peers] : [];
+      allParties.push(this.props.self!);
       return (
         <div style={{position: "relative", height:window.outerHeight, overflowY: "auto"}} ref={this.mapPane}>
           <img src={WorldMapSquare} alt="World Map" width="100%" onLoad={this.handleImageLoaded.bind(this)}></img>
           <div style={{position: "absolute", top: "0"}}>
             <div className="side-panel" style={{height:window.innerHeight - 60}}>
-                <BoxWithTitle node={this.props.self}/>
+                {/* <BoxWithTitle node={this.props.self}/> */}
                 <ListBoxWithTitle list={this.props.notaries} title="Notaries"/>
-                <ListBoxWithTitle list={this.props.peers} title="Peers"/>
+                <ListBoxWithTitle list={allParties} title="Parties on Network"/>
             </div>
           </div>
   
@@ -99,8 +101,8 @@ class CordaNetwork extends Component<NetworkMap>{
               }): null
           }
           {
-              this.props.peers?
-              this.props.peers.map((node, index) => {
+              this.props.peers? 
+              this.props.peers!.map((node, index) => {
                 return  <Pin key={index}  top={this.getScreenYPos(node.lat)} 
                               left={this.getScreenXPos(node.lng)} 
                               name={node.name}/>
