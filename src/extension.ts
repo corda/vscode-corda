@@ -52,7 +52,9 @@ export async function activate(context: vscode.ExtensionContext) {
 		cordaExt(context);
 	} else {
 		vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, false);
-		vscode.window.showInformationMessage("Interstitial here when not Corda");
+		context.subscriptions.push(
+			vscode.commands.registerCommand(Commands.PROJECT_NEW, () => general.fetchTemplateOrSampleCallback())
+		);
 	}
 }
 

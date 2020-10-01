@@ -48,6 +48,13 @@
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "cordaProjects",
+				"contents": "No Corda (CorDapp) projects found [learn more](https://docs.corda.net/docs/corda-os/4.6/cordapp-overview.html).\n Please open a folder with Corda [build.gradle](https://github.com/corda/cordapp-template-java/blob/release-V4/build.gradle) or click below to start a new CorDapp.\n[Open CorDapp Project](command:vscode.openFolder)\n[New Project from Template/Sample](command:cordaProjects.new)"
+
+			}
+		],
 		"views": {
 			"corda": [
 				{

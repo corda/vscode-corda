@@ -69,7 +69,7 @@ export abstract class Contexts {
  * Registered commands
  */
 export abstract class Commands {
-    static readonly PROJECT_NEW = "cordaProjects.net";
+    static readonly PROJECT_NEW = "cordaProjects.new";
     static readonly FLOWS_ADD = "cordaFlows.add";
     static readonly CONTRACTS_ADD = "cordaContracts.add";
     static readonly STATES_ADD = "cordaStates.add";
