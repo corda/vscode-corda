@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
 const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(thunk)));
 
 ReactDOM.render(<Provider store={store}>
-    <div style={{height: "100%"}}>
+    <div style={{height: "100%", width: "98%"}}>
         <TransactionExplorer />
         <ReduxToastr
             timeOut={3000}

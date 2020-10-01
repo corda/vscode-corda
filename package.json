@@ -177,8 +177,8 @@
 			},
 			{
 				"command": "corda.Node.runFlow",
-				"title": "Run Flow (Create Transaction)",
-				"icon": "$(run)"
+				"title": "Explore Transactions and Run Flows",
+				"icon": "$(github-action)"
 			},
 			{
 				"command": "corda.Node.vaultQuery",
