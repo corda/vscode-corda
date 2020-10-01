@@ -110,8 +110,8 @@ export class Node extends vscode.TreeItem {
 		public readonly collapsibleState?: vscode.TreeItemCollapsibleState,
 	) {
 		super(label, collapsibleState);
-		const onlineTag = (isOnline) ? ' - online' : ' - offline'
-		this.description = 'Corda OS v4.3 | Platform v5' + onlineTag; // STATIC Placeholder, replace with live data
+		const onlineTag = (isOnline) ? '\u25CF' : '\u25CB'
+		this.description = ' - ' + onlineTag; // STATIC Placeholder, replace with live data
 		this.contextValue = (isOnline) ? 'nodeOnline' : 'nodeOffline';
 	}
 
