@@ -43,7 +43,7 @@
 			"activitybar": [
 				{
 					"id": "corda",
-					"title": "Corda",
+					"title": "Corda Blockchain",
 					"icon": "media/corda-actBar.svg"
 				}
 			]

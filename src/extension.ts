@@ -15,7 +15,7 @@ import * as general from './commandHandlers/generalCommands';
 import * as network from './commandHandlers/networkCommands';
 import { cordaCheckAndLoad } from './utils/projectUtils';
 import { server_awake } from './serverClient';
-import { Contexts, Views, Commands } from './types/CONSTANTS';
+import { Contexts, Views, Commands, GlobalStateKeys } from './types/CONSTANTS';
 import { disposeRunningNodes } from './commandHandlers/networkCommands';
 
 const cordaWatchers: vscode.FileSystemWatcher[] = [];
@@ -32,6 +32,7 @@ var projectObjects: {projectClasses: any, projectInterfaces:any};
  * isNetworkRunning - is the local Network of THIS project running?
  * 
  * context.globalState entries:
+ * cordaPrerequisites - boolean flag for satisfying the JDK prereqs
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
  * runningNodes - list of nodes that are currently in running state - global tracking due to port allocations
  * 
@@ -47,6 +48,15 @@ var projectObjects: {projectClasses: any, projectInterfaces:any};
  * @param context 
  */
 export async function activate(context: vscode.ExtensionContext) {
+	// register extension first time contents and run interstitials
+	context.subscriptions.push(
+		vscode.commands.registerCommand(Commands.SHOW_CORDA_PREREQS, () => general.prerequisitesCallback(context))
+	);
+	const preReqsSatisfied = context.globalState.get(GlobalStateKeys.CORDA_PREREQS);
+	if (!preReqsSatisfied) {
+		vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS);
+	}
+	
 	if (vscode.workspace.workspaceFolders && (await cordaCheckAndLoad(context))) {
 		vscode.window.setStatusBarMessage("Corda-Project");
 		cordaExt(context);

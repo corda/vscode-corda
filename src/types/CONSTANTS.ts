@@ -52,6 +52,7 @@ export abstract class WorkStateKeys {
  * Keys stored in the vscode global state
  */
 export abstract class GlobalStateKeys {
+    static readonly CORDA_PREREQS = 'cordaPrerequisites';
     static readonly CLIENT_TOKEN = 'clientToken';
     static readonly RUNNING_NODES = 'runningNodes';
 }
@@ -69,6 +70,7 @@ export abstract class Contexts {
  * Registered commands
  */
 export abstract class Commands {
+    static readonly SHOW_CORDA_PREREQS = 'cordaPrerequisites.show';
     static readonly PROJECT_NEW = "cordaProjects.new";
     static readonly FLOWS_ADD = "cordaFlows.add";
     static readonly CONTRACTS_ADD = "cordaContracts.add";

@@ -87,4 +87,14 @@ const vaultqueryConfig = Object.assign({}, config, {
     }
 });
 
-module.exports = [ logViewerConfig, networkMapConfig, transactionsConfig, vaultqueryConfig ];
+// const prereqsConfig = Object.assign({}, config, {
+//   entry: "./src/static/prereqs.tsx",
+//     output: {
+//         path: path.resolve(__dirname, 'out/static'),
+//         filename: "prereqs.js",
+//         libraryTarget: 'umd',
+//       devtoolModuleFilenameTemplate: '../[resource-path]'
+//     }
+// });
+
+module.exports = [ logViewerConfig, networkMapConfig, transactionsConfig, vaultqueryConfig];

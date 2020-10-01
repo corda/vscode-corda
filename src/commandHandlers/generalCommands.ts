@@ -3,6 +3,7 @@ import { Constants, Commands } from '../types/CONSTANTS';
 import Axios from 'axios';
 import * as fs from 'fs';
 import { CordaOperation } from '../treeDataProviders/cordaOperations';
+import { panelStart } from '../utils/panelsUtils';
 
 /**
  * This function is for creating new projects from TEMPLATE or SAMPLE
@@ -85,4 +86,12 @@ export const openFileCallback = async (uri: vscode.Uri) => {
     vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
         vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
     })
+}
+
+/**
+ * Show preReqs singleTime
+ * @param context 
+ */
+export const prerequisitesCallback = async (context: vscode.ExtensionContext) => {
+    await panelStart('prerequisites', context);
 }

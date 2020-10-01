@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { server_awake } from '../serverClient';
+import { getPrereqsContent } from '../static/prereqs';
 
 
 export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) => {
 	let title: string, resourceRoot: string, file: string;
-	
+	let reactPanel: boolean = true;
 	switch (view) {
 		case 'logviewer':
 			title = "Corda Log Viewer";
@@ -27,6 +28,12 @@ export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) 
 			resourceRoot = "out/network/vaultquery/";
 			file = "vaultquery.js";
 			break;
+		case 'prerequisites':
+			reactPanel = false;
+			title = "Prerequisites";
+			resourceRoot = "src/static/";
+			file = "prereqs.js";
+			break;
 		default:
 			title = "";
 			resourceRoot = "";
@@ -34,7 +41,8 @@ export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) 
 	}
 	
 	let viewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, view, title, resourceRoot);
-	viewPanel.webview.html = getReactPanelContent(context, title, resourceRoot, file);
+	viewPanel.webview.html = (reactPanel) ? getReactPanelContent(context, title, resourceRoot, file)
+				: getPrereqsContent(context, resourceRoot);
 	viewPanel.onDidDispose(
 		async () => {
 			await context.workspaceState.update(view, "");
