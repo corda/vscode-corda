@@ -9,6 +9,8 @@ import * as request from "../logviewer/request";
 import * as requests from '../network/ext_requests'
 import { AxResponse, FlowInfo, NetworkMap, Page } from '../network/types';
 import { terminalIsOpenForNode } from '../utils/terminalUtils';
+import { loginToNode } from '../serverClient';
+import { Node } from '../treeDataProviders/cordaLocalNetwork';
 
 /**
  * Deploys nodes in project with pre-req checking
@@ -44,28 +46,12 @@ export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
     })
 }
 
-export const logviewerCallback = async (context: vscode.ExtensionContext) => {
-    const path = require('path');
-    
-    await panelStart('logviewer', context);
-
-    const filepath = path.join(context.extensionPath, "smalllog.log");
-    request.countEntries(filepath).then(count => {
-        let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
-        panel?.webview.postMessage({
-            messageType: MessageType.NEW_LOG_ENTRIES,
-            filepath,
-            entriesCount: count
-        } as WindowMessage)
-    })
-}
-
 /**
  * Launches the network map webview
  * @param context 
  */
 export const networkMapCallback = async (context: vscode.ExtensionContext) => {
-    await panelStart('networkmap', context);
+    await panelStart('networkmap', "", context);
     
     const networkData:NetworkMap | undefined = await requests.getNetworkMap();
 
@@ -75,10 +61,12 @@ export const networkMapCallback = async (context: vscode.ExtensionContext) => {
 
 /**
  * Launches the transactions webview
+ * @param node
  * @param context 
  */
-export const transactionsCallback = async (context: vscode.ExtensionContext) => {
-    await panelStart('transactions', context);
+export const transactionsCallback = async (node: Node, context: vscode.ExtensionContext) => {
+    await loginToNode(node);
+    await panelStart('transactions', node.nodeDetails.x500.name, context);
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('transactions');
     panel?.webview.onDidReceiveMessage(
@@ -116,10 +104,34 @@ export const transactionsCallback = async (context: vscode.ExtensionContext) => 
 
 /**
  * Launches the vaultquery webview
+ * @param node
  * @param context 
  */
-export const vaultqueryCallback = async (context: vscode.ExtensionContext) => {
-    await panelStart('vaultquery', context);
+export const vaultqueryCallback = async (node: Node, context: vscode.ExtensionContext) => {
+    await loginToNode(node);
+    await panelStart('vaultquery', node.nodeDetails.x500.name, context);
+}
+
+/**
+ * Launches the logViewer webview
+ * @param node 
+ * @param context 
+ */
+export const logviewerCallback = async (node: Node, context: vscode.ExtensionContext) => {
+    const path = require('path');
+    
+    await loginToNode(node);
+    await panelStart('logviewer', node.nodeDetails.x500.name, context);
+
+    const filepath = path.join(context.extensionPath, "smalllog.log");
+    request.countEntries(filepath).then(count => {
+        let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
+        panel?.webview.postMessage({
+            messageType: MessageType.NEW_LOG_ENTRIES,
+            filepath,
+            entriesCount: count
+        } as WindowMessage)
+    })
 }
 
 /**

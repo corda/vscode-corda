@@ -5,6 +5,7 @@ import { SERVER_BASE_URL, WorkStateKeys, GlobalStateKeys } from './types/CONSTAN
 import { RunningNode, DefinedNode } from './types/types';
 import { findTerminal } from './utils/terminalUtils';
 import { SERVER_JAR } from './types/CONSTANTS';
+import { Node } from './treeDataProviders/cordaLocalNetwork';
 
 
 /**
@@ -30,7 +31,7 @@ export const server_awake = async () => {
  * preforms a login to all the running NODES
  * @param context 
  */
-export const loginToNodes = async (context: vscode.ExtensionContext) => {
+export const loginToAllNodes = async (context: vscode.ExtensionContext) => {
     await server_awake();
 
     let deployNodesList: DefinedNode[] | undefined  = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
@@ -46,6 +47,13 @@ export const loginToNodes = async (context: vscode.ExtensionContext) => {
         // })
         await context.globalState.update(GlobalStateKeys.RUNNING_NODES, runningNodes);
     })
+}
+
+export const loginToNode = async (node: Node) => {
+    const loginRequest = node.nodeDetails.loginRequest;
+    await axios.post(SERVER_BASE_URL + "/login", loginRequest).then((res) => {
+        console.log(res.data);
+    });
 }
 
 /**

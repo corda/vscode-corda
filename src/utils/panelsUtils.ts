@@ -4,12 +4,12 @@ import { server_awake } from '../serverClient';
 import { getPrereqsContent } from '../static/prereqs';
 
 
-export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) => {
+export const getWebViewPanel = (view: string, nodeName: string, context: vscode.ExtensionContext) => {
 	let title: string, resourceRoot: string, file: string;
 	let reactPanel: boolean = true;
 	switch (view) {
 		case 'logviewer':
-			title = "Corda Log Viewer";
+			title = nodeName + " Log Viewer";
 			resourceRoot = "out/logviewer/";
 			file = "index.js"; // change this
 			break;
@@ -19,12 +19,12 @@ export const getWebViewPanel = (view: string, context: vscode.ExtensionContext) 
 			file = "networkmap.js";
 			break;
 		case 'transactions':
-			title = "Transactions";
+			title = nodeName + " Transactions";
 			resourceRoot = "out/network/transactions/";
 			file = "transactions.js";
 			break;
 		case 'vaultquery':
-			title = "Vault Query";
+			title = nodeName + " Vault Query";
 			resourceRoot = "out/network/vaultquery/";
 			file = "vaultquery.js";
 			break;
@@ -103,12 +103,13 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
  * @param view : name of the view
  * @param context
  */
-export const panelStart = async (view: string, context: vscode.ExtensionContext) => {
+export const panelStart = async (view: string, nodeName: string, context: vscode.ExtensionContext) => {
 	await server_awake();
-	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
-	if (panel && panel.webview) {
-		panel.reveal();
-	}  else {
-		await context.workspaceState.update(view, getWebViewPanel(view, context));
-	}
+	// let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
+	// if (panel && panel.webview) {
+	// 	panel.reveal();
+	// }  else {
+	// 	await context.workspaceState.update(view, getWebViewPanel(view, nodeName, context));
+	// }
+	await context.workspaceState.update(view, getWebViewPanel(view, nodeName, context));
 }

@@ -88,6 +88,7 @@ export abstract class Commands {
     static readonly NODE_RUN_FLOW = "corda.Node.runFlow";
     static readonly NODE_VAULT_QUERY = "corda.Node.vaultQuery";
     static readonly NODE_LOGVIEWER = "corda.Node.logViewer";
+    static readonly NODE_LOGIN = "corda.Node.login";
 
     // DEFINED IN TREE-PROVIDER
     static readonly OPERATIONS_ASSEMBLE = 'corda.operations.assembleCommand';

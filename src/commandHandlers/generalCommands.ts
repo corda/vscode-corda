@@ -93,5 +93,5 @@ export const openFileCallback = async (uri: vscode.Uri) => {
  * @param context 
  */
 export const prerequisitesCallback = async (context: vscode.ExtensionContext) => {
-    await panelStart('prerequisites', context);
+    await panelStart('prerequisites', "", context);
 }

@@ -6,7 +6,7 @@ import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
 import { CordaContractsProvider } from './treeDataProviders/cordaContracts';
 import { CordaStatesProvider } from './treeDataProviders/cordaStates';
-import { CordaLocalNetworkProvider } from './treeDataProviders/cordaLocalNetwork';
+import { CordaLocalNetworkProvider, Node } from './treeDataProviders/cordaLocalNetwork';
 
 import { ClassSig, parseJavaFiles } from './types/typeParsing';
 import * as watchers from './watchers';
@@ -135,9 +135,10 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.NETWORK_STOP, () => disposeRunningNodes(context)),
 
 		// Node actions
-		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async () => network.transactionsCallback(context)),
-		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, () => network.vaultqueryCallback(context)),
-		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async () => network.logviewerCallback(context)),
+		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async (node: Node) => network.transactionsCallback(node, context)),
+		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, (node: Node) => network.vaultqueryCallback(node, context)),
+		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async (node: Node) => network.logviewerCallback(node, context)),
+		// vscode.commands.registerCommand(Commands.NODE_LOGIN, async (node: Node) => {})
 	); // end context subscriptions
 }
 
