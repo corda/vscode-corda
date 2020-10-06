@@ -60,7 +60,7 @@ export enum MessageType {
 export interface WindowMessage {
     messageType: MessageType,
     filepath: string,
-    entriesCount: number
+    // entriesCount: number
 }
 
 export const nameToSeverity = (name: string): Severity => {

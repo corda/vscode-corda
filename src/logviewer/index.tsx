@@ -1,10 +1,10 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { WindowMessage, MessageType, LogEntry } from './types';
-import { EntriesDisplay } from "./entriesDisplay";
-import { EntriesLoader } from './entriesLoader';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import "./styles.css";
+import "./index.css";
+import LogViewer from './LogViewer';
+import { WindowMessage, MessageType } from './types';
+
+// Temporary static data for demo
 
 window.addEventListener("message", event => {
     const message = event.data as WindowMessage;
@@ -12,9 +12,8 @@ window.addEventListener("message", event => {
         case MessageType.NEW_LOG_ENTRIES:
             ReactDOM.render( 
                 <div style={{height: 600}}>
-                    <EntriesDisplay 
-                        filepath={message.filepath} 
-                        entriesCount={message.entriesCount} 
+                    <LogViewer 
+                        filepath={message.filepath}  
                     />
                 </div>,
                 document.getElementById('root')

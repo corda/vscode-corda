@@ -5,7 +5,7 @@ import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts, TxRe
 import { areNodesDeployed, isNetworkRunning } from '../utils/networkUtils';
 import { RunningNode, RunningNodesList, DefinedCordaNode } from '../types/types';
 import { MessageType, WindowMessage } from "../logviewer/types";
-import * as request from "../logviewer/request";
+// import * as request from "../logviewer/request";
 import * as requests from '../network/ext_requests'
 import { AxResponse, FlowInfo, NetworkMap, Page } from '../network/types';
 import { terminalIsOpenForNode } from '../utils/terminalUtils';
@@ -124,14 +124,19 @@ export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context:
     await panelStart('logviewer', node, context);
 
     const filepath = path.join(context.extensionPath, "smalllog.log");
-    request.countEntries(filepath).then(count => {
-        let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
+    // request.countEntries(filepath).then(count => {
+    //     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
+    //     panel?.webview.postMessage({
+    //         messageType: MessageType.NEW_LOG_ENTRIES,
+    //         filepath,
+    //         entriesCount: count
+    //     } as WindowMessage)
+    // })
+    let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
         panel?.webview.postMessage({
             messageType: MessageType.NEW_LOG_ENTRIES,
             filepath,
-            entriesCount: count
         } as WindowMessage)
-    })
 }
 
 /**

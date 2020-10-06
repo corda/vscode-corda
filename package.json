@@ -52,7 +52,6 @@
 			{
 				"view": "cordaProjects",
 				"contents": "No Corda (CorDapp) projects found [learn more](https://docs.corda.net/docs/corda-os/4.6/cordapp-overview.html).\n Please open a folder with Corda [build.gradle](https://github.com/corda/cordapp-template-java/blob/release-V4/build.gradle) or click below to start a new CorDapp.\n[Open CorDapp Project](command:vscode.openFolder)\n[New Project from Template/Sample](command:cordaProjects.new)"
-
 			}
 		],
 		"views": {
@@ -337,10 +336,12 @@
 		"react-redux": "^7.1.3",
 		"react-redux-toastr": "^7.6.4",
 		"react-super-responsive-table": "^5.1.1",
+		"react-table": "^7.5.2",
 		"react-virtualized": "^9.22.2",
 		"redux": "^4.0.4",
 		"redux-devtools-extension": "^2.13.8",
 		"redux-thunk": "^2.3.0",
+		"regenerator-runtime": "^0.13.7",
 		"responsive-table": "^0.1.2",
 		"simple-flexbox": "^2.3.2",
 		"vscode-gradle": "0.0.256279716"
