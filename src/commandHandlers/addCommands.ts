@@ -7,7 +7,7 @@ import Axios from 'axios';
  * Creates a new Flow in project
  * @param projectObjects dictionary of Corda types, used for inheritance selection
  */
-export const cordaFlowsAddCallback = async (projectObjects): Promise<void> => {
+export const cordaFlowsAddCallback = (projectObjects) => {
 	
     const qpickItems = (projectObjects.projectClasses.flowClasses as ClassSig[]).map((sig) => {
             return sig.name
@@ -25,7 +25,7 @@ export const cordaFlowsAddCallback = async (projectObjects): Promise<void> => {
  * Creates a new Contract in project
  * @param projectObjects 
  */
-export const cordaContractsAddCallback = async (projectObjects): Promise<void> => {
+export const cordaContractsAddCallback = (projectObjects) => {
 	
     const qpickItems = (projectObjects.projectClasses.contractClasses as ObjectSig[])
         .concat(projectObjects.projectInterfaces.contractInterfaces)
@@ -45,7 +45,7 @@ export const cordaContractsAddCallback = async (projectObjects): Promise<void> =
  * Creates a new ContractState in project
  * @param projectObjects 
  */
-export const cordaContractStatesAddCallback = async (projectObjects): Promise<void> => {
+export const cordaContractStatesAddCallback = (projectObjects) => {
     const qpickItems = (projectObjects.projectClasses.contractStateClasses as ObjectSig[])
         .concat(projectObjects.projectInterfaces.contractStateInterfaces)
         .map((sig) => {

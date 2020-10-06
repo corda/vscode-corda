@@ -265,17 +265,17 @@
 				},
 				{
 					"command": "corda.Node.runFlow",
-					"when": "view == cordaLocalNetwork && viewItem != nodeOnline",
+					"when": "view == cordaLocalNetwork && viewItem == nodeOnline",
 					"group": "inline@0"
 				},
 				{
 					"command": "corda.Node.vaultQuery",
-					"when": "view == cordaLocalNetwork && viewItem != nodeOnline",
+					"when": "view == cordaLocalNetwork && viewItem == nodeOnline",
 					"group": "inline@1"
 				},
 				{
 					"command": "corda.Node.logViewer",
-					"when": "view == cordaLocalNetwork && viewItem != nodeOnline",
+					"when": "view == cordaLocalNetwork && viewItem == nodeOnline",
 					"group": "inline@2"
 				}
 			]

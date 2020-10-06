@@ -1,15 +1,17 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { server_awake } from '../serverClient';
+import { server_awake } from '../commandHandlers/networkCommands';
 import { getPrereqsContent } from '../static/prereqs';
+import { GlobalStateKeys } from '../types/CONSTANTS';
+import { DefinedCordaNode, RunningNode, RunningNodesList } from '../types/types';
 
 
-export const getWebViewPanel = (view: string, nodeName: string, context: vscode.ExtensionContext) => {
+export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode, context: vscode.ExtensionContext) => {
 	let title: string, resourceRoot: string, file: string;
 	let reactPanel: boolean = true;
 	switch (view) {
 		case 'logviewer':
-			title = nodeName + " Log Viewer";
+			title = definedNode.x500.name + " Log Viewer";
 			resourceRoot = "out/logviewer/";
 			file = "index.js"; // change this
 			break;
@@ -19,12 +21,12 @@ export const getWebViewPanel = (view: string, nodeName: string, context: vscode.
 			file = "networkmap.js";
 			break;
 		case 'transactions':
-			title = nodeName + " Transactions";
+			title = definedNode.x500.name + " Transactions";
 			resourceRoot = "out/network/transactions/";
 			file = "transactions.js";
 			break;
 		case 'vaultquery':
-			title = nodeName + " Vault Query";
+			title = definedNode.x500.name + " Vault Query";
 			resourceRoot = "out/network/vaultquery/";
 			file = "vaultquery.js";
 			break;
@@ -41,7 +43,7 @@ export const getWebViewPanel = (view: string, nodeName: string, context: vscode.
 	}
 	
 	let viewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, view, title, resourceRoot);
-	viewPanel.webview.html = (reactPanel) ? getReactPanelContent(context, title, resourceRoot, file)
+	viewPanel.webview.html = (reactPanel) ? getReactPanelContent(context, definedNode, title, resourceRoot, file)
 				: getPrereqsContent(context, resourceRoot);
 	viewPanel.onDidDispose(
 		async () => {
@@ -76,7 +78,13 @@ const createViewPanel = (context, view, title, resourceRoot) => {
  * @param panel 
  * @param context 
  */
-const getReactPanelContent = (context: vscode.ExtensionContext, title: string, resourceRoot: string, file: string) => {
+const getReactPanelContent = (context: vscode.ExtensionContext, definedNode: DefinedCordaNode, title: string, resourceRoot: string, file: string) => {
+	const clientToken: string | undefined = context.globalState.get(GlobalStateKeys.CLIENT_TOKEN);
+	const globalRunningNodes:RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
+	const runningNodes:RunningNode[] = globalRunningNodes![vscode.workspace.name!].runningNodes;
+	const rpcClientId = runningNodes.find((node) => {
+		return node.idx500 === definedNode.idx500;
+	})?.rpcconnid;
 	return	`<!DOCTYPE html>
 		<html lang="en"> 
 		<head>
@@ -85,6 +93,8 @@ const getReactPanelContent = (context: vscode.ExtensionContext, title: string, r
 			<title>${title}</title>
 		</head>
 		<body>
+			<div id="clienttoken" style="display:none">${clientToken}</div>
+			<div id="rpcconnid" style="display:none">${rpcClientId}</div>
 			<div id="root">   </div>
 			${loadScript(context,path.normalize(resourceRoot) + file)}
 		</body>
@@ -103,13 +113,13 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
  * @param view : name of the view
  * @param context
  */
-export const panelStart = async (view: string, nodeName: string, context: vscode.ExtensionContext) => {
-	await server_awake();
+export const panelStart = async (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
+	// await server_awake();
 	// let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
 	// if (panel && panel.webview) {
 	// 	panel.reveal();
 	// }  else {
 	// 	await context.workspaceState.update(view, getWebViewPanel(view, nodeName, context));
 	// }
-	await context.workspaceState.update(view, getWebViewPanel(view, nodeName, context));
+	await context.workspaceState.update(view, getWebViewPanel(view, definedNode!, context));
 }

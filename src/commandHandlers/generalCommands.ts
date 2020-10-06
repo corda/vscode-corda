@@ -82,7 +82,7 @@ export const runGradleTaskCallback = async (task: string, cordaOp?: CordaOperati
  * helper for opening a URI/file in the current editor.
  * @param uri 
  */
-export const openFileCallback = async (uri: vscode.Uri) => {
+export const openFileCallback = (uri: vscode.Uri) => {
     vscode.workspace.openTextDocument(uri).then((doc: vscode.TextDocument) => {
         vscode.window.showTextDocument(doc, {preview: false}); // open in new tab
     })
@@ -93,5 +93,5 @@ export const openFileCallback = async (uri: vscode.Uri) => {
  * @param context 
  */
 export const prerequisitesCallback = async (context: vscode.ExtensionContext) => {
-    await panelStart('prerequisites', "", context);
+    await panelStart('prerequisites', undefined, context);
 }

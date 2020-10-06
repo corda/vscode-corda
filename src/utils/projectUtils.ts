@@ -3,11 +3,12 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-import { GlobalStateKeys, WorkStateKeys, Contexts } from '../types/CONSTANTS';
-import { CordaNodesConfig, CordaTaskConfig, CordaNode, DefinedNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from '../types/types'
+import { GlobalStateKeys, WorkStateKeys, Contexts, Constants, SERVER_CLIENT_TOKEN_DEVTEST } from '../types/CONSTANTS';
+import { CordaNodesConfig, CordaTaskConfig, ParsedNode, DefinedCordaNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from '../types/types'
 const gjs = require('../../gradleParser');
 import { areNodesDeployed } from '../utils/networkUtils';
 import { disposeRunningNodes } from '../commandHandlers/networkCommands';
+import {debug} from '../extension';
 
 /**
  * Fix which is used for JUnit testrunner to correctly work
@@ -66,18 +67,22 @@ const setIsProjectCorda = async (buildGradleFile: string, context: vscode.Extens
 export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 
     await resetCordaWorkspaceState(context); // reset Corda Keys in workspaceState
-    await disposeRunningNodes(context);
+    await resetCordaGlobalState(context); // reset Corda global states
 
-    const projectCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
-    const projectGradle = path.join(projectCwd, '/build.gradle');
+    const projectCwd = vscode.workspace.workspaceFolders![0].uri.fsPath; // current working directory of the project
+    const projectGradle = path.join(projectCwd, '/build.gradle'); // path to root gradle file
 
     // EXIT IF NOT CORDA
     if (!(await setIsProjectCorda(projectGradle, context))) { return false } 
+
     // PROJECT IS CORDA continue -------->
 
     setJDTpref(projectCwd); // inject java testrunner fix setting
 
-    // No client token set for Corda -> set a new token
+    // if no client token set for Corda -> set a new token ; debug flag will pull a generic pre-set token
+    if (debug) {
+        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, SERVER_CLIENT_TOKEN_DEVTEST)
+    }
     if (context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) === undefined) {
         await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, uuidv4());
     }
@@ -95,13 +100,14 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
         return value.task?.node && true;
     })
 
-    // currently allow ONE deployNodesConfig per project but future will allow multiple w/ selection
-    let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0]);
+    // currently allow ONE deployNodesConfig per project (pulls first element with deployNodes task) but future will allow multiple w/ selection
+    let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0]); // converts node records to DefinedNode objects
 
+    // updates relevant workstate keys
     await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE, deployNodesConfigs![0].file)
     await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_LIST, deployedNodes);
 
-    await areNodesDeployed(context);
+    await areNodesDeployed(context); // checks if nodes are already deployed
     return true;
 }
 
@@ -109,10 +115,18 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
  * Resets Corda keys in workspaceState
  * @param context 
  */
-export const resetCordaWorkspaceState = async (context: vscode.ExtensionContext) => {
+const resetCordaWorkspaceState = async (context: vscode.ExtensionContext) => {
 	WorkStateKeys.ALL_KEYS.forEach(async (key) => {
 		await context.workspaceState.update(key, undefined);
     })
+}
+
+/**
+ * Resets needed Corda settings in Global State.
+ * @param context 
+ */
+const resetCordaGlobalState = async (context: vscode.ExtensionContext) => {
+    await disposeRunningNodes(context);
 }
 
 /**
@@ -121,20 +135,20 @@ export const resetCordaWorkspaceState = async (context: vscode.ExtensionContext)
  * HELPER for cordaCheckAndLoad
  * @param nodesConfig 
  */
-const taskToDeployedNodes = (nodesTaskConfig: CordaTaskConfig):DefinedNode[] => {
+const taskToDeployedNodes = (nodesTaskConfig: CordaTaskConfig):DefinedCordaNode[] => {
     let {file, task}:{file:string, task:CordaNodesConfig} = nodesTaskConfig; 
 
     let nodes:CordaNodeConfig = task.node;
     let nodeDefaults = task.nodeDefaults;
-    let deployedNodes: DefinedNode[] = [];
+    let deployedNodes: DefinedCordaNode[] = [];
     Object.keys(nodes).forEach((val) => {
         // build up composites
-        let node:CordaNode = nodes[val]
+        let node:ParsedNode = nodes[val]
 
         let hostAndPort = node.rpcSettings.address.split(":");
         
         let cred:{user:string, pass:string} = {user:"", pass:""};
-        if (!node?.notary) { // NO CREDS for Notary
+        if (!node?.notary) { // NO CREDS for Notary - Don't store notary
             if (node?.rpcUsers) {
                 cred.user = node.rpcUsers.user;
                 cred.pass = node.rpcUsers.password;
@@ -142,31 +156,32 @@ const taskToDeployedNodes = (nodesTaskConfig: CordaTaskConfig):DefinedNode[] => 
                 cred.user = nodeDefaults.rpcUsers.user;
                 cred.pass = nodeDefaults.rpcUsers.password;
             }
+
+            let loginRequest: LoginRequest = {
+                hostName: hostAndPort[0],
+                port: hostAndPort[1],
+                username: cred.user,
+                password: cred.pass
+            }
+            let x500: {name:string, city: string, country: string} = {
+                name: node.name.match("O=(.*),L")![1],
+                city: node.name.match("L=(.*),C")![1],
+                country: node.name.match("C=(.*)")![1]
+            }
+    
+            // add jarDir to node
+            node.jarDir = file.split('build.gradle')[0] + 'build/nodes/' + x500.name;
+    
+            // push on DeployedNode
+            deployedNodes.push({
+                loginRequest: loginRequest,
+                idx500: node.name,
+                rpcPort: hostAndPort[1],
+                x500: x500,
+                nodeDef: node,
+            })
         }
 
-        let loginRequest: LoginRequest = {
-            hostName: hostAndPort[0],
-            port: hostAndPort[1],
-            username: cred.user,
-            password: cred.pass
-        }
-        let x500: {name:string, city: string, country: string} = {
-            name: node.name.match("O=(.*),L")![1],
-            city: node.name.match("L=(.*),C")![1],
-            country: node.name.match("C=(.*)")![1]
-        }
-
-        // add jarDir to node
-        node.jarDir = file.split('build.gradle')[0] + 'build/nodes/' + x500.name;
-
-        // push on DeployedNode
-        deployedNodes.push({
-            loginRequest: loginRequest,
-            id: node.name,
-            rpcPort: hostAndPort[1],
-            x500: x500,
-            nodeConf: node,
-        })
     })
     return deployedNodes;
 }

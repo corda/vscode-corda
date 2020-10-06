@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import { DefinedNode, RunningNode, RunningNodesList } from '../types/types'
-import { GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS'
-import {} from '../commandHandlers/networkCommands';
+import { ParsedNode, DefinedCordaNode, LoginRequest, RunningNode, RunningNodesList } from '../types/types'
+import { WorkStateKeys } from '../types/CONSTANTS'
 import { terminalIsOpenForNode } from '../utils/terminalUtils';
 
 export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
@@ -13,7 +12,7 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 	}
 
 	// check if node is currently running
-	isNodeRunning = (n: Node | DefinedNode):boolean => { 
+	isNodeRunning = (n: DefinedCordaNodeTreeItem | DefinedCordaNode):boolean => { 
 		return (this.context.workspaceState.get(WorkStateKeys.IS_NETWORK_RUNNING) as boolean) && terminalIsOpenForNode(n);
 	}
 	
@@ -21,12 +20,12 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 		return element;
 	}
 	getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-		let deployNodesList:DefinedNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
+		let deployNodesList:DefinedCordaNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
 		if (!element) { // children of TOP level Mock Network
-			let nodeElements: Node[] = [];
+			let nodeElements: DefinedCordaNodeTreeItem[] = [];
 			deployNodesList?.forEach((node) => {
 				// format to existing structure for display
-				nodeElements.push(new Node(
+				nodeElements.push(new DefinedCordaNodeTreeItem(
 					node.x500.name,
 					node,
 					(this.isNodeRunning(node)), // whether node is Online
@@ -35,7 +34,7 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 			})
 			return nodeElements;
 
-		} else if (element instanceof Node) { // children of valid Nodes
+		} else if (element instanceof DefinedCordaNodeTreeItem) { // children of valid Nodes
 			let items: vscode.TreeItem[] = [
 				new NodeDetail('Location', element.nodeDetails.x500.city + ", " + element.nodeDetails.x500.country), // details are derived from element (Node)
 				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port)
@@ -101,11 +100,17 @@ export class NodeDetail extends vscode.TreeItem {
 /**
  * Represents a Node on the Mock Network
  */
-export class Node extends vscode.TreeItem {
+export class DefinedCordaNodeTreeItem extends vscode.TreeItem implements DefinedCordaNode {
+
+	idx500: string;
+	loginRequest: LoginRequest;
+	rpcPort: string;
+	x500: { name: string; city: string; country: string; };
+	nodeDef: ParsedNode;
 
 	constructor(
 		public readonly label: string,
-		public readonly nodeDetails: DefinedNode,
+		public readonly nodeDetails: DefinedCordaNode,
 		public readonly isOnline: boolean,
 		public readonly collapsibleState?: vscode.TreeItemCollapsibleState,
 	) {
@@ -113,6 +118,11 @@ export class Node extends vscode.TreeItem {
 		const onlineTag = (isOnline) ? '\u25CF' : '\u25CB'
 		this.description = ' - ' + onlineTag; // STATIC Placeholder, replace with live data
 		this.contextValue = (isOnline) ? 'nodeOnline' : 'nodeOffline';
+		this.idx500 = nodeDetails.idx500;
+		this.loginRequest = nodeDetails.loginRequest;
+		this.rpcPort = nodeDetails.rpcPort;
+		this.x500 = nodeDetails.x500;
+		this.nodeDef = nodeDetails.nodeDef;
 	}
 
 	iconPath = new vscode.ThemeIcon('person');

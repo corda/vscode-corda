@@ -1,26 +1,26 @@
 import * as vscode from 'vscode';
-import { Node } from '../treeDataProviders/cordaLocalNetwork';
-import { DefinedNode, RunningNode } from '../types/types';
+import { DefinedCordaNodeTreeItem } from '../treeDataProviders/cordaLocalNetwork';
+import { DefinedCordaNode, RunningNode } from '../types/types';
  
 
 
-export const terminalIsOpenForNode = (n: RunningNode | Node | DefinedNode, dispose: boolean = false) => {
+export const terminalIsOpenForNode = (n: RunningNode | DefinedCordaNodeTreeItem | DefinedCordaNode, dispose: boolean = false) => {
 	const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
 
 	const isRunningNode = (object: any): object is RunningNode => {
-		return 'deployedNode' in object;
+		return 'definedNode' in object;
 	}
-	const isDefinedNode = (object: any): object is DefinedNode => {
+	const isDefinedNode = (object: any): object is DefinedCordaNode => {
 		return 'x500' in object;
 	}
 
 	const nodeNameCheckPred = (t, n) => { // predicate to check composed name
 		if (isRunningNode(n)) {
-			return t.name == (n.deployedNode.x500.name + " : " + n.deployedNode.rpcPort);
+			return t.name == (n.definedNode.x500.name + " : " + n.definedNode.rpcPort);
 		} else if (isDefinedNode(n)) { 
 			return t.name == (n.x500.name + " : " + n.rpcPort);
 		} else {
-			return t.name == (n as Node).nodeDetails.x500.name + " : " + (n as Node).nodeDetails.rpcPort;
+			return t.name == (n as DefinedCordaNodeTreeItem).nodeDetails.x500.name + " : " + (n as DefinedCordaNodeTreeItem).nodeDetails.rpcPort;
 		}
 	}
 

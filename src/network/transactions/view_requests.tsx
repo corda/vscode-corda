@@ -3,7 +3,7 @@ import { FlowInfo, Page } from "../types";
 
 /**
  * NOT YET IN USE - CURRENTLY calling REST from front-end react
- * - in future will go through extension
+ * - in future will go through extensiond
  */
 
 declare var acquireVsCodeApi;

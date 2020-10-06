@@ -6,7 +6,7 @@ import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
 import { CordaContractsProvider } from './treeDataProviders/cordaContracts';
 import { CordaStatesProvider } from './treeDataProviders/cordaStates';
-import { CordaLocalNetworkProvider, Node } from './treeDataProviders/cordaLocalNetwork';
+import { CordaLocalNetworkProvider, DefinedCordaNodeTreeItem } from './treeDataProviders/cordaLocalNetwork';
 
 import { ClassSig, parseJavaFiles } from './types/typeParsing';
 import * as watchers from './watchers';
@@ -14,13 +14,15 @@ import * as addCommands from './commandHandlers/addCommands';
 import * as general from './commandHandlers/generalCommands';
 import * as network from './commandHandlers/networkCommands';
 import { cordaCheckAndLoad } from './utils/projectUtils';
-import { server_awake } from './serverClient';
+import { server_awake } from './commandHandlers/networkCommands';
 import { Contexts, Views, Commands, GlobalStateKeys } from './types/CONSTANTS';
 import { disposeRunningNodes } from './commandHandlers/networkCommands';
 
 const cordaWatchers: vscode.FileSystemWatcher[] = [];
 const fsWatchers: any[] = [];
 var projectObjects: {projectClasses: any, projectInterfaces:any};
+
+export const debug = true;
 
 /**
  * context.workSpaceState entries:
@@ -52,11 +54,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(Commands.SHOW_CORDA_PREREQS, () => general.prerequisitesCallback(context))
 	);
-	const preReqsSatisfied = context.globalState.get(GlobalStateKeys.CORDA_PREREQS);
-	if (!preReqsSatisfied) {
-		vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS);
-	}
+	if (!context.globalState.get(GlobalStateKeys.CORDA_PREREQS)) { vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS); }
 	
+	// check for corda deps and parse project
 	if (vscode.workspace.workspaceFolders && (await cordaCheckAndLoad(context))) {
 		vscode.window.setStatusBarMessage("Corda-Project");
 		cordaExt(context);
@@ -68,16 +68,21 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 }
 
+/**
+ * Main execution on a valid Corda Project
+ * @param context 
+ */
 const cordaExt = async (context: vscode.ExtensionContext) => {
 
-	projectObjects = await parseJavaFiles(context); // scan all project java files and build inventory
+	// scan all project java files and build inventory for treeviews
+	projectObjects = await parseJavaFiles(context); 
 
 	// Initiate watchers
 	cordaWatchers.push(watchers.getBuildGradleFSWatcher()); 
 	fsWatchers.push(watchers.nodesFSWatcher(context));
 	watchers.activateEventListeners(context);
 
-	server_awake(); // launch client and check server is up
+	// server_awake(); // launch client and check server is up
 
 	// Corda TreeDataProviders
 	const cordaOperationsProvider = new CordaOperationsProvider();
@@ -102,7 +107,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 
 		// ops
 		vscode.commands.registerCommand(Commands.OPERATIONS_RUN, (op: CordaOperation) => general.runGradleTaskCallback(op.taskName, op)),
-		vscode.commands.registerCommand(Commands.OPERATIONS_REFRESH, (done?) => cordaOperationsProvider.refresh(done)),
+		vscode.commands.registerCommand(Commands.OPERATIONS_REFRESH, (done?) => cordaOperationsProvider.refresh(done)), // done is passed from 'watchers'
 		vscode.commands.registerCommand(Commands.OPERATIONS_STOP, (op: CordaOperation) => op.stopRunningTask()),
 
 		// add classes
@@ -111,7 +116,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.STATES_ADD, () => addCommands.cordaContractStatesAddCallback(projectObjects)),
 		vscode.commands.registerCommand(Commands.CORDA_OPEN_FILE, (uri) => general.openFileCallback(uri)),
 
-		// refreshes
+		// refreshes : currently unused.
 		vscode.commands.registerCommand(Commands.FLOWS_REFRESH, (classSig) => cordaFlowsProvider.refresh(classSig)),
 		vscode.commands.registerCommand(Commands.CONTRACTS_REFRESH, (classSig) => cordaContractsProvider.refresh(classSig)),
 		vscode.commands.registerCommand(Commands.STATES_REFRESH, (classSig) => cordaStatesProvider.refresh(classSig)),
@@ -135,9 +140,9 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.NETWORK_STOP, () => disposeRunningNodes(context)),
 
 		// Node actions
-		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async (node: Node) => network.transactionsCallback(node, context)),
-		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, (node: Node) => network.vaultqueryCallback(node, context)),
-		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async (node: Node) => network.logviewerCallback(node, context)),
+		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async (node: DefinedCordaNodeTreeItem) => network.transactionsCallback(node, context)),
+		vscode.commands.registerCommand(Commands.NODE_VAULT_QUERY, (node: DefinedCordaNodeTreeItem) => network.vaultqueryCallback(node, context)),
+		vscode.commands.registerCommand(Commands.NODE_LOGVIEWER, async (node: DefinedCordaNodeTreeItem) => network.logviewerCallback(node, context)),
 		// vscode.commands.registerCommand(Commands.NODE_LOGIN, async (node: Node) => {})
 	); // end context subscriptions
 }

@@ -3,7 +3,12 @@ import { WorkStateKeys, Commands } from './types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from './utils/networkUtils';
 import * as fs from 'fs';
 
-// Watcher for gradle.build refresh
+
+/**
+ * Watcher for changes to build.gradle files
+ * 
+ * TODO: should execute refreshes on extension
+ */
 export const getBuildGradleFSWatcher = () => {
     const pattern = new vscode.RelativePattern(vscode.workspace.workspaceFolders![0], '**/*.gradle');
     const watcher = vscode.workspace.createFileSystemWatcher(pattern);
@@ -16,6 +21,9 @@ export const getBuildGradleFSWatcher = () => {
 }
 
 /**
+ * Watches for changes to the persistent file state of the Cordform network
+ * /build/nodes/ and refreshes trackers on areNodesDeployed and isNetworkRunning
+ * 
  * @param context
  */
 export const nodesFSWatcher = (context: vscode.ExtensionContext) => {
@@ -37,6 +45,10 @@ export const nodesFSWatcher = (context: vscode.ExtensionContext) => {
     return watcher;
 }
 
+/**
+ * Activates listeners for gradle task events
+ * @param context 
+ */
 export const activateEventListeners = (context: vscode.ExtensionContext) => {
     vscode.tasks.onDidStartTask((taskStartEvent) => {
         const task = taskStartEvent.execution.task;
