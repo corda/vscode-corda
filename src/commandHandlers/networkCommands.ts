@@ -56,7 +56,7 @@ export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
 export const networkMapCallback = async (context: vscode.ExtensionContext) => {
     await panelStart('networkmap', undefined, context);
     
-    const networkData:NetworkMap | undefined = await requests.getNetworkMap();
+    const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
     panel?.webview.postMessage(networkData);
@@ -73,37 +73,37 @@ export const transactionsCallback = async (node: DefinedCordaNodeTreeItem, conte
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('transactions');
 
     // TODO: Below event handler will be used on migration to Extension side REST 
-    panel?.webview.onDidReceiveMessage(
-        async (message) => {
-            let response:any;
-            let data = message.data;
-            let text = message.text;
-            switch (message.request) {
-                case 'TestingRequest':
-                    vscode.window.showInformationMessage(text);
-                    response = "full loop";
-                    break;
-                case TxRequests.FETCHTXLIST:
-                    response = await requests.txFetchTxList(data as Page);
-                    break;
-                case TxRequests.STARTFLOW:
-                    response = await requests.txStartFlow(data as FlowInfo)
-                    break;
-                case TxRequests.FETCHFLOWLIST:
-                    response = await requests.txFetchFlowList();
-                    break;
-                case TxRequests.FETCHPARTIES:
-                    response = await requests.txFetchParties();
-                    break;
-            }
-            if (response) {
-                let reply: AxResponse = {request: message.request, response: response}
-                panel?.webview.postMessage(reply);
-            }
-        },
-        undefined,
-        context.subscriptions
-    );
+    // panel?.webview.onDidReceiveMessage(
+    //     async (message) => {
+    //         let response:any;
+    //         let data = message.data;
+    //         let text = message.text;
+    //         switch (message.request) {
+    //             case 'TestingRequest':
+    //                 vscode.window.showInformationMessage(text);
+    //                 response = "full loop";
+    //                 break;
+    //             case TxRequests.FETCHTXLIST:
+    //                 response = await requests.txFetchTxList(data as Page);
+    //                 break;
+    //             case TxRequests.STARTFLOW:
+    //                 response = await requests.txStartFlow(data as FlowInfo)
+    //                 break;
+    //             case TxRequests.FETCHFLOWLIST:
+    //                 response = await requests.txFetchFlowList();
+    //                 break;
+    //             case TxRequests.FETCHPARTIES:
+    //                 response = await requests.txFetchParties();
+    //                 break;
+    //         }
+    //         if (response) {
+    //             let reply: AxResponse = {request: message.request, response: response}
+    //             panel?.webview.postMessage(reply);
+    //         }
+    //     },
+    //     undefined,
+    //     context.subscriptions
+    // );
 }
 
 /**

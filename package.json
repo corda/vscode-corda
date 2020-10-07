@@ -222,7 +222,7 @@
 				},
 				{
 					"command": "corda.localNetwork.networkMap",
-					"when": "view == cordaLocalNetwork",
+					"when": "view == cordaLocalNetwork && vscode-corda:isNetworkRunning",
 					"group": "navigation@0"
 				},
 				{

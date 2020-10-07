@@ -6,12 +6,12 @@ import { GlobalStateKeys } from '../types/CONSTANTS';
 import { DefinedCordaNode, RunningNode, RunningNodesList } from '../types/types';
 
 
-export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode, context: vscode.ExtensionContext) => {
+export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
 	let title: string, resourceRoot: string, file: string;
 	let reactPanel: boolean = true;
 	switch (view) {
 		case 'logviewer':
-			title = definedNode.x500.name + " Log Viewer";
+			title = definedNode!.x500.name + " Log Viewer";
 			resourceRoot = "out/logviewer/";
 			file = "index.js"; // change this
 			break;
@@ -21,12 +21,12 @@ export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode, con
 			file = "networkmap.js";
 			break;
 		case 'transactions':
-			title = definedNode.x500.name + " Transactions";
+			title = definedNode!.x500.name + " Transactions";
 			resourceRoot = "out/network/transactions/";
 			file = "transactions.js";
 			break;
 		case 'vaultquery':
-			title = definedNode.x500.name + " Vault Query";
+			title = definedNode!.x500.name + " Vault Query";
 			resourceRoot = "out/network/vaultquery/";
 			file = "vaultquery.js";
 			break;
@@ -78,13 +78,17 @@ const createViewPanel = (context, view, title, resourceRoot) => {
  * @param panel 
  * @param context 
  */
-const getReactPanelContent = (context: vscode.ExtensionContext, definedNode: DefinedCordaNode, title: string, resourceRoot: string, file: string) => {
+const getReactPanelContent = (context: vscode.ExtensionContext, definedNode: DefinedCordaNode | undefined, title: string, resourceRoot: string, file: string) => {
 	const clientToken: string | undefined = context.globalState.get(GlobalStateKeys.CLIENT_TOKEN);
 	const globalRunningNodes:RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
 	const runningNodes:RunningNode[] = globalRunningNodes![vscode.workspace.name!].runningNodes;
-	const rpcClientId = runningNodes.find((node) => {
-		return node.idx500 === definedNode.idx500;
-	})?.rpcconnid;
+	var rpcClientId: string = "";
+	if (definedNode !== undefined) {
+		rpcClientId = runningNodes.find((node) => {
+			return node.idx500 === definedNode!.idx500;
+		})?.rpcconnid!;
+	}
+	
 	return	`<!DOCTYPE html>
 		<html lang="en"> 
 		<head>
@@ -121,5 +125,5 @@ export const panelStart = async (view: string, definedNode: DefinedCordaNode | u
 	// }  else {
 	// 	await context.workspaceState.update(view, getWebViewPanel(view, nodeName, context));
 	// }
-	await context.workspaceState.update(view, getWebViewPanel(view, definedNode!, context));
+	await context.workspaceState.update(view, getWebViewPanel(view, definedNode, context));
 }

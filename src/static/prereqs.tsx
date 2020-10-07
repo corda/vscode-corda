@@ -3,90 +3,119 @@ import * as path from 'path';
 
 export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot: string) => {
     return `<!DOCTYPE html>
-    <html lang="en"> 
+    <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Prerequisites</title>
+        <meta charSet="utf-8" />
+        <title>Corda Extension Home</title>
+        <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
         <style>
-            .img-container {
-                text-align: center;
-                display: block;
+            div {
+                _border: 1px solid black;
+            }
+            body {
+                font-family: 'Poppins';
+                font-size: 22px;
+                margin: 0px;
+                padding: 0px;
+                font-size: 14px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            h2 {
+                font-size: 18px;
+                margin: 0px;
+                margin-bottom: 10px;
+            }
+            .container {
+                width: 800px;
+                margin: 20px;
+            }
+            .logo {
+                float: right;
+                width: 220px;
+            }
+            .logo svg {
+                vertical-align: top;
+                width: 200px;
+                height: 200px;
+            }
+            .intro {
+                float: left;
+                width: 560px;
+            }
+            .box {
+                float: left;
+                background-color: #c0c0c0;
+                padding: 10px;
+                width: 520px;
+                margin-top: 20px;
+            }
+            .footer {
+                vertical-align: center;
+                clear: both;
+                font-size: 12px;
+                color: #909090;
             }
         </style>
     </head>
-    <body>
-        <table border="0">
-        <tr>
-        <td><img style="float: left;" src="https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0_views/assets/crda-logo.svg" alt="" width="182" height="182" /><span style="font-size: 36pt; margin :0 0 0 75px;"></td>
-        </tr>
-        </table>
-        <p></p>
-        <p><span style="font-family: arial, helvetica, sans-serif; font-size: 16px;">CorDapps (Corda Distributed Applications) are distributed applications that run on the Corda platform. The goal of a CorDapp is to allow nodes to reach agreement on updates to the ledger.</span></p>
-        <hr />
-        <h3>Let's make sure you're setup correctly...</h3>
-        <p></p>
-        <p>Prerequisites:</p>
-        <table border="1" style="border-collapse: collapse; width: 100%;">
-        <tbody>
-        <tr>
-        <td style="width: 32.7968%;">Name</td>
-        <td style="width: 33.5461%;">Version</td>
-        <td style="width: 33.6571%;">Status</td>
-        </tr>
-        </tbody>
-        </table>
-        <table border="0" style="width: 100%; border-collapse: collapse;">
-        <tbody>
-        <tr>
-        <td style="width: 33.0189%;"></td>
-        <td style="width: 33.4905%;"></td>
-        <td style="width: 33.4905%;"></td>
-        </tr>
-        <tr>
-        <td style="width: 33.0189%;">Java OpenJDK 11</td>
-        <td style="width: 33.4905%;">11.0.8</td>
-        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
-        </tr>
-        <tr>
-        <td style="width: 33.0189%;">Java OpenJDK 8</td>
-        <td style="width: 33.4905%;">1.8.0.261</td>
-        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
-        </tr>
-        <tr>
-        <td style="width: 33.0189%;">Java Language Support Extension</td>
-        <td style="width: 33.4905%;">0.68.0</td>
-        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
-        </tr>
-        <tr>
-        <td style="width: 33.0189%;">Java Debugger Extension</td>
-        <td style="width: 33.4905%;">0.28.0</td>
-        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
-        </tr>
-        <tr>
-        <td style="width: 33.0189%;">Java Test Runner Extension</td>
-        <td style="width: 33.4905%;">0.24.2</td>
-        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
-        </tr>
-        <tr>
-        <td style="width: 33.0189%;">Gradle Tasks Extension</td>
-        <td style="width: 33.4905%;">3.4.5</td>
-        <td style="width: 33.4905%; color: #2dc26b;">installed</td>
-        </tr>
-        </tbody>
-        </table>
-        <p>&nbsp;</p>
-        <p></p>
-        <p></p>
-        <p>&nbsp;</p>
-        <p>&nbsp;</p>
-        <p>&nbsp;</p>
-        <h2>Once you're ready to go, check out these starter projects:</h2>
-        <hr />
-        <p>&nbsp;</p>
-        <span class="img-container">
-        <img src="https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0_viewsRedux/media/templateCards.png" alt="" />
-        </span>
+    <body>    
+        <div class="container">
+            <h1>Corda Open-source blockchain platform for business</h1>
+            <div class="intro">
+                This extension supports the complete development workflow for CorDapp development. Get started, manage your local network, create flows, states and contracts.
+            </div>
+            <div class="logo">
+                <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#"
+                    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg"
+                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 404 385.33334" height="385.33334" width="404"
+                    xml:space="preserve" id="svg2" version="1.1">
+                    <metadata id="metadata8">
+                        <rdf:RDF>
+                            <cc:Work rdf:about="">
+                                <dc:format>image/svg+xml</dc:format>
+                                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+                                <dc:title></dc:title>
+                            </cc:Work>
+                        </rdf:RDF>
+                    </metadata>
+                    <defs id="defs6">
+                        <clipPath id="clipPath18" clipPathUnits="userSpaceOnUse">
+                            <path id="path16" d="M 0,289 H 303 V 0 H 0 Z" />
+                        </clipPath>
+                    </defs>
+                    <g transform="matrix(1.3333333,0,0,-1.3333333,0,385.33333)" id="g10">
+                        <g id="g12">
+                            <g clip-path="url(#clipPath18)" id="g14">
+                                <g transform="translate(131.2506,173.2166)" id="g20">
+                                    <path id="path22" style="fill:#e0241d;fill-opacity:1;fill-rule:nonzero;stroke:none"
+                                        d="M 0,0 C 5.787,0 11.17,-1.718 15.679,-4.662 20.85,10.889 30.888,24.206 43.996,33.493 31.566,42.301 16.394,47.494 0,47.494 c -42.09,0 -76.211,-34.12 -76.211,-76.211 0,-42.09 34.121,-76.211 76.211,-76.211 16.394,0 31.566,5.194 43.996,14.002 C 30.888,-81.639 20.85,-68.322 15.679,-52.771 11.17,-55.716 5.787,-57.434 0,-57.434 c -15.86,0 -28.717,12.857 -28.717,28.717 C -28.717,-12.856 -15.86,0 0,0" />
+                                </g>
+                                <g transform="translate(219.2432,173.2171)" id="g24">
+                                    <path id="path26" style="fill:#e0241d;fill-opacity:1;fill-rule:nonzero;stroke:none"
+                                        d="m 0,0 c -15.86,0 -28.717,-12.857 -28.717,-28.717 0,-15.86 12.857,-28.717 28.717,-28.717 15.86,0 28.717,12.857 28.717,28.717 C 28.717,-12.857 15.86,0 0,0" />
+                                </g>
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <div class="box">
+                <h2>Using the extension</h2>
+                <p>The Corda extension will be activated whenever you open a CorApp project in code.</p>
+                <p>Click the Corda icon in the left navigation bar to get to the application lifecycle actions, and to browse your flows, states, and contracts.</p>
+            </div>
+            <div class="box">
+                <h2>Training and documentation</h2>
+                <p><a href="https://docs.corda.net/docs/corda-os/" target="_blank">Corda Documentation</a></p>
+                <p><a href="https://training.corda.net" target="_blank">Corda Training</a></p>
+            </div>
+            <div class="footer">
+                <br>
+                Corda Visual Studio Extension by <a target="_blank" href="https://www.r3.com">R3</a> | 
+                <a target="_blank" href="https://github.com/corda/vscode-corda">Project Repository</a>
+            </div>
+        </div>
     </body>
     </html>`
 }
