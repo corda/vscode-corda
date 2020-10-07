@@ -8,7 +8,11 @@ import Axios from 'axios';
  * @param projectObjects dictionary of Corda types, used for inheritance selection
  */
 export const cordaFlowsAddCallback = (projectObjects) => {
-	
+    
+    // get a defaultURI
+    const firstFlowURI: string | undefined = (projectObjects.projectClasses.flowClasses as ClassSig[])[0].file?.toString();
+    const flowDefaultURI: vscode.Uri = vscode.Uri.parse(firstFlowURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
+
     const qpickItems = (projectObjects.projectClasses.flowClasses as ClassSig[]).map((sig) => {
             return sig.name
         }).concat(Constants.FLOW_BASE_CLASS);
@@ -18,7 +22,7 @@ export const cordaFlowsAddCallback = (projectObjects) => {
     // sourceMap <baseType>:[<templateClassName>,<URL>]
     const sourceMap = {'FlowLogic':['BaseFlow','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseFlow.java']};
 
-    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+    addCommandHelper(flowDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
 /**
@@ -26,6 +30,10 @@ export const cordaFlowsAddCallback = (projectObjects) => {
  * @param projectObjects 
  */
 export const cordaContractsAddCallback = (projectObjects) => {
+
+    // get a defaultURI
+    const firstContractURI: string | undefined = (projectObjects.projectClasses.contractClasses as ObjectSig[])[0].file?.toString();
+    const contractDefaultURI: vscode.Uri = vscode.Uri.parse(firstContractURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
 	
     const qpickItems = (projectObjects.projectClasses.contractClasses as ObjectSig[])
         .concat(projectObjects.projectInterfaces.contractInterfaces)
@@ -38,7 +46,7 @@ export const cordaContractsAddCallback = (projectObjects) => {
     // sourceMap <baseType>:[<templateClassName>,<URL>]
     const sourceMap = {'Contract':['BaseContract','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContract.java']};
 
-    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+    addCommandHelper(contractDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
 /**
@@ -46,6 +54,11 @@ export const cordaContractsAddCallback = (projectObjects) => {
  * @param projectObjects 
  */
 export const cordaContractStatesAddCallback = (projectObjects) => {
+
+    // get a defaultURI
+    const firstContractStateURI: string | undefined = (projectObjects.projectClasses.contractStateClasses as ObjectSig[])[0].file?.toString();
+    const contractStateDefaultURI: vscode.Uri = vscode.Uri.parse(firstContractStateURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
+
     const qpickItems = (projectObjects.projectClasses.contractStateClasses as ObjectSig[])
         .concat(projectObjects.projectInterfaces.contractStateInterfaces)
         .map((sig) => {
@@ -57,7 +70,7 @@ export const cordaContractStatesAddCallback = (projectObjects) => {
     // sourceMap <baseType>:[<templateClassName>,<URL>]
     const sourceMap = {'ContractState':['BaseContractState','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContractState.java']};
 
-    addCommandHelper(qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+    addCommandHelper(contractStateDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
 }
 
 /**
@@ -68,8 +81,8 @@ export const cordaContractStatesAddCallback = (projectObjects) => {
  * @param commandSource 
  * @param sourceMap 
  */
-const addCommandHelper = async (qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap) => {
-	let path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}, openLabel: 'Save File'});
+const addCommandHelper = async (defaultUri, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap) => {
+	let path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({defaultUri: defaultUri,canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}, openLabel: 'Save File'});
 	if (path == undefined) return;
 
 	let stateBase = await vscode.window.showQuickPick(qpickItems,
