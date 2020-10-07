@@ -46,7 +46,7 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
             }
             .box {
                 float: left;
-                background-color: #c0c0c0;
+                background-color: var(--vscode-sideBar-background);
                 padding: 10px;
                 width: 520px;
                 margin-top: 20px;
@@ -63,7 +63,7 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
         <div class="container">
             <h1>Corda Open-source blockchain platform for business</h1>
             <div class="intro">
-                This extension supports the complete development workflow for CorDapp development. Get started, manage your local network, create flows, states and contracts.
+                This extension supports the complete workflow for CorDapp development. Get started, manage your local network, create flows, states and contracts.
             </div>
             <div class="logo">
                 <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#"

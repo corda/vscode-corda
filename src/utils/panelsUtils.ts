@@ -32,7 +32,7 @@ export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | un
 			break;
 		case 'prerequisites':
 			reactPanel = false;
-			title = "Prerequisites";
+			title = "Welcome to Corda";
 			resourceRoot = "src/static/";
 			file = "prereqs.js";
 			break;

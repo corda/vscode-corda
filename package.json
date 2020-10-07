@@ -32,7 +32,7 @@
 		"url": "https://github.com/corda/vscode-corda/issues",
 		"email": "devrel@r3.com"
 	},
-	"icon": "./media/vscode-corda.png",
+	"icon": "vscode-corda.png",
 	"homepage": "https://www.corda.net/develop/",
 	"activationEvents": [
 		"onStartupFinished"

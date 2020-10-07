@@ -8,5 +8,6 @@ out
 *.project
 *~
 *.class
+*.vsix
 .gradle
 build/
