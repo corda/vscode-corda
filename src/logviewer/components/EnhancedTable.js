@@ -21,6 +21,10 @@ import {
   useExpanded,
 } from 'react-table'
 
+import ListIcon from '@material-ui/icons/List';
+import ListIconAlt from '@material-ui/icons/ListAlt';
+import ArrowDown from '@material-ui/icons/ExpandMore';
+import ArrowRight from '@material-ui/icons/ChevronRight';
 
 const useStyles = makeStyles({
   header: {
@@ -66,6 +70,7 @@ const EnhancedTable = ({
       data,
       autoResetPage: !skipPageReset,
       updateMyData,
+      groupBy: ['thread']
     },
     useGlobalFilter,
     useGroupBy,
@@ -73,7 +78,7 @@ const EnhancedTable = ({
     useExpanded,
     usePagination,
   )
-  
+
 
   const handleChangePage = (event, newPage) => {
     gotoPage(newPage)
@@ -83,50 +88,38 @@ const EnhancedTable = ({
     setPageSize(Number(event.target.value))
   }
 
-  const handleGroupChange = event => {
-    //this.setState(groupBy, 'thread');
-    console.log(event)
-  }
-
-  const handleInfoChange = event => {
-    console.log(event)
-  }
-
-  const handleErrorsChange = event => {
-    console.log(event)
-  }
-
   const cellClass = useStyles();
-
+  
   return (
-    <div className={cellClass.pageTitle}>
-    <span>Log Viewer</span>
-    <TableContainer>
+      <div className={cellClass.pageTitle}>
+      <span>Log Viewer</span>
+      <TableContainer>
       <TableToolbar
         preGlobalFilteredRows={preGlobalFilteredRows}
         setGlobalFilter={setGlobalFilter}
         globalFilter={globalFilter}
-        handleGroupChange={handleGroupChange}
-        handleInfoChange={handleInfoChange}
-        handleErrorsChange={handleErrorsChange}
       />
       <MaUTable {...getTableProps()}>
         <TableHead>
           {headerGroups.map(headerGroup => (
             <TableRow {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(column => (
-                <TableCell 
+                <TableCell
                   classes={{ root: cellClass.header }}
                   {...(column.id === 'message'
                     ? column.getHeaderProps()
                     : column.getHeaderProps(column.getSortByToggleProps()))}
                   style={{ width: column.width, fontWeight: 600 }}
                 >
+                  {column.canGroupBy ? (
+                    <span {...column.getGroupByToggleProps()} style={{MarginTop: 8}}>
+                      {column.isGrouped ? <ListIconAlt style={{fontSize: 14}}/> : <ListIcon style={{fontSize: 14}}/>}
+                    </span>
+                  ) : null}
                   {column.render('Header')}
                   {column.id !== 'message' ? (
                     <TableSortLabel
                       active={column.isSorted}
-                      // react-table has a unsorted state which is not treated here
                       direction={column.isSortedDesc ? 'desc' : 'asc'}
                     />
                   ) : null}
@@ -142,8 +135,19 @@ const EnhancedTable = ({
               <TableRow {...row.getRowProps()}>
                 {row.cells.map(cell => {
                   return (
-                    <TableCell {...cell.getCellProps()} classes={{ root: cellClass.cell}}>
-                      {cell.render('Cell')}
+                    <TableCell {...cell.getCellProps()} classes={{ root: cellClass.cell }}>
+                      {cell.isGrouped ? (
+                        <>
+                          <span {...row.getToggleRowExpandedProps()} style={{padding: 4}}>
+                            {row.isExpanded ? <ArrowDown style={{fontSize: 14}}/> : <ArrowRight style={{fontSize: 14}}/>}
+                          </span>{' '}
+                          {cell.render('Cell')} ({row.subRows.length})
+                        </>
+                      ) : cell.isAggregated ? (
+                        cell.render('Aggregated')
+                      ) : cell.isPlaceholder ? null : (
+                        cell.render('Cell')
+                      )}
                     </TableCell>
                   )
                 })}
@@ -165,7 +169,7 @@ const EnhancedTable = ({
                 500,
                 { label: 'All', value: data.length },
               ]}
-              colSpan={4}
+              colSpan={5}
               count={data.length}
               rowsPerPage={pageSize}
               page={pageIndex}
