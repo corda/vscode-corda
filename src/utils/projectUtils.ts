@@ -7,7 +7,7 @@ import { GlobalStateKeys, WorkStateKeys, Contexts, Constants, SERVER_CLIENT_TOKE
 import { CordaNodesConfig, CordaTaskConfig, ParsedNode, DefinedCordaNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from '../types/types'
 const gjs = require('../../gradleParser');
 import { areNodesDeployed } from '../utils/networkUtils';
-import { disposeRunningNodes } from '../commandHandlers/networkCommands';
+import { disposeRunningNodes, launchClient } from '../commandHandlers/networkCommands';
 import {debug} from '../extension';
 
 /**
@@ -94,6 +94,9 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     if (context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) === undefined) {
         await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, uuidv4());
     }
+
+    // start client
+    launchClient(context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) as string)
 
     // Parse build.gradle for deployNodes configuration and store to workspace
     let gradleTaskConfigs: CordaTaskConfig[] | undefined = []

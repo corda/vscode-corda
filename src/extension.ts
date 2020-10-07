@@ -24,7 +24,7 @@ const cordaWatchers: vscode.FileSystemWatcher[] = [];
 const fsWatchers: any[] = [];
 var projectObjects: {projectClasses: any, projectInterfaces:any};
 
-export const debug = true;
+export const debug = false;
 
 /**
  * context.workSpaceState entries:
@@ -150,7 +150,6 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 				});
 
 				progress.report({increment: 0})
-
 				
 				await network.runNetworkCallback(context, progress);
 				

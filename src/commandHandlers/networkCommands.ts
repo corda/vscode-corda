@@ -125,14 +125,6 @@ export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context:
     await panelStart('logviewer', node, context);
 
     const filepath = path.join(context.extensionPath, "smalllog.log");
-    // request.countEntries(filepath).then(count => {
-    //     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
-    //     panel?.webview.postMessage({
-    //         messageType: MessageType.NEW_LOG_ENTRIES,
-    //         filepath,
-    //         entriesCount: count
-    //     } as WindowMessage)
-    // })
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
         panel?.webview.postMessage({
             messageType: MessageType.NEW_LOG_ENTRIES,
@@ -191,14 +183,15 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
         runningNodes.push(currentNode);
     })
 
-    progress.report({ increment: 50, message: "Logging into nodes" });
-    await sleep(1000);
-    
+    // HARD SLEEP TO ALLOW corda.jar instances to come up.
+    // TODO: SWAP this to an AXIOS Retry
+    await sleep(35000); 
 
-    // LOGIN to each node
-    await loginToAllNodes(runningNodes, context);
+    progress.report({ increment: 50, message: "Logging into nodes" });
     
-    // await isNetworkRunning(context); // update context
+    await loginToAllNodes(runningNodes, context); // LOGIN to each node
+    
+    await isNetworkRunning(context); // update context
 }
 
 /**
@@ -231,8 +224,9 @@ export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
  * TODO: set-timeout and try a Kill/Reload of client
  */
 export const server_awake = async (clientToken: string | undefined) => {
-    // client check
-    // launchClient();
+    
+    launchClient(clientToken!); // is up, or launch
+
     axios.defaults.headers.common['clienttoken'] = clientToken;
     const retryClient = axios.create({ baseURL: SERVER_BASE_URL })
     axiosRetry(retryClient, { retries: 15, retryDelay: (retryCount) => {
@@ -251,6 +245,9 @@ export const server_awake = async (clientToken: string | undefined) => {
 export const loginToAllNodes = async (runningNodes: RunningNode[], context: vscode.ExtensionContext) => {
     const clientToken = `${context.globalState.get(GlobalStateKeys.CLIENT_TOKEN)}`;
     await server_awake(clientToken);
+
+    await sleep(10000); // SLEEP for node up
+
     axios.defaults.headers.common['clienttoken'] = clientToken;
     let idx = 0;
     for (const node of runningNodes) {
@@ -283,7 +280,7 @@ export const loginToNode = async (node: DefinedCordaNodeTreeItem) => {
  * 
  * TODO: switch check to server_awake
  */
-export function launchClient() {
+export function launchClient(clientToken: string) {
     let debug = true;
 
 	// Launch client
@@ -292,7 +289,7 @@ export function launchClient() {
 	if (!terminal) { // check if client already launched
 		const jarPath = vscode.extensions.getExtension("R3.vscode-corda")?.extensionPath;
 		const cmd1 = 'cd ' + jarPath;
-		const cmd2 = 'java -jar ' + SERVER_JAR; // --servertoken=' + clientToken;
+		const cmd2 = 'java -jar ' + SERVER_JAR + ' --servertoken=' + clientToken;
 		terminal = vscode.window.createTerminal(name);
 		terminal.sendText(cmd1);
         terminal.sendText(cmd2);
