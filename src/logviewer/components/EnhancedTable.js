@@ -25,10 +25,21 @@ import {
 const useStyles = makeStyles({
   header: {
     padding: '8px',
+    color: 'var(--vscode-editor-foreground)',
+    background: 'var(--vscode-sideBarSectionHeader-background)'
   },
   cell: {
     padding: '4px',
     fontFamily: 'courier',
+    color: 'var(--vscode-editor-foreground)',
+  },  
+  pageTitle: {
+    height: '50px',
+    color: 'var(--vscode-editor-foreground)',
+    fontSize: '25px'
+  },
+  themeColor: {
+    color: 'var(--vscode-editor-foreground)'
   }
 });
 
@@ -88,6 +99,8 @@ const EnhancedTable = ({
   const cellClass = useStyles();
 
   return (
+    <div className={cellClass.pageTitle}>
+    <span>Log Viewer</span>
     <TableContainer>
       <TableToolbar
         preGlobalFilteredRows={preGlobalFilteredRows}
@@ -139,9 +152,13 @@ const EnhancedTable = ({
           })}
         </TableBody>
 
-        <TableFooter>
+        <TableFooter className={{root: cellClass.header}}>
           <TableRow>
             <TablePagination
+              classes={{
+                root: cellClass.themeColor,
+                actions: cellClass.themeColor
+              }}
               rowsPerPageOptions={[
                 100,
                 200,
@@ -164,6 +181,7 @@ const EnhancedTable = ({
         </TableFooter>
       </MaUTable>
     </TableContainer>
+    </div>
   )
 }
 

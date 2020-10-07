@@ -96,7 +96,7 @@ const getReactPanelContent = (context: vscode.ExtensionContext, definedNode: Def
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title>${title}</title>
 		</head>
-		<body>
+		<body style="background: var(--vscode-editor-background)">
 			<div id="clienttoken" style="display:none">${clientToken}</div>
 			<div id="rpcconnid" style="display:none">${rpcClientId}</div>
 			<div id="root">   </div>

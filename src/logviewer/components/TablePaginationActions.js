@@ -13,6 +13,9 @@ const useStyles = makeStyles(theme => ({
     flexShrink: 0,
     marginLeft: theme.spacing(2.5),
   },
+  themeColor: {
+    color: 'var(--vscode-editor-foreground)'
+  }
 }))
 
 const TablePaginationActions = props => {
@@ -39,6 +42,7 @@ const TablePaginationActions = props => {
   return (
     <div className={classes.root}>
       <IconButton
+        className={classes.themeColor}
         onClick={handleFirstPageButtonClick}
         disabled={page === 0}
         aria-label="first page"
@@ -46,6 +50,7 @@ const TablePaginationActions = props => {
         {theme.direction === 'rtl' ? <LastPageIcon /> : <FirstPageIcon />}
       </IconButton>
       <IconButton
+        className={classes.themeColor}
         onClick={handleBackButtonClick}
         disabled={page === 0}
         aria-label="previous page"
@@ -57,6 +62,7 @@ const TablePaginationActions = props => {
         )}
       </IconButton>
       <IconButton
+        className={classes.themeColor}
         onClick={handleNextButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="next page"
@@ -68,6 +74,7 @@ const TablePaginationActions = props => {
         )}
       </IconButton>
       <IconButton
+        className={classes.themeColor}
         onClick={handleLastPageButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="last page"

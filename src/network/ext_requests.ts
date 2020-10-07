@@ -21,6 +21,7 @@ export const getNetworkMap = async (context: vscode.ExtensionContext): Promise<N
     
     const runningNodes: RunningNode[] = globalRunningNodesList![workspaceName!].runningNodes;
     const firstNodeRPCconnid = runningNodes![0].rpcconnid;
+    console.log(firstNodeRPCconnid);
 
     axios.defaults.headers.common['clienttoken'] = clientToken;
     axios.defaults.headers.common['rpcconnid'] = firstNodeRPCconnid;
