@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-import { GlobalStateKeys, WorkStateKeys, Contexts, Constants, SERVER_CLIENT_TOKEN_DEVTEST } from '../types/CONSTANTS';
+import { GlobalStateKeys, WorkStateKeys, Contexts, Constants, DebugConst } from '../types/CONSTANTS';
 import { CordaNodesConfig, CordaTaskConfig, ParsedNode, DefinedCordaNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from '../types/types'
 const gjs = require('../../gradleParser');
 import { areNodesDeployed } from '../utils/networkUtils';
@@ -89,7 +89,7 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 
     // if no client token set for Corda -> set a new token ; debug flag will pull a generic pre-set token
     if (debug) {
-        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, SERVER_CLIENT_TOKEN_DEVTEST)
+        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, DebugConst.SERVER_CLIENT_TOKEN_DEVTEST);
     }
     if (context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) === undefined) {
         await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, uuidv4());

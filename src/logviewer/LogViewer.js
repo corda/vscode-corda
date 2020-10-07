@@ -22,6 +22,10 @@ const LogViewer = (props) => {
         Header: 'Message',
         accessor: 'message',
       },
+      {
+        Header: "Attached Object",
+        accessor: 'object',
+      }
     ],
     []
   )
@@ -31,7 +35,7 @@ const LogViewer = (props) => {
   React.useEffect(() => {
     (async function fetchData() {
       console.log(props.filepath);
-      setData(await getData(6, props.filepath));
+      setData(await getData(props.filepath));
     })()
   }, [])
 

@@ -15,7 +15,11 @@ export const GRADLE_TASKS_EXTENSION_ID = 'richardwillis.vscode-gradle';
 export const SERVER_BASE_URL = 'http://localhost:8580';
 export const SERVER_JAR = 'explorer-server-0.1.0.jar';
 export const RUN_CORDA_CMD = 'java -jar corda.jar';
-export const SERVER_CLIENT_TOKEN_DEVTEST = "ebb7faee-95df-45ec-99a6-42b7f826a8d1";
+
+export abstract class DebugConst {
+    static readonly SERVER_CLIENT_TOKEN_DEVTEST = "ebb7faee-95df-45ec-99a6-42b7f826a8d1";
+    static readonly LOG_FILE = "smalllog2.log";
+}
 
 /**
  * represets views defined in package.json

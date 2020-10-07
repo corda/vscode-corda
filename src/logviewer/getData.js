@@ -26,7 +26,7 @@ const tidyEntry = (entry) => ({
   date: new Date(before(entry.date, ",")).toISOString().substring(0, 19).replace('T', ' '),
   severity: entry.severity,
   message: '[' + entry.source + '] ' + entry.body.message,
-  object: JSON.parse(entry.body.object)
+  object: entry.body.object
 })
 
 
@@ -50,6 +50,6 @@ export const countEntries = async (filepath) =>
     .data.data.entriesCount
 
 
-export default function getData(lens, filepath) {
-  return entriesBetween(0, lens, filepath)
+export default async function getData(filepath) {
+  return entriesBetween(0, await countEntries(filepath), filepath)
 }

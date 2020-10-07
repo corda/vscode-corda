@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { panelStart } from '../utils/panelsUtils';
 import { runGradleTaskCallback, openFileCallback } from './generalCommands';
-import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts, TxRequests, SERVER_BASE_URL, SERVER_JAR } from '../types/CONSTANTS';
+import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts, TxRequests, DebugConst, SERVER_BASE_URL, SERVER_JAR } from '../types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from '../utils/networkUtils';
 import { RunningNode, RunningNodesList, DefinedCordaNode } from '../types/types';
 import { MessageType, WindowMessage } from "../logviewer/types";
@@ -59,7 +59,7 @@ export const networkMapCallback = async (context: vscode.ExtensionContext) => {
     const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
-    panel?.webview.postMessage(networkData);
+    await panel?.webview.postMessage(networkData);
 }
 
 /**
@@ -124,12 +124,12 @@ export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context:
     const path = require('path');    
     await panelStart('logviewer', node, context);
 
-    const filepath = path.join(context.extensionPath, "smalllog.log");
+    const filepath = path.join(context.extensionPath, DebugConst.LOG_FILE);
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer');
-        panel?.webview.postMessage({
-            messageType: MessageType.NEW_LOG_ENTRIES,
-            filepath,
-        } as WindowMessage)
+    panel?.webview.postMessage({
+        messageType: MessageType.NEW_LOG_ENTRIES,
+        filepath,
+    } as WindowMessage)
 }
 
 /**
