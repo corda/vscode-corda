@@ -1,6 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { window, ProgressLocation } from 'vscode';
 import { CordaOperation, CordaOperationsProvider } from './treeDataProviders/cordaOperations';
 import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
 import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
@@ -13,10 +14,11 @@ import * as watchers from './watchers';
 import * as addCommands from './commandHandlers/addCommands';
 import * as general from './commandHandlers/generalCommands';
 import * as network from './commandHandlers/networkCommands';
-import { cordaCheckAndLoad } from './utils/projectUtils';
+import { cordaCheckAndLoad, sleep } from './utils/projectUtils';
 import { server_awake } from './commandHandlers/networkCommands';
 import { Contexts, Views, Commands, GlobalStateKeys } from './types/CONSTANTS';
 import { disposeRunningNodes } from './commandHandlers/networkCommands';
+import { resolve } from 'dns';
 
 const cordaWatchers: vscode.FileSystemWatcher[] = [];
 const fsWatchers: any[] = [];
@@ -136,7 +138,28 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 					}
 				})
 		),
-		vscode.commands.registerCommand(Commands.NETWORK_RUN, async () => network.runNetworkCallback(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_RUN, () => {
+			window.withProgress({
+				location: ProgressLocation.Notification,
+				title: "Running network",
+				cancellable: true
+			}, async (progress, token) => {
+				token.onCancellationRequested(() => {
+					// cancellation request here
+					vscode.commands.executeCommand(Commands.NETWORK_STOP);
+				});
+
+				progress.report({increment: 0})
+
+				
+				await network.runNetworkCallback(context, progress);
+				
+				progress.report({increment: 10, message: "Network up"})
+				await sleep(1000);
+			})
+			
+			
+		}),
 		vscode.commands.registerCommand(Commands.NETWORK_STOP, () => disposeRunningNodes(context)),
 
 		// Node actions

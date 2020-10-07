@@ -13,6 +13,7 @@ import { DefinedCordaNodeTreeItem } from '../treeDataProviders/cordaLocalNetwork
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import { findTerminal } from '../utils/terminalUtils';
+import { sleep } from '../utils/projectUtils';
 
 /**
  * Deploys nodes in project with pre-req checking
@@ -154,11 +155,20 @@ export const editDeployNodesCallback = (context: vscode.ExtensionContext) => {
  * Runs the local test network as defined in the build.gradle
  * @param context 
  */
-export const runNetworkCallback = async (context: vscode.ExtensionContext) => {
+export const runNetworkCallback = async (context: vscode.ExtensionContext, progress: vscode.Progress<any>) => {
+    
+    progress.report({ increment: 10, message: "Preparing network" });
+    await sleep(1000);
+    
     await disposeRunningNodes(context);
 
     let runningNodes: RunningNode[] = []; // running nodes for this workspace
     let currentNode: RunningNode | undefined = undefined;
+
+    
+    progress.report({ increment: 30, message: "Starting nodes" });
+    await sleep(1000);
+
 
     const deployedNodes:DefinedCordaNode[] | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
     deployedNodes!.forEach((node: DefinedCordaNode) => {
@@ -180,6 +190,10 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext) => {
         // Add to runningNodes
         runningNodes.push(currentNode);
     })
+
+    progress.report({ increment: 50, message: "Logging into nodes" });
+    await sleep(1000);
+    
 
     // LOGIN to each node
     await loginToAllNodes(runningNodes, context);

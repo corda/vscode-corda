@@ -77,7 +77,7 @@
 				{
 					"id": "cordaDependencies",
 					"name": "Dependencies",
-					"when": "vscode-corda:projectIsCorda",
+					"when": "vscode-corda:projectIsCorda && false",
 					"visibility": "collapsed"
 				},
 				{

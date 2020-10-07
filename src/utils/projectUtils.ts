@@ -11,6 +11,14 @@ import { disposeRunningNodes } from '../commandHandlers/networkCommands';
 import {debug} from '../extension';
 
 /**
+ * Simple sleep function
+ * @param ms 
+ */
+export function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Fix which is used for JUnit testrunner to correctly work
  * - may not be necessary if using 'vscode-gradle' must confirm
  * 
