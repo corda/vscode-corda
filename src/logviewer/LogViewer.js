@@ -29,11 +29,11 @@ const LogViewer = ({filepath}) => {
         accessor: 'message',
         canGroupBy: false,
       },
-      {
-        Header: 'Attached Object',
-        accessor: 'object',
-        canGroupBy: false,
-      }
+      // {
+      //   Header: 'Attached Object',
+      //   accessor: 'object',
+      //   canGroupBy: false,
+      // }
     ],
     []
   )

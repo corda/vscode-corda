@@ -23,6 +23,7 @@ const resultFromServer = async (path, postRequest) =>
 
 const tidyEntry = (entry) => ({
   ...entry,
+  thread: entry.thread.replace('-client-global-threads', ''),
   date: new Date(before(entry.date, ",")).toISOString().substring(0, 19).replace('T', ' '),
   severity: entry.severity,
   message: '[' + entry.source + '] ' + entry.body.message,

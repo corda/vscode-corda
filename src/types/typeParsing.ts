@@ -23,12 +23,14 @@ export abstract class ObjectSig {
  * Represents a Corda Class (inherits from ContractState, Contract, or FlowLogic)
  */
 export class ClassSig extends ObjectSig {
-  superClass: string;
+  superClass: string | undefined;
   superInterfaces: string[];
-  constructor(name: string, superClass: string, superInterfaces: string[], file: Uri | undefined) {
+  boundTo: string | undefined;
+  constructor(name: string, superClass: string | undefined, superInterfaces: string[], boundTo: string | undefined, file: Uri | undefined) {
       super(name, file);
       this.superClass = superClass;
       this.superInterfaces = superInterfaces;
+      this.boundTo = boundTo;
   }
 }
 
@@ -52,11 +54,27 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       this.workingFile = undefined; // store file URI for a particular visit (what file does this object belong)
       this.classSigs = []; // list of Corda Classes
       this.interfaceSigs = []; // list of Corda Interfaces
+      this.currentBoundTo = undefined;
       this.validateVisitor();
   }
 
   setWorkingFile(file: Uri) {
       this.workingFile = file;
+  }
+  setCurrentBoundTo(boundTo: string | undefined) {
+      this.currentBoundTo = boundTo;
+  }
+
+  classDeclaration(ctx: any) {
+      this.setCurrentBoundTo(undefined); // reset class level boundTo
+      this.visit(ctx.classModifier); // go to annotation if exist
+      const classDetails: {name, superClass, superInterfaces} = this.visit(ctx.normalClassDeclaration);
+
+      if (classDetails.superClass != undefined || classDetails.superInterfaces != undefined) {
+          this.classSigs.push(
+              new ClassSig(classDetails.name, classDetails.superClass, classDetails.superInterfaces, this.currentBoundTo, this.workingFile)
+          );
+      } 
   }
 
   // Visits all class declarations in CST
@@ -64,11 +82,7 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       const name = this.visit(ctx.typeIdentifier);
       const superClass = this.visit(ctx.superclass);
       const superInterfaces = this.visit(ctx.superinterfaces);
-      if (superClass != undefined || superInterfaces != undefined) {
-          this.classSigs.push(
-              new ClassSig(name, superClass, superInterfaces, this.workingFile)
-          );
-      } 
+      return {name, superClass, superInterfaces};
   }
 
   // Visits all interface declarations in CST
@@ -113,7 +127,24 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
   typeIdentifier(ctx: any) {
       return ctx.Identifier[0].image;
   }
-}
+
+//   classModifier(ctx: any) {
+//       return;
+//   }
+
+  annotation(ctx: any) {
+      const annotationValue = ctx.typeName[0].children.Identifier[0].image;
+      switch (annotationValue) {
+          case 'BelongsToContract':
+          case 'InitiatedBy':
+            this.visit(ctx.elementValue);
+      }
+  }
+
+  fqnOrRefTypePartCommon(ctx: any) {
+      this.setCurrentBoundTo(ctx.Identifier[0].image);
+  }
+ }
 
 // FUNCTIONS ===========
 
@@ -150,7 +181,7 @@ export const parseJavaFiles = async (context: ExtensionContext) => {
  * @returns dictionary of project classes and project interfaces.
  */
 const extractTypes = (ctVisitor: ClassTypeVisitor) => {
-    const flowBaseClassSig = [new ClassSig(Constants.FLOW_BASE_CLASS[0], '', [], undefined)];
+    const flowBaseClassSig = [new ClassSig(Constants.FLOW_BASE_CLASS[0], undefined, [],undefined, undefined)];
     const contractStateInterfaceSigs = Constants.CONTRACTSTATE_BASE_INTERFACES.map(itr => { return new InterfaceSig(itr, '', undefined); });
     const contractInterfaceSig = Constants.CONTRACT_BASE_INTERFACE.map(itr => { return new InterfaceSig(itr, '', undefined); });
 

@@ -94,6 +94,7 @@ export abstract class Commands {
     static readonly NODE_VAULT_QUERY = "corda.Node.vaultQuery";
     static readonly NODE_LOGVIEWER = "corda.Node.logViewer";
     static readonly NODE_LOGIN = "corda.Node.login";
+    static readonly JUMP_TO_BOUND = "corda.jumpToBound";
 
     // DEFINED IN TREE-PROVIDER
     static readonly OPERATIONS_ASSEMBLE = 'corda.operations.assembleCommand';

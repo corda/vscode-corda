@@ -4,9 +4,9 @@ import * as vscode from 'vscode';
 import { window, ProgressLocation } from 'vscode';
 import { CordaOperation, CordaOperationsProvider } from './treeDataProviders/cordaOperations';
 import { CordaDepProvider } from './treeDataProviders/cordaDependencies';
-import { CordaFlowsProvider } from './treeDataProviders/cordaFlows';
+import { CordaFlow, CordaFlowsProvider } from './treeDataProviders/cordaFlows';
 import { CordaContractsProvider } from './treeDataProviders/cordaContracts';
-import { CordaStatesProvider } from './treeDataProviders/cordaStates';
+import { CordaState, CordaStatesProvider } from './treeDataProviders/cordaStates';
 import { CordaLocalNetworkProvider, DefinedCordaNodeTreeItem } from './treeDataProviders/cordaLocalNetwork';
 
 import { ClassSig, parseJavaFiles } from './types/typeParsing';
@@ -117,6 +117,19 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		vscode.commands.registerCommand(Commands.CONTRACTS_ADD, () => addCommands.cordaContractsAddCallback(projectObjects)),
 		vscode.commands.registerCommand(Commands.STATES_ADD, () => addCommands.cordaContractStatesAddCallback(projectObjects)),
 		vscode.commands.registerCommand(Commands.CORDA_OPEN_FILE, (uri) => general.openFileCallback(uri)),
+
+		// linked objects
+		vscode.commands.registerCommand(Commands.JUMP_TO_BOUND, (c: CordaState | CordaFlow) => {
+			// fetch linked class URI
+			const projectClassses = projectObjects.projectClasses;
+			const combinedClasses:ClassSig[] = projectClassses.flowClasses.concat(projectClassses.contractClasses);
+			const linkedClass:any = combinedClasses.find(pclass => {
+				return pclass.name === c.classSig.boundTo;
+			});
+			if (linkedClass != undefined) {
+				vscode.commands.executeCommand(Commands.CORDA_OPEN_FILE, linkedClass.file);
+			}
+		}),
 
 		// refreshes : currently unused.
 		vscode.commands.registerCommand(Commands.FLOWS_REFRESH, (classSig) => cordaFlowsProvider.refresh(classSig)),

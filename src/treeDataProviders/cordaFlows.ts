@@ -49,7 +49,7 @@ export class CordaFlow extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		private readonly classSig: ClassSig,
+		public readonly classSig: ClassSig,
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
@@ -57,5 +57,5 @@ export class CordaFlow extends vscode.TreeItem {
 
 	iconPath = new vscode.ThemeIcon('zap');
 	description = (this.classSig.superClass != undefined) ? this.classSig.superClass : this.classSig.superInterfaces[0]; 
-
+	contextValue = (this.classSig.boundTo != undefined) ? 'classIsBound' : 'classNotBound';
 }

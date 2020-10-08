@@ -113,7 +113,7 @@ const addCommandHelper = async (defaultUri, qpickItems, qpickPlaceHolder, inputP
 
 	// write file -> refresh Tree -> open file
 	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(() => {
-		const classToAdd: ClassSig = new ClassSig(fileName!.replace('.java',''), '', [stateBase!], fileUri);
+		const classToAdd: ClassSig = new ClassSig(fileName!.replace('.java',''), undefined, [stateBase!], undefined, fileUri);
 		vscode.commands.executeCommand(commandSource + '.refresh', classToAdd);
 	}).then(() => vscode.commands.executeCommand(Commands.CORDA_OPEN_FILE, fileUri));
 }

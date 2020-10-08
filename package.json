@@ -107,6 +107,11 @@
 				"icon": "$(repo-clone)"
 			},
 			{
+				"command": "corda.jumpToBound",
+				"title": "Edit Linked Class",
+				"icon": "$(link)"
+			},
+			{
 				"command": "cordaFlows.add",
 				"title": "Add",
 				"icon": "$(add)"
@@ -252,6 +257,11 @@
 				}
 			],
 			"view/item/context": [
+				{
+					"command": "corda.jumpToBound",
+					"when": "viewItem == classIsBound",
+					"group": "inline"
+				},
 				{
 					"command": "corda.operations.run",
 					"when": "view == cordaOperations && viewItem == opNotRunning",

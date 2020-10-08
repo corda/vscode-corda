@@ -169,7 +169,7 @@ const EnhancedTable = ({
                 500,
                 { label: 'All', value: data.length },
               ]}
-              colSpan={5}
+              colSpan={4}
               count={data.length}
               rowsPerPage={pageSize}
               page={pageIndex}
