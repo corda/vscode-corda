@@ -41,13 +41,14 @@ export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | un
 			resourceRoot = "";
 			file = "";
 	}
-	
-	let viewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, view, title, resourceRoot);
+	let viewId = view;
+	if (definedNode != undefined) { viewId = view + definedNode.x500.name }
+	let viewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, viewId, title, resourceRoot);
 	viewPanel.webview.html = (reactPanel) ? getReactPanelContent(context, definedNode, title, resourceRoot, file)
 				: getPrereqsContent(context, resourceRoot);
 	viewPanel.onDidDispose(
 		async () => {
-			await context.workspaceState.update(view, "");
+			await context.workspaceState.update(viewId, "");
 			viewPanel = undefined;
 		},
 		null,
@@ -118,12 +119,14 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
  * @param context
  */
 export const panelStart = async (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
-	// await server_awake();
-	// let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(view);
-	// if (panel && panel.webview) {
-	// 	panel.reveal();
-	// }  else {
-	// 	await context.workspaceState.update(view, getWebViewPanel(view, nodeName, context));
-	// }
-	await context.workspaceState.update(view, getWebViewPanel(view, definedNode, context));
+	const clientToken:string | undefined = context.globalState.get(GlobalStateKeys.CLIENT_TOKEN);
+	await server_awake(clientToken!);
+	let viewId = (definedNode != undefined) ? view + definedNode.x500.name : view;
+	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(viewId);
+	if (panel && panel.webview) {
+		panel.reveal();
+	}  else {
+		await context.workspaceState.update(viewId, getWebViewPanel(view, definedNode, context));
+	}
+	// await context.workspaceState.update(view, getWebViewPanel(view, definedNode, context));
 }
