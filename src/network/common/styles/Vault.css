@@ -86,7 +86,7 @@ span.MuiTypography-root.MuiFormControlLabel-label {
 }
 
 .green {
-    background: lime;
+    background: darkgreen;
     border: 1px solid limegreen;
 }
 
@@ -97,7 +97,7 @@ span.MuiTypography-root.MuiFormControlLabel-label {
 }
 
 .blue{
-    background: lightskyblue;
+    background: var(--vscode-editorOverviewRuler-errorForeground);
     border: 1px solid cadetblue;
 }
 
