@@ -51,6 +51,12 @@ export const newProjectCallback = async () => {
         entryName = zip.getEntries()[0].entryName.slice(0,-1)
         zip.extractAllTo(path[0].fsPath, true);
     } else {
+
+        // SUBFOLDER PROJECTS - multiproject repos such as samples-java.
+        // NOTE: currently these projects will be broken as they rely on ../constants.properties a parent dir file not saved.
+        // should decide whether these constants should be moved into each folder...
+        // alternative: to extract the ../constants.properties file -> move -> edit build.gradle...
+
         baseEntryName = zip.getEntries()[0].entryName;
         entryName = baseEntryName + Constants.GITHUB_API[requestedProject.label].subFolder;
         zip.extractEntryTo(entryName, path[0].fsPath, true, true); // Extracts the specific folder for project
