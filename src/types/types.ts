@@ -9,21 +9,21 @@ export interface CordaNodeConfig {
 // PARSING
 // tslint:disable-next-line: class-name
 export interface CordaNodesDefaultConfig{
-	rpcUsers: any;
+	rpcUsers: any
 }
 
 // PARSING
 // tslint:disable-next-line: class-name
 export interface CordaNodesConfig {
-	node: CordaNodeConfig;
-	nodeDefaults: CordaNodesDefaultConfig;
+	node: CordaNodeConfig,
+	nodeDefaults: CordaNodesDefaultConfig
 }
 
 // PARSING
 // tslint:disable-next-line: class-name
 export interface CordaTaskConfig {
     file: string,
-	task: CordaNodesConfig;
+	task: CordaNodesConfig
 }
 
 // tslint:disable-next-line: class-name
@@ -33,7 +33,7 @@ export interface ParsedNode {
     p2pPort: string,
     rpcSettings: any,
     rpcUsers: any,
-    jarDir: string;
+    jarDir: string
 }
 
 // An instance of a valid NODE in this project
@@ -56,6 +56,7 @@ export interface LoginRequest {
     port: string,
     username: string,
     password: string,
+    cordappDir: string
 }
 
 

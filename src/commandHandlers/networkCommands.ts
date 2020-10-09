@@ -152,16 +152,20 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
     progress.report({ increment: 10, message: "Preparing network" });
     await sleep(1000);
     
+    // dispose any previous instances
     await disposeRunningNodes(context);
+
+    // fetch client token and check that server_awake
+    const clientToken = `${context.globalState.get(GlobalStateKeys.CLIENT_TOKEN)}`;
+    await server_awake(clientToken);
 
     let runningNodes: RunningNode[] = []; // running nodes for this workspace
     let currentNode: RunningNode | undefined = undefined;
-
     
     progress.report({ increment: 30, message: "Starting nodes" });
     await sleep(1000);
 
-
+    // launch terminal instances with corda.jar
     const deployedNodes:DefinedCordaNode[] | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
     deployedNodes!.forEach((node: DefinedCordaNode) => {
         // Create terminal instance
@@ -189,7 +193,7 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
 
     progress.report({ increment: 50, message: "Logging into nodes" });
     
-    await loginToAllNodes(runningNodes, context); // LOGIN to each node
+    await loginToAllNodes(clientToken, runningNodes, context); // LOGIN to each node
     
     await isNetworkRunning(context); // update context
 }
@@ -242,10 +246,8 @@ export const server_awake = async (clientToken: string | undefined) => {
  * preforms a login to all the running NODES
  * @param context 
  */
-export const loginToAllNodes = async (runningNodes: RunningNode[], context: vscode.ExtensionContext) => {
-    const clientToken = `${context.globalState.get(GlobalStateKeys.CLIENT_TOKEN)}`;
-    await server_awake(clientToken);
-
+export const loginToAllNodes = async (clientToken: string, runningNodes: RunningNode[], context: vscode.ExtensionContext) => {
+    
     await sleep(10000); // SLEEP for node up
 
     axios.defaults.headers.common['clienttoken'] = clientToken;

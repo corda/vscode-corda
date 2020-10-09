@@ -26,7 +26,7 @@ export abstract class Constants {
 
 export const GRADLE_TASKS_EXTENSION_ID = 'richardwillis.vscode-gradle';
 export const SERVER_BASE_URL = 'http://localhost:8580';
-export const SERVER_JAR = 'explorer-server-0.1.0.jar';
+export const SERVER_JAR = 'explorer-server-0.2.0.jar';
 export const RUN_CORDA_CMD = 'java -jar corda.jar';
 
 export abstract class DebugConst {

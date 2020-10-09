@@ -168,12 +168,6 @@ const taskToDeployedNodes = (nodesTaskConfig: CordaTaskConfig):DefinedCordaNode[
                 cred.pass = nodeDefaults.rpcUsers.password;
             }
 
-            let loginRequest: LoginRequest = {
-                hostName: hostAndPort[0],
-                port: hostAndPort[1],
-                username: cred.user,
-                password: cred.pass
-            }
             let x500: {name:string, city: string, country: string} = {
                 name: node.name.match("O=(.*),L")![1],
                 city: node.name.match("L=(.*),C")![1],
@@ -182,6 +176,14 @@ const taskToDeployedNodes = (nodesTaskConfig: CordaTaskConfig):DefinedCordaNode[
     
             // add jarDir to node
             node.jarDir = file.split('build.gradle')[0] + 'build/nodes/' + x500.name;
+
+            let loginRequest: LoginRequest = {
+                hostName: hostAndPort[0],
+                port: hostAndPort[1],
+                username: cred.user,
+                password: cred.pass,
+                cordappDir: node.jarDir + '/cordapps'
+            }
     
             // push on DeployedNode
             deployedNodes.push({

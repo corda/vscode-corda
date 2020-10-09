@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { server_awake } from '../commandHandlers/networkCommands';
 import { getPrereqsContent } from '../static/prereqs';
-import { GlobalStateKeys } from '../types/CONSTANTS';
+import { Constants, GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS';
 import { DefinedCordaNode, RunningNode, RunningNodesList } from '../types/types';
 
 
@@ -120,7 +120,9 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
  */
 export const panelStart = async (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
 	const clientToken:string | undefined = context.globalState.get(GlobalStateKeys.CLIENT_TOKEN);
-	await server_awake(clientToken!);
+	if (view !== 'prerequisites') {
+		await server_awake(clientToken!);
+	}
 	let viewId = (definedNode != undefined) ? view + definedNode.x500.name : view;
 	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(viewId);
 	if (panel && panel.webview) {

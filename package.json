@@ -60,43 +60,43 @@
 					"id": "cordaProjects",
 					"name": "CorDapp Projects",
 					"when": "!vscode-corda:projectIsCorda",
-					"visibility": "collapsed"
+					"visibility": "visible"
 				},
 				{
 					"id": "cordaOperations",
 					"name": "Operations",
 					"when": "vscode-corda:projectIsCorda",
-					"visibility": "collapsed"
+					"visibility": "visible"
 				},
 				{
 					"id": "cordaLocalNetwork",
 					"name": "Cordform Test Network",
 					"when": "vscode-corda:projectIsCorda",
-					"visibility": "collapsed"
+					"visibility": "visible"
 				},
 				{
 					"id": "cordaDependencies",
 					"name": "Dependencies",
 					"when": "vscode-corda:projectIsCorda && false",
-					"visibility": "collapsed"
+					"visibility": "visible"
 				},
 				{
 					"id": "cordaFlows",
 					"name": "Flows",
 					"when": "vscode-corda:projectIsCorda",
-					"visibility": "collapsed"
+					"visibility": "visible"
 				},
 				{
 					"id": "cordaContracts",
 					"name": "Contracts",
 					"when": "vscode-corda:projectIsCorda",
-					"visibility": "collapsed"
+					"visibility": "visible"
 				},
 				{
 					"id": "cordaStates",
 					"name": "States",
 					"when": "vscode-corda:projectIsCorda",
-					"visibility": "collapsed"
+					"visibility": "visible"
 				}
 			]
 		},
