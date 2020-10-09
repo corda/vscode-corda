@@ -45,8 +45,8 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 			return items;
 		} else if (element instanceof CorDapps) { // details of CorDapps
 			return [
-				new CorDappDetail("App1", "app detail place holder", vscode.TreeItemCollapsibleState.None), // STATIC placeholder - iterate on ALL apps from CorDapps object
-				new CorDappDetail("App2", "app detail place holder", vscode.TreeItemCollapsibleState.None)
+				new CorDappDetail("Initiator", "simple template flow", vscode.TreeItemCollapsibleState.None), // STATIC placeholder - iterate on ALL apps from CorDapps object
+				new CorDappDetail("TokenIssueFlowInitiator", "issue token", vscode.TreeItemCollapsibleState.None)
 			];
 
 		}

@@ -9,10 +9,15 @@ import { panelStart } from '../utils/panelsUtils';
  * This function is for creating new projects from TEMPLATE or SAMPLE
  * Fetches a project from REPO using github api
  */
-export const fetchTemplateOrSampleCallback = async () => {
+export const newProjectCallback = async () => {
 
     // quickPick choose template or sample
-    const qpickItems = Object.keys(Constants.GITHUB_API).map((key, index) => { return key; });
+    const qpickItems: vscode.QuickPickItem[] = Object.keys(Constants.GITHUB_API).map((key, index) => { 
+        return {
+            label: key,
+            description: Constants.GITHUB_API[key].description
+        } 
+    });
     const requestedProject = await vscode.window.showQuickPick(qpickItems,
         {
             placeHolder: 'Choose a template or sample project'
@@ -22,7 +27,7 @@ export const fetchTemplateOrSampleCallback = async () => {
     // request save directory
     const path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}, openLabel: 'Save Project'});
     if (path == undefined) return;
-    const targetPath = vscode.Uri.joinPath(path[0], requestedProject);
+    const targetPath = vscode.Uri.joinPath(path[0], requestedProject.label);
     
     // make sure sample isn't already contained in directory
     if (fs.existsSync(targetPath.fsPath)) {
@@ -32,19 +37,37 @@ export const fetchTemplateOrSampleCallback = async () => {
 
     // fetch the template or sample
     const zipFile = await Axios.get(
-        Constants.GITHUB_API[requestedProject],
+        Constants.GITHUB_API[requestedProject.label].url,
         {responseType: 'arraybuffer'}
     );
 
     // unzip to disk
     const AdmZip = require('adm-zip');
     const zip = new AdmZip(zipFile.data);
-    const entryName = zip.getEntries()[0].entryName.slice(0,-1)
-    zip.extractAllTo(path[0].fsPath, true);
+
+    var entryName: string = '';
+    var baseEntryName: string = '';
+    if (Constants.GITHUB_API[requestedProject.label].subFolder === '') { // no subfolder, take root repo
+        entryName = zip.getEntries()[0].entryName.slice(0,-1)
+        zip.extractAllTo(path[0].fsPath, true);
+    } else {
+        baseEntryName = zip.getEntries()[0].entryName;
+        entryName = baseEntryName + Constants.GITHUB_API[requestedProject.label].subFolder;
+        zip.extractEntryTo(entryName, path[0].fsPath, true, true); // Extracts the specific folder for project
+    }
 
     // correct verbose github naming
     await vscode.workspace.fs.rename(vscode.Uri.joinPath(path[0], entryName), targetPath)
-        .then(() => {vscode.commands.executeCommand('vscode.openFolder', targetPath, true)});
+    .then(() => {vscode.commands.executeCommand('vscode.openFolder', targetPath, true)})
+    .then(() => {
+        // CLEAN UP for extraction of subdirs
+        if (baseEntryName !== '') {
+            vscode.workspace.fs.delete(vscode.Uri.joinPath(path[0], baseEntryName), {
+                recursive: true,
+                useTrash: false
+            });
+        }
+    });
 
 }
 

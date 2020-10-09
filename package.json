@@ -103,7 +103,7 @@
 		"commands": [
 			{
 				"command": "cordaProjects.new",
-				"title": "New Project",
+				"title": "New Project from Template",
 				"icon": "$(repo-clone)"
 			},
 			{
@@ -207,7 +207,7 @@
 			"view/title": [
 				{
 					"command": "cordaProjects.new",
-					"when": "view == cordaProjects",
+					"when": "view == cordaProjects || view == cordaOperations",
 					"group": "navigation"
 				},
 				{

@@ -6,8 +6,21 @@ export abstract class Constants {
     static readonly CONTRACT_BASE_INTERFACE = ['Contract'];
 	static readonly FLOW_BASE_CLASS = ['FlowLogic'];
 	static readonly GITHUB_API = {
-        'cordapp-template-java':'https://api.github.com/repos/corda/cordapp-template-java/zipball',
-        'bootcamp-cordapp':'https://api.github.com/repos/corda/bootcamp-cordapp/zipball'
+        'cordapp-template-java': {
+            description: 'Minimal Corda project with example components',
+            url: 'https://api.github.com/repos/corda/cordapp-template-java/zipball',
+            subFolder: ''
+        },
+        'bootcamp-cordapp':{
+            description: 'Simple CorDapp that demonstrates a token issuance',
+            url: 'https://api.github.com/repos/corda/bootcamp-cordapp/zipball',
+            subFolder: ''
+        },
+        'fungiblehousetoken':{
+            description: 'A fungible and non-fungible real estate CorDapp',
+            url: 'https://api.github.com/repos/corda/samples-java/zipball',
+            subFolder: 'Tokens/fungiblehousetoken/'
+        }
     };
 }
 

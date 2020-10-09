@@ -65,7 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	} else {
 		vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, false);
 		context.subscriptions.push(
-			vscode.commands.registerCommand(Commands.PROJECT_NEW, () => general.fetchTemplateOrSampleCallback())
+			vscode.commands.registerCommand(Commands.PROJECT_NEW, () => general.newProjectCallback())
 		);
 	}
 }
@@ -105,7 +105,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	// Register Commands
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand(Commands.PROJECT_NEW, () => general.fetchTemplateOrSampleCallback()),
+		vscode.commands.registerCommand(Commands.PROJECT_NEW, () => general.newProjectCallback()),
 
 		// ops
 		vscode.commands.registerCommand(Commands.OPERATIONS_RUN, (op: CordaOperation) => general.runGradleTaskCallback(op.taskName, op)),
