@@ -188,13 +188,9 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
         runningNodes.push(currentNode);
     })
 
-    // HARD SLEEP TO ALLOW corda.jar instances to come up.
-    // TODO: SWAP this to an AXIOS Retry
-    await sleep(35000); 
-
-    progress.report({ increment: 50, message: "Logging into nodes" });
+    progress.report({ increment: 10, message: "Logging into nodes" });
     
-    await loginToAllNodes(clientToken, runningNodes, context); // LOGIN to each node
+    await loginToAllNodes(clientToken, runningNodes, context, progress); // LOGIN to each node
     
     await isNetworkRunning(context); // update context
 }
@@ -247,15 +243,16 @@ export const server_awake = async (clientToken: string | undefined, context: vsc
  * preforms a login to all the running NODES
  * @param context 
  */
-export const loginToAllNodes = async (clientToken: string, runningNodes: RunningNode[], context: vscode.ExtensionContext) => {
+export const loginToAllNodes = async (clientToken: string, runningNodes: RunningNode[], context: vscode.ExtensionContext, progress: vscode.Progress<any>) => {
     
-    await sleep(10000); // SLEEP for node up
-
     axios.defaults.headers.common['clienttoken'] = clientToken;
+    const progressFactor = 40 / runningNodes.length;
     let idx = 0;
     for (const node of runningNodes) {
-        const response = await axios.post(SERVER_BASE_URL + "/login", node.definedNode.loginRequest);
-        runningNodes[idx].rpcconnid = response.data.data.rpcConnectionId;
+        const loginResponse = await loginToNode(node.definedNode);
+        progress.report({ increment: progressFactor, message: "Connecting to " + node.definedNode.x500.name });
+        await sleep(500);
+        runningNodes[idx].rpcconnid = loginResponse!.data.data.rpcConnectionId;
         idx++;
     }
 
@@ -268,14 +265,18 @@ export const loginToAllNodes = async (clientToken: string, runningNodes: Running
 
 
 /**
- * Logs in to a single node
+ * Logs in to a single node with retry
  * @param node 
  */
-export const loginToNode = async (node: DefinedCordaNodeTreeItem) => {
-    const loginRequest = node.nodeDetails.loginRequest;
-    await axios.post(SERVER_BASE_URL + "/login", loginRequest).then((res) => {
-        console.log(res.data);
-    });
+export const loginToNode = async (node: DefinedCordaNode) => {
+    for (let i = 0; i < 30; i++) {
+        const response = await axios.post(SERVER_BASE_URL + "/login", node.loginRequest);
+        if (response.data.status) {
+            return response;
+        }
+        await sleep(2000); // SLEEP for node up
+    }
+    vscode.window.showErrorMessage("Unable to connect to nodes");
 }
 
 /**
