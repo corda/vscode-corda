@@ -20,7 +20,6 @@ import { Contexts, Views, Commands, GlobalStateKeys } from './types/CONSTANTS';
 import { disposeRunningNodes } from './commandHandlers/networkCommands';
 import { resolve } from 'dns';
 
-const cordaWatchers: vscode.FileSystemWatcher[] = [];
 const fsWatchers: any[] = [];
 var projectObjects: {projectClasses: any, projectInterfaces:any};
 
@@ -81,7 +80,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	projectObjects = await parseJavaFiles(context); 
 
 	// Initiate watchers
-	cordaWatchers.push(watchers.getBuildGradleFSWatcher()); 
+	context.subscriptions.push(watchers.getBuildGradleFSWatcher()); 
 	fsWatchers.push(watchers.nodesFSWatcher(context));
 	watchers.activateEventListeners(context);
 

@@ -124,7 +124,8 @@ export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context:
     const path = require('path');    
     await panelStart('logviewer', node, context);
 
-    const filepath = path.join(context.extensionPath, DebugConst.LOG_FILE);
+    const os = require('os');
+    const filepath = path.join(node.nodeDef.jarDir, 'logs', 'node-'+ os.hostname() + '.log');
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer'+node.x500.name);
     panel?.webview.postMessage({
         messageType: MessageType.NEW_LOG_ENTRIES,

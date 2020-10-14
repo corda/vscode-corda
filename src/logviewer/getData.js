@@ -21,14 +21,22 @@ const resultFromServer = async (path, postRequest) =>
   await axios.post(`http://localhost:8580/logReader/${path}`, postRequest)
 
 
-const tidyEntry = (entry) => ({
-  ...entry,
-  thread: entry.thread.replace('-client-global-threads', ''),
-  date: new Date(before(entry.date, ",")).toISOString().substring(0, 19).replace('T', ' '),
-  severity: entry.severity,
-  message: '[' + entry.source + '] ' + entry.body.message,
-  object: entry.body.object
-})
+const tidyEntry = (entry) => {
+  let dateParse = '';
+  try {
+    dateParse = new Date(before(entry.date, ",")).toISOString().substring(0, 19).replace('T', ' ');
+  } catch (err) {
+    console.log(err);
+  }
+  return ({
+    ...entry,
+    thread: entry.thread.replace('-client-global-threads', ''),
+    date: dateParse,
+    severity: entry.severity,
+    message: '[' + entry.source + '] ' + entry.body.message,
+    object: entry.body.object
+  });
+}
 
 
 const directoriesIn = (filepath) => filepath.replace(/\\/g, "/").split("/");
