@@ -52,13 +52,6 @@ export const entriesBetween = async (startIndex, stopIndex, filepath) =>
     .map(tidyEntry)
 
 
-export const countEntries = async (filepath) =>
-  (await resultFromServer("entriesCount", {
-    components: directoriesIn(filepath)
-  }))
-    .data.data.entriesCount
-
-
-export default async function getData(filepath) {
-  return entriesBetween(0, await countEntries(filepath), filepath)
+export default async function getData(entries, filepath) {
+  return entriesBetween(0, entries, filepath)
 }

@@ -4,6 +4,7 @@ import { server_awake } from '../commandHandlers/networkCommands';
 import { getPrereqsContent } from '../static/prereqs';
 import { Constants, GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS';
 import { DefinedCordaNode, RunningNode, RunningNodesList } from '../types/types';
+import { MessageType, WindowMessage } from '../logviewer/types';
 
 
 export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
@@ -125,10 +126,19 @@ export const panelStart = async (view: string, definedNode: DefinedCordaNode | u
 	}
 	let viewId = (definedNode != undefined) ? view + definedNode.x500.name : view;
 	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(viewId);
-	if (panel && panel.webview) {
+	if (panel && panel.webview) { // panel already exists
 		panel.reveal();
-	}  else {
-		await context.workspaceState.update(viewId, getWebViewPanel(view, definedNode, context));
+	}  else { // create panel
+		let newPanel = getWebViewPanel(view, definedNode, context);
+		if (view === 'logviewer') { // push initial logviewer content
+			const os = require('os');
+			const filepath = path.join(definedNode!.nodeDef.jarDir, 'logs', 'node-'+ os.hostname() + '.log');
+			// let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer'+node.x500.name);
+			newPanel.webview.postMessage({
+				messageType: MessageType.NEW_LOG_ENTRIES,
+				filepath,
+			} as WindowMessage)
+		}
+		await context.workspaceState.update(viewId, newPanel);
 	}
-	// await context.workspaceState.update(view, getWebViewPanel(view, definedNode, context));
 }

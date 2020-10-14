@@ -123,14 +123,6 @@ export const vaultqueryCallback = async (node: DefinedCordaNodeTreeItem, context
 export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context: vscode.ExtensionContext) => {
     const path = require('path');    
     await panelStart('logviewer', node, context);
-
-    const os = require('os');
-    const filepath = path.join(node.nodeDef.jarDir, 'logs', 'node-'+ os.hostname() + '.log');
-    let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer'+node.x500.name);
-    panel?.webview.postMessage({
-        messageType: MessageType.NEW_LOG_ENTRIES,
-        filepath,
-    } as WindowMessage)
 }
 
 /**

@@ -4,7 +4,7 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import EnhancedTable from './components/EnhancedTable'
 import getData from './getData'
 
-const LogViewer = ({filepath}) => {
+const LogViewer = ({entries, filepath}) => {
   const columns = React.useMemo(
     () => [
       {
@@ -41,11 +41,12 @@ const LogViewer = ({filepath}) => {
   const [data, setData] = React.useState([]);
   const [skipPageReset, setSkipPageReset] = React.useState(false)
   React.useEffect(() => {
+    // setData(logData);
     (async function fetchData() {
       console.log(filepath);
-      setData(await getData(filepath));
+      setData(await getData(entries, filepath));
     })()
-  }, [filepath])
+  }, [entries])
 
   const updateLogData = (rowIndex, columnId, value) => {
     setSkipPageReset(true)
