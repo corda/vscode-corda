@@ -11,10 +11,109 @@ import { disposeRunningNodes, launchClient } from '../commandHandlers/networkCom
 import {debug} from '../extension';
 
 /**
+ * Entry-point for project level checks and intitial parses
+ * @param context 
+ */
+export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
+
+    await resetCordaWorkspaceState(context); // RESET Corda Keys in workspaceState
+    await resetCordaGlobalState(context); // RESET Corda Keys in globalState
+
+    const projectCwd = vscode.workspace.workspaceFolders![0].uri.fsPath; // current working directory of the project
+    const projectGradle = path.join(projectCwd, '/build.gradle'); // path to root gradle file
+
+    // EXIT IF NOT a Corda Project
+    if (!(await setIsProjectCorda(projectGradle, context))) { return false } 
+    // EXIT IF JDK 1.8 Not Installed and home set in settings.json
+    if (!(await isJDK18Available(context))) { return false; }; // confirm properly set JDK 1.8)
+
+    // PROJECT IS CORDA continue with loads -------->
+
+    setJDTpref(projectCwd); // inject java testrunner fix setting
+
+    // if no client token set for Corda -> set a new token ; debug flag will pull a generic pre-set token
+    if (debug) {
+        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, DebugConst.SERVER_CLIENT_TOKEN_DEVTEST);
+    } else if (context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) === undefined) {
+        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, uuidv4());
+    }
+
+    // start client for RPC
+    launchClient(context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) as string, context)
+
+    // Parse build.gradle for deployNodes configuration and store to workspace
+    let gradleTaskConfigs: CordaTaskConfig[] | undefined = []
+    let files = fileSync(/build.gradle$/, projectCwd);
+    for(let i = 0; i < files.length; i++){
+        let parsed: any = await gjs.parseFile(files[i]);
+        // NOTE: currently only concerned with a partial parse of the gradle (task)
+        let entry: CordaTaskConfig = {file: files[i], task: parsed.task};
+        gradleTaskConfigs.push(entry);
+    }
+    let deployNodesConfigs: CordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value: CordaTaskConfig) => {
+        return value.task?.node && true;
+    })
+
+    // currently allow ONE deployNodesConfig per project (pulls first element with deployNodes task) but future will allow multiple w/ selection
+    let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0]); // converts node records to DefinedNode objects
+
+    // updates relevant workstate keys
+    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE, deployNodesConfigs![0].file)
+    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_LIST, deployedNodes);
+
+    await areNodesDeployed(context); // checks if nodes are already deployed
+    return true;
+}
+
+const isJDK18Available = async (context: vscode.ExtensionContext) => {
+    var jdk18exist = false;
+    var jdk18Home = undefined;
+    const workspaceRuntimes:Array<any> | undefined = vscode.workspace.getConfiguration().get('java.configuration.runtimes');
+    for (var i = 0; i < workspaceRuntimes!.length; i++) { // iterate, search for 1.8 entry and set project defaults
+        const entry = workspaceRuntimes![i];
+        if (entry.name.includes('1.8')) { // check for 1.8 entry
+            jdk18exist = true;
+            jdk18Home = entry.path;
+            break;
+        }
+    }
+    if (jdk18Home == undefined) {
+        vscode.window.showErrorMessage('No JDK 1.8 home set in settings.json');
+        return false;
+    } else {
+        // check that jdk18Home is actually pointing to a jdk18
+        const cp = require('child_process');
+        // set OS specific cmd
+        const platform = process.platform;
+        var cmd = '';
+        switch (platform) {
+            case 'darwin':
+            case 'linux':
+                cmd = '/bin/java -version';
+                break;
+            case 'win32':
+                break;
+        }
+        await cp.exec(jdk18Home + cmd, (err:any, stdout: any, stderr:any) => {
+            console.log(stdout);
+            // const isJava18 = stdout.includes('1.8');
+            if (!stderr.includes('1.8') && !stdout.includes('1.8')) {
+                vscode.window.showErrorMessage('No JDK 1.8 home set in settings.json');
+                return false;
+            }
+        })
+
+    }
+    // set bin/java path for workspace TODO - set platform switch here.
+    await context.globalState.update('javaExec18', jdk18Home + '/bin/java');
+    return true;
+}
+
+/**
  * Simple sleep function
  * @param ms 
  */
-export function sleep(ms) {
+export const sleep = (ms: any) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -66,60 +165,6 @@ const setIsProjectCorda = async (buildGradleFile: string, context: vscode.Extens
     await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, isGradle); // set state
     vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, isGradle); // set context
     return isGradle;
-}
-
-/**
- * Entry-point for project level checks and intitial parses
- * @param context 
- */
-export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
-
-    await resetCordaWorkspaceState(context); // reset Corda Keys in workspaceState
-    await resetCordaGlobalState(context); // reset Corda global states
-
-    const projectCwd = vscode.workspace.workspaceFolders![0].uri.fsPath; // current working directory of the project
-    const projectGradle = path.join(projectCwd, '/build.gradle'); // path to root gradle file
-
-    // EXIT IF NOT CORDA
-    if (!(await setIsProjectCorda(projectGradle, context))) { return false } 
-
-    // PROJECT IS CORDA continue -------->
-
-    setJDTpref(projectCwd); // inject java testrunner fix setting
-
-    // if no client token set for Corda -> set a new token ; debug flag will pull a generic pre-set token
-    if (debug) {
-        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, DebugConst.SERVER_CLIENT_TOKEN_DEVTEST);
-    }
-    if (context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) === undefined) {
-        await context.globalState.update(GlobalStateKeys.CLIENT_TOKEN, uuidv4());
-    }
-
-    // start client
-    launchClient(context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) as string)
-
-    // Parse build.gradle for deployNodes configuration and store to workspace
-    let gradleTaskConfigs: CordaTaskConfig[] | undefined = []
-    let files = fileSync(/build.gradle$/, projectCwd);
-    for(let i = 0; i < files.length; i++){
-        let parsed: any = await gjs.parseFile(files[i]);
-        // NOTE: currently only concerned with a partial parse of the gradle (task)
-        let entry: CordaTaskConfig = {file: files[i], task: parsed.task};
-        gradleTaskConfigs.push(entry);
-    }
-    let deployNodesConfigs: CordaTaskConfig[] | undefined = gradleTaskConfigs.filter((value: CordaTaskConfig) => {
-        return value.task?.node && true;
-    })
-
-    // currently allow ONE deployNodesConfig per project (pulls first element with deployNodes task) but future will allow multiple w/ selection
-    let deployedNodes = taskToDeployedNodes(deployNodesConfigs![0]); // converts node records to DefinedNode objects
-
-    // updates relevant workstate keys
-    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE, deployNodesConfigs![0].file)
-    await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_LIST, deployedNodes);
-
-    await areNodesDeployed(context); // checks if nodes are already deployed
-    return true;
 }
 
 /**

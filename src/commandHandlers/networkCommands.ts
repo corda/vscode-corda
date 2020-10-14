@@ -157,7 +157,7 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
 
     // fetch client token and check that server_awake
     const clientToken = `${context.globalState.get(GlobalStateKeys.CLIENT_TOKEN)}`;
-    await server_awake(clientToken);
+    await server_awake(clientToken, context);
 
     let runningNodes: RunningNode[] = []; // running nodes for this workspace
     let currentNode: RunningNode | undefined = undefined;
@@ -167,13 +167,14 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
 
     // launch terminal instances with corda.jar
     const deployedNodes:DefinedCordaNode[] | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
+    const javaExec18 = context.globalState.get(GlobalStateKeys.JAVA_EXEC);
     deployedNodes!.forEach((node: DefinedCordaNode) => {
         // Create terminal instance
         const nodeTerminal = vscode.window.createTerminal({
             name: node.x500.name + " : " + node.rpcPort,
             cwd: node.nodeDef.jarDir
         })
-        nodeTerminal.sendText(RUN_CORDA_CMD); // run Corda.jar
+        nodeTerminal.sendText(javaExec18 + RUN_CORDA_CMD); // run Corda.jar
 
         // Define RunningNode
         currentNode = {
@@ -227,9 +228,9 @@ export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
  * 
  * TODO: set-timeout and try a Kill/Reload of client
  */
-export const server_awake = async (clientToken: string | undefined) => {
+export const server_awake = async (clientToken: string | undefined, context: vscode.ExtensionContext) => {
     
-    launchClient(clientToken!); // is up, or launch
+    launchClient(clientToken!, context); // is up, or launch
 
     axios.defaults.headers.common['clienttoken'] = clientToken;
     const retryClient = axios.create({ baseURL: SERVER_BASE_URL })
@@ -282,16 +283,17 @@ export const loginToNode = async (node: DefinedCordaNodeTreeItem) => {
  * 
  * TODO: switch check to server_awake
  */
-export function launchClient(clientToken: string) {
+export function launchClient(clientToken: string, context: vscode.ExtensionContext) {
     let debug = true;
 
 	// Launch client
-	const name = 'Node Client Server'
+    const name = 'Node Client Server'
+    const javaExec18 = context.globalState.get(GlobalStateKeys.JAVA_EXEC);
 	let terminal : vscode.Terminal | undefined = findTerminal(name);
 	if (!terminal) { // check if client already launched
 		const jarPath = vscode.extensions.getExtension("R3.vscode-corda")?.extensionPath;
 		const cmd1 = 'cd ' + jarPath;
-		const cmd2 = 'java -jar ' + SERVER_JAR + ' --servertoken=' + clientToken;
+		const cmd2 = javaExec18 + ' -jar ' + SERVER_JAR + ' --servertoken=' + clientToken;
 		terminal = vscode.window.createTerminal(name);
 		terminal.sendText(cmd1);
         terminal.sendText(cmd2);

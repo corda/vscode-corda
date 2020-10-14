@@ -36,6 +36,7 @@ export const debug = false;
  * isNetworkRunning - is the local Network of THIS project running?
  * 
  * context.globalState entries:
+ * javaExec18 - executable for JDK 1.8
  * cordaPrerequisites - boolean flag for satisfying the JDK prereqs
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
  * runningNodes - list of nodes that are currently in running state - global tracking due to port allocations

@@ -121,7 +121,7 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
 export const panelStart = async (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
 	const clientToken:string | undefined = context.globalState.get(GlobalStateKeys.CLIENT_TOKEN);
 	if (view !== 'prerequisites') {
-		await server_awake(clientToken!);
+		await server_awake(clientToken!, context);
 	}
 	let viewId = (definedNode != undefined) ? view + definedNode.x500.name : view;
 	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(viewId);
