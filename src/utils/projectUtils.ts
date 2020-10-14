@@ -68,6 +68,7 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 const isJDK18Available = async (context: vscode.ExtensionContext) => {
     var jdk18exist = false;
     var jdk18Home = undefined;
+    var cmd: string | undefined = undefined;
     const workspaceRuntimes:Array<any> | undefined = vscode.workspace.getConfiguration().get('java.configuration.runtimes');
     for (var i = 0; i < workspaceRuntimes!.length; i++) { // iterate, search for 1.8 entry and set project defaults
         const entry = workspaceRuntimes![i];
@@ -85,16 +86,17 @@ const isJDK18Available = async (context: vscode.ExtensionContext) => {
         const cp = require('child_process');
         // set OS specific cmd
         const platform = process.platform;
-        var cmd = '';
+        const path = require('path');
+        cmd = path.resolve(jdk18Home, './bin/java');
         switch (platform) {
             case 'darwin':
             case 'linux':
-                cmd = '/bin/java -version';
                 break;
             case 'win32':
+                cmd = '"' + cmd + '"'; // add enclosure
                 break;
         }
-        await cp.exec(jdk18Home + cmd, (err:any, stdout: any, stderr:any) => {
+        await cp.exec(cmd + ' -version', (err:any, stdout: any, stderr:any) => {
             console.log(stdout);
             // const isJava18 = stdout.includes('1.8');
             if (!stderr.includes('1.8') && !stdout.includes('1.8')) {
@@ -102,10 +104,12 @@ const isJDK18Available = async (context: vscode.ExtensionContext) => {
                 return false;
             }
         })
-
+        if (platform === 'win32') { // add executable prefix for powershell
+            cmd = '& ' + cmd;
+        }
     }
     // set bin/java path for workspace TODO - set platform switch here.
-    await context.globalState.update('javaExec18', jdk18Home + '/bin/java');
+    await context.globalState.update('javaExec18', cmd);
     return true;
 }
 
