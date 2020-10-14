@@ -101,6 +101,52 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
                 </svg>
             </div>
             <div class="box">
+                <h2>Initital Setup</h2>
+                <p>Running the Corda extension requires <b>both</b> JDK 11 and JDK 1.8 installed on your system.</p>
+                <p>
+                The Java features in VSCode require a Java 11. A path is searched in the following order:
+                <ul>
+                  <li>the java.home setting in VS Code settings (workspace then user settings)</li>
+                  <li>the JDK_HOME environment variable</li>
+                  <li>the JAVA_HOME environment variable</li>
+                  <li>on the current system path</li>
+                </ul>
+                
+                In addition, JDK 1.8 must be configured in the VSCode User Settings. 
+                <ol>
+                  <li>Choose 'Preferences -> Settings' from the VSCode menu and then search for the following entry <b>java.configuration.runtimes</b></li>
+                  <li>Click 'edit in settings.json'</li>
+                  <li>Add your <b>JDK 1.8</b> path to the following entries. Below are filled in examples:</li>
+                </ol>
+                <p>
+                <b>OS X / Linux:</b>
+              </p>
+              <div style="font-size:9pt">
+              <pre><code>"java.import.gradle.java.home": "/usr/lib/jvm/java-8-openjdk-amd64", 
+"java.configuration.runtimes": [
+{
+    "name": "JavaSE-1.8",
+    "path": "/usr/lib/jvm/java-8-openjdk-amd64"
+}
+],
+              </code></pre>
+              <p>
+                <b>Windows:</b>
+              </p>
+              <pre><code>"java.import.gradle.java.home": "C:\\Program Files\\Java\\jdk1.8.0_261",
+"java.configuration.runtimes": [
+{
+    "name": "JavaSE-1.8",
+    "path": "C:\\Program Files\\Java\\jdk1.8.0_261"
+}
+],
+                </code>
+              </pre>
+              </div>
+              * Make sure to change the 'path' with your own JDK 1.8 home path.
+                </p>
+            </div>
+            <div class="box">
                 <h2>Using the extension</h2>
                 <p>The Corda extension will be activated whenever you open a CorApp project in code.</p>
                 <p>Click the Corda icon in the left navigation bar to get to the application lifecycle actions, and to browse your flows, states, and contracts.</p>
