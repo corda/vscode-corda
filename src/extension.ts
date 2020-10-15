@@ -56,11 +56,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand(Commands.SHOW_CORDA_PREREQS, () => general.prerequisitesCallback(context))
 	);
-	if (!context.globalState.get(GlobalStateKeys.CORDA_PREREQS)) { vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS); }
+	// if (!context.globalState.get(GlobalStateKeys.CORDA_PREREQS)) { vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS); }
 	
 	// check for corda deps and parse project
 	if (vscode.workspace.workspaceFolders && (await cordaCheckAndLoad(context))) {
 		vscode.window.setStatusBarMessage("Corda-Project");
+		vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS);
 		cordaExt(context);
 	} else {
 		vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, false);

@@ -130,9 +130,11 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
 }
 ],
               </code></pre>
+              </div>
               <p>
                 <b>Windows:</b>
               </p>
+              <div style="font-size:9pt">
               <pre><code>"java.import.gradle.java.home": "C:\\Program Files\\Java\\jdk1.8.0_261",
 "java.configuration.runtimes": [
 {
