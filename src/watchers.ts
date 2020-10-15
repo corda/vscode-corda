@@ -2,14 +2,15 @@ import * as vscode from 'vscode';
 import { WorkStateKeys, Commands } from './types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from './utils/networkUtils';
 import * as fs from 'fs';
-
+import { DefinedCordaNode } from './types/types';
+import { MessageType, WindowMessage } from './logviewer/types';
 
 /**
  * Watcher for changes to build.gradle files
  * 
  * TODO: should execute refreshes on extension
  */
-export const getBuildGradleFSWatcher = () => {
+export const getBuildGradleFSWatcher = (context: vscode.ExtensionContext) => {
     const pattern = new vscode.RelativePattern(vscode.workspace.workspaceFolders![0], '**/*.gradle');
     const watcher = vscode.workspace.createFileSystemWatcher(pattern);
     watcher.onDidChange((event) => { 
@@ -17,7 +18,7 @@ export const getBuildGradleFSWatcher = () => {
         // updateWorkspaceFolders(); // updater here
         vscode.window.showInformationMessage("build.gradle was updated. Re-deploy nodes if needed.");
     })
-    return watcher;
+    context.subscriptions.push(watcher);
 }
 
 /**
@@ -83,4 +84,15 @@ export const activateEventListeners = (context: vscode.ExtensionContext) => {
 	vscode.window.onDidCloseTerminal(async (terminal) => {
 		await isNetworkRunning(context);
 	})
+}
+
+export const logFSWatcher = (definedNode: DefinedCordaNode, filepath: string, context: vscode.ExtensionContext) => {
+    
+    fs.watchFile(filepath, (curr, prev) => {
+        let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer'+definedNode.x500.name);
+        panel?.webview.postMessage({
+            messageType: MessageType.NEW_LOG_ENTRIES,
+            filepath,
+        } as WindowMessage)
+    })
 }

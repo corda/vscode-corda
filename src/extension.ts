@@ -80,7 +80,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	projectObjects = await parseJavaFiles(context); 
 
 	// Initiate watchers
-	context.subscriptions.push(watchers.getBuildGradleFSWatcher()); 
+	watchers.getBuildGradleFSWatcher(context); 
 	fsWatchers.push(watchers.nodesFSWatcher(context));
 	watchers.activateEventListeners(context);
 
