@@ -2,14 +2,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { server_awake } from '../commandHandlers/networkCommands';
 import { getPrereqsContent } from '../static/prereqs';
-import { Constants, GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS';
-import { DefinedCordaNode, RunningNode, RunningNodesList } from '../types/types';
+import { GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS';
+import { DefinedCordaNode, PanelEntry, RunningNode, RunningNodesList } from '../types/types';
 import { MessageType, WindowMessage } from '../logviewer/types';
 import { logFSWatcher } from '../watchers';
-import { sleep } from './projectUtils';
 import { NetworkMap } from '../network/types';
 import * as requests from '../network/ext_requests';
-
 
 export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
 	let title: string, resourceRoot: string, file: string;
@@ -77,7 +75,9 @@ export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNod
 
 	viewPanel.onDidDispose(
 		async () => {
-			await context.workspaceState.update(viewId, "");
+			const allPanels: PanelEntry | undefined = context.workspaceState.get(WorkStateKeys.VIEW_PANELS);
+			allPanels![viewId] = undefined;
+			await context.workspaceState.update(WorkStateKeys.VIEW_PANELS, allPanels);
 			viewPanel = undefined;
 		},
 		null,
@@ -164,15 +164,22 @@ const loadScript = (context: vscode.ExtensionContext, path: string) =>
  */
 export const panelStart = async (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
 	const clientToken:string | undefined = context.globalState.get(GlobalStateKeys.CLIENT_TOKEN);
+	
+	if (context.workspaceState.get(WorkStateKeys.VIEW_PANELS) === undefined) {
+		await context.workspaceState.update(WorkStateKeys.VIEW_PANELS, {});
+	}
+	const allPanels: PanelEntry | undefined = context.workspaceState.get(WorkStateKeys.VIEW_PANELS);
+	
 	if (view !== 'prerequisites') {
 		await server_awake(clientToken!, context);
 	}
 	let viewId = (definedNode != undefined) ? view + definedNode.x500.name : view;
-	let panel: vscode.WebviewPanel | undefined = context.workspaceState.get(viewId);
+	let panel: vscode.WebviewPanel | undefined = allPanels![viewId];
 	if (panel && panel.webview) { // panel already exists
 		panel.reveal();
 	}  else { // create panel
-		let newPanel = await getWebViewPanel(view, definedNode, context);
-		await context.workspaceState.update(viewId, newPanel);
+		const newPanel = await getWebViewPanel(view, definedNode, context);
+		allPanels![viewId] = newPanel;
+		await context.workspaceState.update(WorkStateKeys.VIEW_PANELS, allPanels);
 	}
 }

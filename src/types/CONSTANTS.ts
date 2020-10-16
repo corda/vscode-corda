@@ -51,6 +51,7 @@ export abstract class Views {
  * Keys stored in the vscode workspace state
  */
 export abstract class WorkStateKeys {
+    static readonly VIEW_PANELS = 'viewPanels';
     static readonly PROJECT_IS_CORDA = 'projectIsCorda';
     static readonly DEPLOY_NODES_LIST = 'deployNodesList';
     static readonly DEPLOY_NODES_BUILD_GRADLE = 'deployNodesBuildGradle';

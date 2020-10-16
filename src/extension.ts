@@ -28,7 +28,7 @@ export const debug = false;
 /**
  * context.workSpaceState entries:
  * projectIsCorda - is the workspace a valid Corda Project, set in cordaCheckAndLoad().
- * <webviewpanels> - entry per active webview
+ * viewPanels - <webviewpanels> - entry per active webview
  * deployNodesList - list of nodes that are configured in build.gradle
  * deployNodesBuildGradle - path to active/deployNodes build.gradle
  * areNodesDeployed (boolean) - are the nodes are currently deployed?

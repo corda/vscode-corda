@@ -76,3 +76,7 @@ export interface RunningNodesList {
     [workspaceName: string]: {runningNodes: RunningNode[]}
 }
 
+export interface PanelEntry {
+    [viewId: string]: vscode.WebviewPanel | undefined
+}
+

@@ -3,7 +3,7 @@ import { panelStart } from '../utils/panelsUtils';
 import { runGradleTaskCallback, openFileCallback } from './generalCommands';
 import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts, TxRequests, DebugConst, SERVER_BASE_URL, SERVER_JAR } from '../types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from '../utils/networkUtils';
-import { RunningNode, RunningNodesList, DefinedCordaNode } from '../types/types';
+import { RunningNode, RunningNodesList, DefinedCordaNode, PanelEntry } from '../types/types';
 import { MessageType, WindowMessage } from "../logviewer/types";
 // import * as request from "../logviewer/request";
 import * as requests from '../network/ext_requests'
@@ -55,20 +55,6 @@ export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
  */
 export const networkMapCallback = async (context: vscode.ExtensionContext) => {
     await panelStart('networkmap', undefined, context);
-    
-    // const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
-
-    // let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
-
-    // if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) { await sleep(2000) } // small sleep for online IDE
-    // await panel?.webview.postMessage(networkData);
-    // panel?.webview.onDidReceiveMessage(async (message) => {
-    //     switch (message.command) {
-    //         case 'loaded':
-    //             console.log('networkmap webview loaded');
-    //             await panel?.webview.postMessage(networkData);
-    //     }
-    // })
 }
 
 /**
@@ -78,41 +64,6 @@ export const networkMapCallback = async (context: vscode.ExtensionContext) => {
  */
 export const transactionsCallback = async (node: DefinedCordaNodeTreeItem, context: vscode.ExtensionContext) => {
     await panelStart('transactions', node.nodeDetails, context);
-
-    let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('transactions');
-
-    // TODO: Below event handler will be used on migration to Extension side REST 
-    // panel?.webview.onDidReceiveMessage(
-    //     async (message) => {
-    //         let response:any;
-    //         let data = message.data;
-    //         let text = message.text;
-    //         switch (message.request) {
-    //             case 'TestingRequest':
-    //                 vscode.window.showInformationMessage(text);
-    //                 response = "full loop";
-    //                 break;
-    //             case TxRequests.FETCHTXLIST:
-    //                 response = await requests.txFetchTxList(data as Page);
-    //                 break;
-    //             case TxRequests.STARTFLOW:
-    //                 response = await requests.txStartFlow(data as FlowInfo)
-    //                 break;
-    //             case TxRequests.FETCHFLOWLIST:
-    //                 response = await requests.txFetchFlowList();
-    //                 break;
-    //             case TxRequests.FETCHPARTIES:
-    //                 response = await requests.txFetchParties();
-    //                 break;
-    //         }
-    //         if (response) {
-    //             let reply: AxResponse = {request: message.request, response: response}
-    //             panel?.webview.postMessage(reply);
-    //         }
-    //     },
-    //     undefined,
-    //     context.subscriptions
-    // );
 }
 
 /**
@@ -129,8 +80,7 @@ export const vaultqueryCallback = async (node: DefinedCordaNodeTreeItem, context
  * @param node 
  * @param context 
  */
-export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context: vscode.ExtensionContext) => {
-    const path = require('path');    
+export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context: vscode.ExtensionContext) => {   
     await panelStart('logviewer', node, context);
 }
 
@@ -202,6 +152,8 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
  * @param context 
  */
 export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
+    await disposeRunningPanels(context);
+
     const globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
 	const workspaceName = vscode.workspace.name;
 	if (globalRunningNodesList && globalRunningNodesList[workspaceName!] != undefined) {
@@ -219,6 +171,18 @@ export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
     await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, false);
     await vscode.commands.executeCommand('setContext', Contexts.IS_NETWORK_RUNNING_CONTEXT, false);
     return true;
+}
+
+/**
+ * Disposes all extension webview panels
+ * @param context 
+ */
+export const disposeRunningPanels = async (context: vscode.ExtensionContext) => {
+    const allPanels: PanelEntry | undefined = context.workspaceState.get(WorkStateKeys.VIEW_PANELS);
+    Object.keys(allPanels!).map(key => {
+        allPanels![key]?.dispose();
+    })
+    await context.workspaceState.update(WorkStateKeys.VIEW_PANELS, {});
 }
 
 /**
