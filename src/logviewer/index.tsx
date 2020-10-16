@@ -37,15 +37,16 @@ const App = () => {
 
     useEffect(() => {
         window.addEventListener('message', receiveLogData);
-
         return () => {
             window.removeEventListener('message', receiveLogData);
         }
-    })
+    },[])
 
     return (
         <div style={{height: 600}}>
-        {logData ?  <LogViewer entries={logData.entries} filepath={logData.filepath} /> : 'Loading...'}
+        {logData ?  <LogViewer entries={logData.entries} filepath={logData.filepath} /> : 
+        `Loading...`
+        }
         </div>
     )
 }

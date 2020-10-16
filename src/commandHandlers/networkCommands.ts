@@ -56,12 +56,19 @@ export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
 export const networkMapCallback = async (context: vscode.ExtensionContext) => {
     await panelStart('networkmap', undefined, context);
     
-    const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
+    // const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
 
-    let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
-    
-    if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) { await sleep(2000) } // small sleep for online IDE
-    await panel?.webview.postMessage(networkData);
+    // let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
+
+    // if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) { await sleep(2000) } // small sleep for online IDE
+    // await panel?.webview.postMessage(networkData);
+    // panel?.webview.onDidReceiveMessage(async (message) => {
+    //     switch (message.command) {
+    //         case 'loaded':
+    //             console.log('networkmap webview loaded');
+    //             await panel?.webview.postMessage(networkData);
+    //     }
+    // })
 }
 
 /**

@@ -7,9 +7,11 @@ import { DefinedCordaNode, RunningNode, RunningNodesList } from '../types/types'
 import { MessageType, WindowMessage } from '../logviewer/types';
 import { logFSWatcher } from '../watchers';
 import { sleep } from './projectUtils';
+import { NetworkMap } from '../network/types';
+import * as requests from '../network/ext_requests';
 
 
-export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
+export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
 	let title: string, resourceRoot: string, file: string;
 	let reactPanel: boolean = true;
 	switch (view) {
@@ -47,8 +49,32 @@ export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | un
 	let viewId = view;
 	if (definedNode != undefined) { viewId = view + definedNode.x500.name }
 	let viewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, viewId, title, resourceRoot);
-	viewPanel.webview.html = (reactPanel) ? getReactPanelContent(context, definedNode, title, resourceRoot, file)
-				: getPrereqsContent(context, resourceRoot);
+	
+	if (view === 'networkmap') {
+		const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
+		// wait for window.onload and push initial data
+		viewPanel.webview.onDidReceiveMessage(message => {
+			viewPanel!.webview.postMessage(networkData);
+		})
+	}
+
+	if (view === 'logviewer') { // push initial logviewer content
+		const os = require('os');
+		const nodeLogFilename = 'node-'+ os.hostname() + '.log';
+		const filepath = path.join(definedNode!.nodeDef.jarDir, 'logs', nodeLogFilename);
+
+		// wait for window.onload and push initial data
+		viewPanel.webview.onDidReceiveMessage(message => {
+			viewPanel!.webview.postMessage({
+				messageType: MessageType.NEW_LOG_ENTRIES,
+				filepath,
+			} as WindowMessage)
+		})
+		
+		// set watcher
+		logFSWatcher(definedNode!, filepath, context);
+	}
+
 	viewPanel.onDidDispose(
 		async () => {
 			await context.workspaceState.update(viewId, "");
@@ -57,6 +83,10 @@ export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | un
 		null,
 		context.subscriptions
 	)
+
+	viewPanel.webview.html = (reactPanel) ? getReactPanelContent(context, definedNode, title, resourceRoot, file)
+				: getPrereqsContent(context, resourceRoot);
+	
 	return viewPanel;
 }
 
@@ -99,6 +129,17 @@ const getReactPanelContent = (context: vscode.ExtensionContext, definedNode: Def
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title>${title}</title>
+			${
+				(title === 'Network Map' || title.includes('Log Viewer')) ? `
+				<script>
+					const loaded = () => {
+						const vscode = acquireVsCodeApi();
+						vscode.postMessage({command: 'loaded'})
+					}
+					window.onload = loaded;
+				</script>
+				` : ''
+			}
 		</head>
 		<body style="background: var(--vscode-editor-background)">
 			<div id="clienttoken" style="display:none">${clientToken}</div>
@@ -131,23 +172,7 @@ export const panelStart = async (view: string, definedNode: DefinedCordaNode | u
 	if (panel && panel.webview) { // panel already exists
 		panel.reveal();
 	}  else { // create panel
-		let newPanel = getWebViewPanel(view, definedNode, context);
-
-		if (view === 'logviewer') { // push initial logviewer content
-			const os = require('os');
-			const nodeLogFilename = 'node-'+ os.hostname() + '.log';
-			const filepath = path.join(definedNode!.nodeDef.jarDir, 'logs', nodeLogFilename);
-
-			if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) { await sleep(2000) } // small sleep for online IDE
-			newPanel.webview.postMessage({
-				messageType: MessageType.NEW_LOG_ENTRIES,
-				filepath,
-			} as WindowMessage)
-
-			// set watcher
-			logFSWatcher(definedNode!, filepath, context);
-		}
-		
+		let newPanel = await getWebViewPanel(view, definedNode, context);
 		await context.workspaceState.update(viewId, newPanel);
 	}
 }
