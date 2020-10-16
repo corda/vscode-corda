@@ -35,6 +35,7 @@ export const debug = false;
  * isNetworkRunning - is the local Network of THIS project running?
  * 
  * context.globalState entries:
+ * isEnvCordaNet - boolean whether extension is being run locally or on ide.corda.net
  * javaExec18 - executable for JDK 1.8
  * cordaPrerequisites - boolean flag for satisfying the JDK prereqs
  * clientToken - UUID for access to single instance of springboot client, set in cordaCheckAndLoad().
@@ -52,6 +53,13 @@ export const debug = false;
  * @param context 
  */
 export async function activate(context: vscode.ExtensionContext) {
+	// detect environment
+	if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET) === undefined) {
+		const os = require('os');
+		const env = (os.hostname().length == 12 && os.userInfo().username === 'coder') ? true : false;
+		await context.globalState.update(GlobalStateKeys.IS_ENV_CORDA_NET, env);
+	}
+
 	// register extension first time contents and run interstitials
 	context.subscriptions.push(
 		vscode.commands.registerCommand(Commands.SHOW_CORDA_PREREQS, () => general.prerequisitesCallback(context))

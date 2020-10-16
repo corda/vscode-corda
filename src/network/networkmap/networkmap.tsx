@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 
 import '../common/styles/Network.css';
@@ -6,18 +6,7 @@ import BoxWithTitle from '../common/components/BoxWithTitle';
 import ListBoxWithTitle from '../common/components/ListBoxWithTitle';
 import Pin from '../common/components/Pin';
 import WorldMapSquare from './WorldMapSquare.png';
-import { NetworkMap } from '../types'
-
-/**
- * Listener for data from extension
- */
-window.addEventListener("message", event => {
-    const networkMapData = event.data as NetworkMap;
-    ReactDOM.render(
-        <CordaNetwork {...networkMapData} />, 
-        document.getElementById('root')
-    );
-})
+import { NetworkMap, NodeData } from '../types'
 
 /**
  * React class component for displaying Corda Network
@@ -27,8 +16,9 @@ class CordaNetwork extends Component<NetworkMap>{
 
     componentDidMount() {
         this.update();
+        
     }
-
+   
     constructor(props: NetworkMap){
       super(props);
       this.mapPane = React.createRef();
@@ -79,7 +69,6 @@ class CordaNetwork extends Component<NetworkMap>{
           <img src={WorldMapSquare} alt="World Map" width="100%" onLoad={this.handleImageLoaded.bind(this)}></img>
           <div style={{position: "absolute", top: "0"}}>
             <div className="side-panel" style={{height:window.innerHeight - 60}}>
-                {/* <BoxWithTitle node={this.props.self}/> */}
                 <ListBoxWithTitle list={this.props.notaries} title="Notaries"/>
                 <ListBoxWithTitle list={allParties} title="Parties on Network"/>
             </div>
@@ -113,3 +102,28 @@ class CordaNetwork extends Component<NetworkMap>{
     }
   }
 
+  const App = () => {
+    const [networkMap, setNetworkMap] = useState<NetworkMap>();
+
+    const receiveMapData = (event) => {
+      const networkMapData = event.data as NetworkMap;
+      setNetworkMap(networkMapData);
+    }
+
+    useEffect(() => {
+      window.addEventListener('message', receiveMapData);
+
+      return () => {
+        window.removeEventListener('message', receiveMapData);
+      }
+    });
+
+    return (
+      networkMap ? <CordaNetwork {...networkMap} /> : <div>Loading...</div>
+    );
+  }
+
+  ReactDOM.render(
+    <App />, 
+    document.getElementById('root')
+  );

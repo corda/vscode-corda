@@ -70,6 +70,7 @@ export abstract class WorkStateKeys {
  * Keys stored in the vscode global state
  */
 export abstract class GlobalStateKeys {
+    static readonly IS_ENV_CORDA_NET = 'isEnvCordaNet';
     static readonly JAVA_EXEC = 'javaExec18';
     static readonly CORDA_PREREQS = 'cordaPrerequisites';
     static readonly CLIENT_TOKEN = 'clientToken';

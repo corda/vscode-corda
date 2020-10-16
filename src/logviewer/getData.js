@@ -1,6 +1,8 @@
 import axios from "axios";
 require("regenerator-runtime/runtime");
 
+export const SERVER_BASE_URL = window.location.href.startsWith("https") ? "/proxy/8580" : "http://localhost:8580";
+
 // apply token header to axios calls
 axios.defaults.headers.common['clienttoken'] = document.getElementById('clienttoken').innerHTML;
 axios.defaults.headers.common['rpcconnid'] = document.getElementById('rpcconnid').innerHTML;
@@ -18,7 +20,7 @@ export const after = (line, after) => {
 
 
 const resultFromServer = async (path, postRequest) =>
-  await axios.post(`http://localhost:8580/logReader/${path}`, postRequest)
+  await axios.post(SERVER_BASE_URL + `/logReader/${path}`, postRequest)
 
 
 const tidyEntry = (entry) => {
