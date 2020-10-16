@@ -6,6 +6,7 @@ import { Constants, GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS';
 import { DefinedCordaNode, RunningNode, RunningNodesList } from '../types/types';
 import { MessageType, WindowMessage } from '../logviewer/types';
 import { logFSWatcher } from '../watchers';
+import { sleep } from './projectUtils';
 
 
 export const getWebViewPanel = (view: string, definedNode: DefinedCordaNode | undefined, context: vscode.ExtensionContext) => {
@@ -136,6 +137,8 @@ export const panelStart = async (view: string, definedNode: DefinedCordaNode | u
 			const os = require('os');
 			const nodeLogFilename = 'node-'+ os.hostname() + '.log';
 			const filepath = path.join(definedNode!.nodeDef.jarDir, 'logs', nodeLogFilename);
+
+			if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) { await sleep(2000) } // small sleep for online IDE
 			newPanel.webview.postMessage({
 				messageType: MessageType.NEW_LOG_ENTRIES,
 				filepath,

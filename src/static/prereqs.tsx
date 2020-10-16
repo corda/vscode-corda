@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { GlobalStateKeys } from '../types/CONSTANTS';
 
 export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot: string) => {
     return `<!DOCTYPE html>
@@ -100,7 +101,9 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
                     </g>
                 </svg>
             </div>
-            <div class="box">
+            ${
+                context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET) ? '' : 
+                `<div class="box">
                 <h2>Initital Setup</h2>
                 <p>Running the Corda extension requires <b>both</b> JDK 11 and JDK 1.8 installed on your system.</p>
                 <p>
@@ -147,7 +150,9 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
               </div>
               * Make sure to change the 'path' with your own JDK 1.8 home path.
                 </p>
-            </div>
+            </div>`
+            }
+            
             <div class="box">
                 <h2>Using the extension</h2>
                 <p>The Corda extension will be activated whenever you open a CorApp project in code.</p>

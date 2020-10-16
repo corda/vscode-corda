@@ -59,6 +59,8 @@ export const networkMapCallback = async (context: vscode.ExtensionContext) => {
     const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
 
     let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('networkmap');
+    
+    if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) { await sleep(2000) } // small sleep for online IDE
     await panel?.webview.postMessage(networkData);
 }
 

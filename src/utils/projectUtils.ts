@@ -24,8 +24,8 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 
     // EXIT IF NOT a Corda Project
     if (!(await setIsProjectCorda(projectGradle, context))) { return false } 
-    // EXIT IF JDK 1.8 Not Installed and home set in settings.json
-    if (!(await isJDK18Available(context))) { return false; }; // confirm properly set JDK 1.8)
+    // if NOT ide.corda.net -> EXIT IF JDK 1.8 Not Installed and home set if settings.json
+    if (!(context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) && !(await isJDK18Available(context))) { return false; }; // confirm properly set JDK 1.8)
 
     // PROJECT IS CORDA continue with loads -------->
 
