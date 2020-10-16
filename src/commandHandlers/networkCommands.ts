@@ -1,19 +1,16 @@
 import * as vscode from 'vscode';
 import { panelStart } from '../utils/panelsUtils';
 import { runGradleTaskCallback, openFileCallback } from './generalCommands';
-import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, Contexts, TxRequests, DebugConst, SERVER_BASE_URL, SERVER_JAR } from '../types/CONSTANTS';
+import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, SERVER_BASE_URL, SERVER_JAR } from '../types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from '../utils/networkUtils';
-import { RunningNode, RunningNodesList, DefinedCordaNode, PanelEntry } from '../types/types';
-import { MessageType, WindowMessage } from "../logviewer/types";
-// import * as request from "../logviewer/request";
-import * as requests from '../network/ext_requests'
-import { AxResponse, FlowInfo, NetworkMap, Page } from '../network/types';
-import { terminalIsOpenForNode } from '../utils/terminalUtils';
+import { RunningNode, RunningNodesList, DefinedCordaNode } from '../types/types';
 import { DefinedCordaNodeTreeItem } from '../treeDataProviders/cordaLocalNetwork';
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import { findTerminal } from '../utils/terminalUtils';
 import { sleep } from '../utils/projectUtils';
+import { disposeRunningNodes } from '../utils/stateUtils';
+import { debug } from '../extension';
 
 /**
  * Deploys nodes in project with pre-req checking
@@ -148,44 +145,6 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
 }
 
 /**
- * Destroys instances of all running nodes of this project
- * @param context 
- */
-export const disposeRunningNodes = async (context: vscode.ExtensionContext) => {
-    await disposeRunningPanels(context);
-
-    const globalRunningNodesList: RunningNodesList | undefined = context.globalState.get(GlobalStateKeys.RUNNING_NODES);
-	const workspaceName = vscode.workspace.name;
-	if (globalRunningNodesList && globalRunningNodesList[workspaceName!] != undefined) {
-
-        const runningNodes: RunningNode[] = globalRunningNodesList[workspaceName!].runningNodes;
-    
-        runningNodes.forEach((node: RunningNode) => {
-            terminalIsOpenForNode(node, true); // find node and dispose            
-        });
-
-		delete globalRunningNodesList[workspaceName!]; // remove on deactivate
-	}
-
-    await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList);
-    await context.workspaceState.update(WorkStateKeys.IS_NETWORK_RUNNING, false);
-    await vscode.commands.executeCommand('setContext', Contexts.IS_NETWORK_RUNNING_CONTEXT, false);
-    return true;
-}
-
-/**
- * Disposes all extension webview panels
- * @param context 
- */
-export const disposeRunningPanels = async (context: vscode.ExtensionContext) => {
-    const allPanels: PanelEntry | undefined = context.workspaceState.get(WorkStateKeys.VIEW_PANELS);
-    Object.keys(allPanels!).map(key => {
-        allPanels![key]?.dispose();
-    })
-    await context.workspaceState.update(WorkStateKeys.VIEW_PANELS, {});
-}
-
-/**
  * checks if springBoot server is active - launches the client terminal if not existing
  * 
  * TODO: set-timeout and try a Kill/Reload of client
@@ -247,12 +206,8 @@ export const loginToNode = async (node: DefinedCordaNode) => {
 
 /**
  * LaunchClient will check if the client terminal is already active - if not it will spawn and run an instance
- * 
- * TODO: switch check to server_awake
  */
 export function launchClient(clientToken: string, context: vscode.ExtensionContext) {
-    let debug = true;
-
 	// Launch client
     const name = 'Node Client Server'
     const javaExec18 = context.globalState.get(GlobalStateKeys.JAVA_EXEC);

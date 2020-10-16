@@ -4,7 +4,7 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import EnhancedTable from './components/EnhancedTable'
 import getData from './getData'
 
-const LogViewer = ({entries, filepath}) => {
+const LogViewerComponent = ({entries, filepath}) => {
   const columns = React.useMemo(
     () => [
       {
@@ -78,4 +78,4 @@ const LogViewer = ({entries, filepath}) => {
 }
 
 
-export default LogViewer
+export default LogViewerComponent

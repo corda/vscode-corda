@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { server_awake } from '../commandHandlers/networkCommands';
-import { getPrereqsContent } from '../static/prereqs';
-import { GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS';
+import { getWelcomeContent } from '../static/welcome';
+import { GlobalStateKeys, ViewPanels, WorkStateKeys } from '../types/CONSTANTS';
 import { DefinedCordaNode, PanelEntry, RunningNode, RunningNodesList } from '../types/types';
 import { MessageType, WindowMessage } from '../logviewer/types';
 import { logFSWatcher } from '../watchers';
@@ -13,31 +13,31 @@ export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNod
 	let title: string, resourceRoot: string, file: string;
 	let reactPanel: boolean = true;
 	switch (view) {
-		case 'logviewer':
+		case ViewPanels.LOGVIEWER_PANEL:
 			title = definedNode!.x500.name + " Log Viewer";
 			resourceRoot = "out/logviewer/";
-			file = "index.js"; // change this
+			file = "logviewer.js";
 			break;
-		case 'networkmap':
+		case ViewPanels.NETWORKMAP_PANEL:
 			title = "Network Map";
 			resourceRoot = "out/network/networkmap/";
 			file = "networkmap.js";
 			break;
-		case 'transactions':
+		case ViewPanels.TRANSACTIONS_PANEL:
 			title = definedNode!.x500.name + " Transactions";
 			resourceRoot = "out/network/transactions/";
 			file = "transactions.js";
 			break;
-		case 'vaultquery':
+		case ViewPanels.VAULTQUERY_PANEL:
 			title = definedNode!.x500.name + " Vault Query";
 			resourceRoot = "out/network/vaultquery/";
 			file = "vaultquery.js";
 			break;
-		case 'prerequisites':
+		case ViewPanels.WELCOME_PANEL:
 			reactPanel = false;
 			title = "Welcome to Corda";
 			resourceRoot = "src/static/";
-			file = "prereqs.js";
+			file = "welcome.js";
 			break;
 		default:
 			title = "";
@@ -48,7 +48,7 @@ export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNod
 	if (definedNode != undefined) { viewId = view + definedNode.x500.name }
 	let viewPanel: vscode.WebviewPanel | undefined = createViewPanel(context, viewId, title, resourceRoot);
 	
-	if (view === 'networkmap') {
+	if (view === ViewPanels.NETWORKMAP_PANEL) {
 		const networkData:NetworkMap | undefined = await requests.getNetworkMap(context);
 		// wait for window.onload and push initial data
 		viewPanel.webview.onDidReceiveMessage(message => {
@@ -56,7 +56,7 @@ export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNod
 		})
 	}
 
-	if (view === 'logviewer') { // push initial logviewer content
+	if (view === ViewPanels.LOGVIEWER_PANEL) { // push initial logviewer content
 		const os = require('os');
 		const nodeLogFilename = 'node-'+ os.hostname() + '.log';
 		const filepath = path.join(definedNode!.nodeDef.jarDir, 'logs', nodeLogFilename);
@@ -85,7 +85,7 @@ export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNod
 	)
 
 	viewPanel.webview.html = (reactPanel) ? getReactPanelContent(context, definedNode, title, resourceRoot, file)
-				: getPrereqsContent(context, resourceRoot);
+				: getWelcomeContent(context, resourceRoot);
 	
 	return viewPanel;
 }
@@ -170,7 +170,7 @@ export const panelStart = async (view: string, definedNode: DefinedCordaNode | u
 	}
 	const allPanels: PanelEntry | undefined = context.workspaceState.get(WorkStateKeys.VIEW_PANELS);
 	
-	if (view !== 'prerequisites') {
+	if (view !== ViewPanels.WELCOME_PANEL) {
 		await server_awake(clientToken!, context);
 	}
 	let viewId = (definedNode != undefined) ? view + definedNode.x500.name : view;

@@ -35,16 +35,24 @@ export abstract class DebugConst {
 }
 
 /**
- * represets views defined in package.json
+ * represets tree views defined in package.json
  */
-export abstract class Views {
-    static readonly CORDA_PROJECTS_VIEW = "cordaProjects";
-    static readonly CORDA_OPERATIONS_VIEW = "cordaOperations";
-    static readonly CORDA_LOCALNETWORK_VIEW = "cordaLocalNetwork";
-    static readonly CORDA_DEPENDENCIES_VIEW = "cordaDependencies";
-    static readonly CORDA_FLOWS_VIEW = "cordaFlows";
-    static readonly CORDA_CONTRACTS_VIEW = "cordaContracts";
-    static readonly CORDA_STATES_VIEW = "cordaStates";
+export abstract class TreeViews {
+    static readonly CORDA_PROJECTS_TREEVIEW = "cordaProjects";
+    static readonly CORDA_OPERATIONS_TREEVIEW = "cordaOperations";
+    static readonly CORDA_LOCALNETWORK_TREEVIEW = "cordaLocalNetwork";
+    static readonly CORDA_DEPENDENCIES_TREEVIEW = "cordaDependencies";
+    static readonly CORDA_FLOWS_TREEVIEW = "cordaFlows";
+    static readonly CORDA_CONTRACTS_TREEVIEW = "cordaContracts";
+    static readonly CORDA_STATES_TREEVIEW = "cordaStates";
+}
+
+export abstract class ViewPanels {
+    static readonly LOGVIEWER_PANEL = 'logviewer';
+    static readonly NETWORKMAP_PANEL = 'networkmap';
+    static readonly TRANSACTIONS_PANEL = 'transactions';
+    static readonly VAULTQUERY_PANEL = 'vaultquery';
+    static readonly WELCOME_PANEL = 'welcome';
 }
 
 /**
@@ -59,6 +67,7 @@ export abstract class WorkStateKeys {
     static readonly IS_NETWORK_RUNNING = 'isNetworkRunning';
 
     static readonly ALL_KEYS = [
+        WorkStateKeys.VIEW_PANELS,
         WorkStateKeys.PROJECT_IS_CORDA,
         WorkStateKeys.DEPLOY_NODES_LIST, 
         WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE,
@@ -73,9 +82,13 @@ export abstract class WorkStateKeys {
 export abstract class GlobalStateKeys {
     static readonly IS_ENV_CORDA_NET = 'isEnvCordaNet';
     static readonly JAVA_EXEC = 'javaExec18';
-    static readonly CORDA_PREREQS = 'cordaPrerequisites';
+    static readonly CORDA_WELCOME = 'cordaWelcome';
     static readonly CLIENT_TOKEN = 'clientToken';
     static readonly RUNNING_NODES = 'runningNodes';
+
+    static readonly GLOBAL_RESET_KEYS = [
+        GlobalStateKeys.RUNNING_NODES
+    ]
 }
 
 /**
@@ -91,7 +104,7 @@ export abstract class Contexts {
  * Registered commands
  */
 export abstract class Commands {
-    static readonly SHOW_CORDA_PREREQS = 'cordaPrerequisites.show';
+    static readonly SHOW_CORDA_WELCOME = 'cordaWelcome.show';
     static readonly PROJECT_NEW = "cordaProjects.new";
     static readonly FLOWS_ADD = "cordaFlows.add";
     static readonly CONTRACTS_ADD = "cordaContracts.add";

@@ -15,10 +15,8 @@ import * as addCommands from './commandHandlers/addCommands';
 import * as general from './commandHandlers/generalCommands';
 import * as network from './commandHandlers/networkCommands';
 import { cordaCheckAndLoad, sleep } from './utils/projectUtils';
-import { server_awake } from './commandHandlers/networkCommands';
-import { Contexts, Views, Commands, GlobalStateKeys } from './types/CONSTANTS';
-import { disposeRunningNodes } from './commandHandlers/networkCommands';
-import { resolve } from 'dns';
+import { disposeRunningNodes, localOrCordaNet } from './utils/stateUtils';
+import { Contexts, TreeViews, Commands, GlobalStateKeys } from './types/CONSTANTS';
 
 const fsWatchers: any[] = [];
 var projectObjects: {projectClasses: any, projectInterfaces:any};
@@ -27,6 +25,7 @@ export const debug = false;
 
 /**
  * context.workSpaceState entries:
+ * 
  * projectIsCorda - is the workspace a valid Corda Project, set in cordaCheckAndLoad().
  * viewPanels - <webviewpanels> - entry per active webview
  * deployNodesList - list of nodes that are configured in build.gradle
@@ -35,6 +34,7 @@ export const debug = false;
  * isNetworkRunning - is the local Network of THIS project running?
  * 
  * context.globalState entries:
+ * 
  * isEnvCordaNet - boolean whether extension is being run locally or on ide.corda.net
  * javaExec18 - executable for JDK 1.8
  * cordaPrerequisites - boolean flag for satisfying the JDK prereqs
@@ -42,6 +42,7 @@ export const debug = false;
  * runningNodes - list of nodes that are currently in running state - global tracking due to port allocations
  * 
  * 'when' clause contexts:
+ * 
  * vscode-corda:projectIsCorda (boolean) - if the current workspace is a corda project
  * vscode-corda:areNodesDeployed (boolean) - if nodes are currently deployed
  * vscode-corda:isNetworkRunning (boolean) - if the nodes are currently running
@@ -53,23 +54,19 @@ export const debug = false;
  * @param context 
  */
 export async function activate(context: vscode.ExtensionContext) {
-	// detect environment
-	if (context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET) === undefined) {
-		const os = require('os');
-		const env = (os.hostname().length == 12 && os.userInfo().username === 'coder') ? true : false;
-		await context.globalState.update(GlobalStateKeys.IS_ENV_CORDA_NET, env);
-	}
+	// detect extension environment
+	await localOrCordaNet(context);
 
 	// register extension first time contents and run interstitials
+	// TODO check configuration for DISMISS flag of welcome
 	context.subscriptions.push(
-		vscode.commands.registerCommand(Commands.SHOW_CORDA_PREREQS, () => general.prerequisitesCallback(context))
+		vscode.commands.registerCommand(Commands.SHOW_CORDA_WELCOME, () => general.welcomeCallback(context))
 	);
-	// if (!context.globalState.get(GlobalStateKeys.CORDA_PREREQS)) { vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS); }
 	
 	// check for corda deps and parse project
 	if (vscode.workspace.workspaceFolders && (await cordaCheckAndLoad(context))) {
 		vscode.window.setStatusBarMessage("Corda-Project");
-		vscode.commands.executeCommand(Commands.SHOW_CORDA_PREREQS);
+		vscode.commands.executeCommand(Commands.SHOW_CORDA_WELCOME);
 		cordaExt(context);
 	} else {
 		vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, false);
@@ -104,12 +101,12 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 	const cordaLocalNetworkProvider = new CordaLocalNetworkProvider(context);
 
 	// Register DataProviders
-	vscode.window.registerTreeDataProvider(Views.CORDA_OPERATIONS_VIEW, cordaOperationsProvider);
-	vscode.window.registerTreeDataProvider(Views.CORDA_DEPENDENCIES_VIEW, cordaDepProvider);
-	vscode.window.registerTreeDataProvider(Views.CORDA_FLOWS_VIEW, cordaFlowsProvider);
-	vscode.window.registerTreeDataProvider(Views.CORDA_CONTRACTS_VIEW, cordaContractsProvider);
-	vscode.window.registerTreeDataProvider(Views.CORDA_STATES_VIEW, cordaStatesProvider);
-	vscode.window.registerTreeDataProvider(Views.CORDA_LOCALNETWORK_VIEW, cordaLocalNetworkProvider);
+	vscode.window.registerTreeDataProvider(TreeViews.CORDA_OPERATIONS_TREEVIEW, cordaOperationsProvider);
+	vscode.window.registerTreeDataProvider(TreeViews.CORDA_DEPENDENCIES_TREEVIEW, cordaDepProvider);
+	vscode.window.registerTreeDataProvider(TreeViews.CORDA_FLOWS_TREEVIEW, cordaFlowsProvider);
+	vscode.window.registerTreeDataProvider(TreeViews.CORDA_CONTRACTS_TREEVIEW, cordaContractsProvider);
+	vscode.window.registerTreeDataProvider(TreeViews.CORDA_STATES_TREEVIEW, cordaStatesProvider);
+	vscode.window.registerTreeDataProvider(TreeViews.CORDA_LOCALNETWORK_TREEVIEW, cordaLocalNetworkProvider);
 	
 	// Register Commands
 

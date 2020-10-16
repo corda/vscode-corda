@@ -4,11 +4,21 @@ import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
 import { GlobalStateKeys, WorkStateKeys, Contexts, Constants, DebugConst } from '../types/CONSTANTS';
-import { CordaNodesConfig, CordaTaskConfig, ParsedNode, DefinedCordaNode, LoginRequest, CordaNodeConfig, RunningNode, RunningNodesList } from '../types/types'
-const gjs = require('../../gradleParser');
+import { CordaNodesConfig, CordaTaskConfig, ParsedNode, DefinedCordaNode, LoginRequest, CordaNodeConfig } from '../types/types'
 import { areNodesDeployed } from '../utils/networkUtils';
-import { disposeRunningNodes, launchClient } from '../commandHandlers/networkCommands';
+import { launchClient } from '../commandHandlers/networkCommands';
 import {debug} from '../extension';
+import { resetAllExtensionState } from './stateUtils';
+
+const gjs = require('../../gradleParser');
+
+/**
+ * Simple sleep function
+ * @param ms 
+ */
+export const sleep = (ms: any) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * Entry-point for project level checks and intitial parses
@@ -16,8 +26,7 @@ import {debug} from '../extension';
  */
 export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 
-    await resetCordaWorkspaceState(context); // RESET Corda Keys in workspaceState
-    await resetCordaGlobalState(context); // RESET Corda Keys in globalState
+    await resetAllExtensionState(context); // state resets
 
     const projectCwd = vscode.workspace.workspaceFolders![0].uri.fsPath; // current working directory of the project
     const projectGradle = path.join(projectCwd, '/build.gradle'); // path to root gradle file
@@ -114,14 +123,6 @@ const isJDK18Available = async (context: vscode.ExtensionContext) => {
 }
 
 /**
- * Simple sleep function
- * @param ms 
- */
-export const sleep = (ms: any) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
  * Fix which is used for JUnit testrunner to correctly work
  * - may not be necessary if using 'vscode-gradle' must confirm
  * 
@@ -169,24 +170,6 @@ const setIsProjectCorda = async (buildGradleFile: string, context: vscode.Extens
     await context.workspaceState.update(WorkStateKeys.PROJECT_IS_CORDA, isGradle); // set state
     vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, isGradle); // set context
     return isGradle;
-}
-
-/**
- * Resets Corda keys in workspaceState
- * @param context 
- */
-const resetCordaWorkspaceState = async (context: vscode.ExtensionContext) => {
-	WorkStateKeys.ALL_KEYS.forEach(async (key) => {
-		await context.workspaceState.update(key, undefined);
-    })
-}
-
-/**
- * Resets needed Corda settings in Global State.
- * @param context 
- */
-const resetCordaGlobalState = async (context: vscode.ExtensionContext) => {
-    await disposeRunningNodes(context);
 }
 
 /**

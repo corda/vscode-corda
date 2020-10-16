@@ -4,6 +4,7 @@ import { areNodesDeployed, isNetworkRunning } from './utils/networkUtils';
 import * as fs from 'fs';
 import { DefinedCordaNode } from './types/types';
 import { MessageType, WindowMessage } from './logviewer/types';
+import { cordaCheckAndLoad } from './utils/projectUtils';
 
 /**
  * Watcher for changes to build.gradle files
@@ -15,7 +16,8 @@ export const getBuildGradleFSWatcher = (context: vscode.ExtensionContext) => {
     const watcher = vscode.workspace.createFileSystemWatcher(pattern);
     watcher.onDidChange((event) => { 
         console.log(`gradle file changed: ${event.fsPath}`); 
-        // updateWorkspaceFolders(); // updater here
+
+        // cordaCheckAndLoad(context); // rescan gradle
         vscode.window.showInformationMessage("build.gradle was updated. Re-deploy nodes if needed.");
     })
     context.subscriptions.push(watcher);
@@ -58,7 +60,6 @@ export const activateEventListeners = (context: vscode.ExtensionContext) => {
             case 'build':
             case 'test':
             case 'clean':
-                // vscode.commands.executeCommand(Commands.OPERATIONS_REFRESH);
                 break;
         }
     })
@@ -87,7 +88,6 @@ export const activateEventListeners = (context: vscode.ExtensionContext) => {
 }
 
 export const logFSWatcher = (definedNode: DefinedCordaNode, filepath: string, context: vscode.ExtensionContext) => {
-    
     fs.watchFile(filepath, (curr, prev) => {
         let panel: vscode.WebviewPanel | undefined = context.workspaceState.get('logviewer'+definedNode.x500.name);
         panel?.webview.postMessage({

@@ -48,10 +48,10 @@ const config = {
 };
 
 const logViewerConfig = Object.assign({}, config, {
-  entry: "./src/logviewer/index.tsx",
+  entry: "./src/logviewer/logviewer.tsx",
     output: {
         path: path.resolve(__dirname, 'out/logviewer/'),
-        filename: "index.js",
+        filename: "logviewer.js",
         libraryTarget: 'umd',
       devtoolModuleFilenameTemplate: '../[resource-path]'
     }

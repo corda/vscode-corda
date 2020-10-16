@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { GlobalStateKeys } from '../types/CONSTANTS';
 
-export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot: string) => {
+export const getWelcomeContent = (context: vscode.ExtensionContext, resourceRoot: string) => {
     return `<!DOCTYPE html>
     <html>
     <head>
@@ -172,13 +171,3 @@ export const getPrereqsContent = (context: vscode.ExtensionContext, resourceRoot
     </body>
     </html>`
 }
-
-
-const loadLogo = (context: vscode.ExtensionContext, resourceRoot: string, file: string) => {
-    const fullPath = context.asAbsolutePath(path.normalize(resourceRoot) + file);
-    return `
-    <img src="${vscode.Uri.file(fullPath).with({scheme: 'vscode-resource'}).toString()}" > </img>
-    `
-}
-
-

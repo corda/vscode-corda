@@ -76,6 +76,7 @@ export interface RunningNodesList {
     [workspaceName: string]: {runningNodes: RunningNode[]}
 }
 
+// Type for storing active panels in workspacestate
 export interface PanelEntry {
     [viewId: string]: vscode.WebviewPanel | undefined
 }

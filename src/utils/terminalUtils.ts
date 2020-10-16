@@ -2,8 +2,11 @@ import * as vscode from 'vscode';
 import { DefinedCordaNodeTreeItem } from '../treeDataProviders/cordaLocalNetwork';
 import { DefinedCordaNode, RunningNode } from '../types/types';
  
-
-
+/**
+ * takes in a node and returns true if there is a terminal instance for the node active
+ * @param n 
+ * @param dispose 
+ */
 export const terminalIsOpenForNode = (n: RunningNode | DefinedCordaNodeTreeItem | DefinedCordaNode, dispose: boolean = false) => {
 	const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
 
@@ -33,6 +36,10 @@ export const terminalIsOpenForNode = (n: RunningNode | DefinedCordaNodeTreeItem 
 	return (hit != undefined);
 }
 
+/**
+ * Returns a terminal instance by name
+ * @param termName 
+ */
 export const findTerminal = (termName: string) => {
 	const openTerminals: readonly vscode.Terminal[] = vscode.window.terminals;
 	return openTerminals.find((t) => {

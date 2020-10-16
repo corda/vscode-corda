@@ -1,7 +1,7 @@
 import React, { Component, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom';
-import "./index.css";
-import LogViewer from './LogViewer';
+import "./logviewer.css";
+import LogViewerComponent from './LogViewerComponent';
 import { WindowMessage, MessageType } from './types';
 import axios from "axios";
 
@@ -44,7 +44,7 @@ const App = () => {
 
     return (
         <div style={{height: 600}}>
-        {logData ?  <LogViewer entries={logData.entries} filepath={logData.filepath} /> : 
+        {logData ?  <LogViewerComponent entries={logData.entries} filepath={logData.filepath} /> : 
         `Loading...`
         }
         </div>

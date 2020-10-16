@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Constants, Commands } from '../types/CONSTANTS';
+import { Constants, Commands, ViewPanels } from '../types/CONSTANTS';
 import Axios from 'axios';
 import * as fs from 'fs';
 import { CordaOperation } from '../treeDataProviders/cordaOperations';
@@ -10,7 +10,6 @@ import { panelStart } from '../utils/panelsUtils';
  * Fetches a project from REPO using github api
  */
 export const newProjectCallback = async () => {
-
     // quickPick choose template or sample
     const qpickItems: vscode.QuickPickItem[] = Object.keys(Constants.GITHUB_API).map((key, index) => { 
         return {
@@ -118,9 +117,9 @@ export const openFileCallback = (uri: vscode.Uri) => {
 }
 
 /**
- * Show preReqs singleTime
+ * Show Welcome
  * @param context 
  */
-export const prerequisitesCallback = async (context: vscode.ExtensionContext) => {
-    await panelStart('prerequisites', undefined, context);
+export const welcomeCallback = async (context: vscode.ExtensionContext) => {
+    await panelStart(ViewPanels.WELCOME_PANEL, undefined, context);
 }
