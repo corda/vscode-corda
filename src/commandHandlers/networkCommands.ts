@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { panelStart } from '../utils/panelsUtils';
 import { runGradleTaskCallback, openFileCallback } from './generalCommands';
-import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, SERVER_BASE_URL, SERVER_JAR } from '../types/CONSTANTS';
+import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, SERVER_BASE_URL, SERVER_JAR, Contexts } from '../types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from '../utils/networkUtils';
 import { RunningNode, RunningNodesList, DefinedCordaNode } from '../types/types';
 import { DefinedCordaNodeTreeItem } from '../treeDataProviders/cordaLocalNetwork';
@@ -20,9 +20,13 @@ export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
     const userConf = async () => { // confirm with user and decide whether to deploy nodes.
         let shouldDeploy = true;
         if (await areNodesDeployed(context)) {
-            await vscode.window.showInformationMessage("Network is already deployed. Re-deploy will reset node data.", 'Run Network', 'Re-deploy', 'Cancel')
+            var selectItems: vscode.MessageItem[] = [{title: 'Run Network'}, {title: 'Re-deploy'}, {title:'Cancel'}]
+            if (await isNetworkRunning(context)) {
+                selectItems.shift(); // remove the 'Run Network' option if it is already running
+            }
+            await vscode.window.showInformationMessage("Network is already deployed. Re-deploy will reset node data.", ...selectItems)
                 .then((selection) => {
-                    switch (selection) {
+                    switch (selection?.title) {
                         case 'Run Network':
                             // RUN TASK
                             vscode.commands.executeCommand(Commands.NETWORK_RUN);
@@ -38,8 +42,10 @@ export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
         }
         return shouldDeploy;
     }
-    await userConf().then((deployNodes) => {
+    await userConf().then(async (deployNodes) => {
         if (!deployNodes) return;
+        // set context before initiating the task
+        await vscode.commands.executeCommand('setContext', Contexts.ARE_NODES_DEPLOYED_CONTEXT, false);
         runGradleTaskCallback("deployNodes").then(async () => {
             await areNodesDeployed(context); // double check in case of interruption of task
         });

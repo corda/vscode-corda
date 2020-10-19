@@ -146,8 +146,4 @@ export abstract class TxRequests {
     static readonly FETCHFLOWLIST = 'txFetchFlowList';
     static readonly FETCHPARTIES = 'txFetchParties';
     static readonly LOADFLOWPARAMS = 'txLoadFlowParams';
-    // static readonly CLOSETXMODAL = 'txCloseTxModal';
-    // static readonly OPENTXMODAL = 'txOpenTxModal';
-    // static readonly SETFLOWSELECTIONFLAG = 'txSetFlowSelectionFlag';
-    // static readonly INFLIGHTFLOW = 'txInFlightFlow';
 }

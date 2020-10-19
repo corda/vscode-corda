@@ -53,26 +53,27 @@ export const nodesFSWatcher = (context: vscode.ExtensionContext) => {
  * @param context 
  */
 export const activateEventListeners = (context: vscode.ExtensionContext) => {
-    vscode.tasks.onDidStartTask((taskStartEvent) => {
+    vscode.tasks.onDidStartTask(async (taskStartEvent) => {
         const task = taskStartEvent.execution.task;
         switch (task.name) {
+            case 'deployNodes':
+            case 'clean':
+                // stop network for deployNodes and clean
+                await vscode.commands.executeCommand(Commands.NETWORK_STOP);
+                break;
             case 'assemble':
             case 'build':
             case 'test':
-            case 'clean':
                 break;
         }
     })
     vscode.tasks.onDidEndTask((taskEndEvent) => {
 		const task = taskEndEvent.execution.task;
 		switch (task.name) {
-			case 'deployNodes':
-                areNodesDeployed(context);
-				isNetworkRunning(context);
-				break;
+			case 'deployNodes': // runs through to 'clean' block
+				isNetworkRunning(context); // update is network running on completion
             case 'clean':
-				areNodesDeployed(context);
-                isNetworkRunning(context);
+				areNodesDeployed(context); // update whether nodes are deployed
                 vscode.commands.executeCommand(Commands.OPERATIONS_REFRESH, true);
                 break;
             case 'assemble':

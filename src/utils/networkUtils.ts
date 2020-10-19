@@ -13,7 +13,9 @@ export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
     let nodesPath:string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
     nodesPath = nodesPath?.split('build.gradle')[0] + 'build/nodes';
     
-    const result = fs.existsSync(nodesPath); // check if the NODES persistant structure exists
+    var result = fs.existsSync(nodesPath); // check if nodes directory exists
+    const cordaGlob = await vscode.workspace.findFiles('**/corda.jar');
+    result = result && (cordaGlob.length > 0); // check if there is an active CordaJar available.
     await context.workspaceState.update(WorkStateKeys.ARE_NODES_DEPLOYED, result);
     vscode.commands.executeCommand('setContext', Contexts.ARE_NODES_DEPLOYED_CONTEXT, result);
     return result

@@ -50,6 +50,18 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     // start client for RPC
     launchClient(context.globalState.get(GlobalStateKeys.CLIENT_TOKEN) as string, context)
 
+    // parse the current build.gradle
+    await parseBuildGradle(projectCwd, context);
+
+    return true;
+}
+
+/**
+ * parses the root build.gradle for defined nodes, writes values to workspace state and determines if there is a current deployment
+ * @param projectCwd 
+ * @param context 
+ */
+const parseBuildGradle = async (projectCwd: string, context: vscode.ExtensionContext) => {
     // Parse build.gradle for deployNodes configuration and store to workspace
     let gradleTaskConfigs: CordaTaskConfig[] | undefined = []
     let files = fileSync(/build.gradle$/, projectCwd);
@@ -71,9 +83,12 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     await context.workspaceState.update(WorkStateKeys.DEPLOY_NODES_LIST, deployedNodes);
 
     await areNodesDeployed(context); // checks if nodes are already deployed
-    return true;
 }
 
+/**
+ * Checks existence of JDK18 runtime configuration (needed for Java Language Server 0.64.1 and above)
+ * @param context 
+ */
 const isJDK18Available = async (context: vscode.ExtensionContext) => {
     var jdk18exist = false;
     var jdk18Home = undefined;
