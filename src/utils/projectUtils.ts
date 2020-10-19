@@ -33,8 +33,15 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
 
     // EXIT IF NOT a Corda Project
     if (!(await setIsProjectCorda(projectGradle, context))) { return false } 
-    // if NOT ide.corda.net -> EXIT IF JDK 1.8 Not Installed and home set if settings.json
-    if (!(context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) && !(await isJDK18Available(context))) { return false; }; // confirm properly set JDK 1.8)
+    
+    // Check JDK 1.8 Installed and home/runconfig set in settings.json
+    const currentRedHatJava: string = vscode.extensions.getExtension('redhat.java')!.packageJSON.version;
+    if (
+        !(context.globalState.get(GlobalStateKeys.IS_ENV_CORDA_NET)) && // running on local environment
+        (parseFloat(currentRedHatJava) >= 0.65) && // > 0.64.1 (last fully 1.8 compatible version)
+        !(await isJDK18Available(context))) { // confirm properly set JDK 1.8)
+            return false; 
+        }; 
 
     // PROJECT IS CORDA continue with loads -------->
 

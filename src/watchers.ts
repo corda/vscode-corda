@@ -4,7 +4,7 @@ import { areNodesDeployed, isNetworkRunning } from './utils/networkUtils';
 import * as fs from 'fs';
 import { DefinedCordaNode } from './types/types';
 import { MessageType, WindowMessage } from './logviewer/types';
-import { cordaCheckAndLoad, parseBuildGradle } from './utils/projectUtils';
+import { parseBuildGradle } from './utils/projectUtils';
 
 /**
  * Watcher for changes to build.gradle files
