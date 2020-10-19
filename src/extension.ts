@@ -146,7 +146,7 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 		// Local Network actions
 		vscode.commands.registerCommand(Commands.NETWORK_MAP_SHOW, () => network.networkMapCallback(context)),
 		vscode.commands.registerCommand(Commands.NETWORK_EDIT, () => network.editDeployNodesCallback(context)),
-		vscode.commands.registerCommand(Commands.NETWORK_DEPLOYNODES, async () => network.deployNodesCallback(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_DEPLOYNODES, async (forceDeploy?) => network.deployNodesCallback(context, forceDeploy)),
 		vscode.commands.registerCommand(Commands.NETWORK_RUN_DISABLED, () => 
 			vscode.window.showInformationMessage("Network must be deployed - Deploy now?", "Yes", "No")
 				.then((selection) => {

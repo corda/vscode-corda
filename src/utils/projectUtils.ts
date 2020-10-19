@@ -61,7 +61,7 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
  * @param projectCwd 
  * @param context 
  */
-const parseBuildGradle = async (projectCwd: string, context: vscode.ExtensionContext) => {
+export const parseBuildGradle = async (projectCwd: string, context: vscode.ExtensionContext) => {
     // Parse build.gradle for deployNodes configuration and store to workspace
     let gradleTaskConfigs: CordaTaskConfig[] | undefined = []
     let files = fileSync(/build.gradle$/, projectCwd);

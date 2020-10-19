@@ -16,10 +16,10 @@ import { debug } from '../extension';
  * Deploys nodes in project with pre-req checking
  * @param context 
  */
-export const deployNodesCallback = async (context: vscode.ExtensionContext) => {
+export const deployNodesCallback = async (context: vscode.ExtensionContext, forceDeploy?: boolean) => {
     const userConf = async () => { // confirm with user and decide whether to deploy nodes.
         let shouldDeploy = true;
-        if (await areNodesDeployed(context)) {
+        if (await areNodesDeployed(context) && !forceDeploy) {
             var selectItems: vscode.MessageItem[] = [{title: 'Run Network'}, {title: 'Re-deploy'}, {title:'Cancel'}]
             if (await isNetworkRunning(context)) {
                 selectItems.shift(); // remove the 'Run Network' option if it is already running

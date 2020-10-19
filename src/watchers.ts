@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { WorkStateKeys, Commands } from './types/CONSTANTS';
+import { WorkStateKeys, Commands, Constants } from './types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from './utils/networkUtils';
 import * as fs from 'fs';
 import { DefinedCordaNode } from './types/types';
 import { MessageType, WindowMessage } from './logviewer/types';
-import { cordaCheckAndLoad } from './utils/projectUtils';
+import { cordaCheckAndLoad, parseBuildGradle } from './utils/projectUtils';
 
 /**
  * Watcher for changes to build.gradle files
@@ -14,11 +14,21 @@ import { cordaCheckAndLoad } from './utils/projectUtils';
 export const getBuildGradleFSWatcher = (context: vscode.ExtensionContext) => {
     const pattern = new vscode.RelativePattern(vscode.workspace.workspaceFolders![0], '**/*.gradle');
     const watcher = vscode.workspace.createFileSystemWatcher(pattern);
-    watcher.onDidChange((event) => { 
+    watcher.onDidChange(async (event) => { 
         console.log(`gradle file changed: ${event.fsPath}`); 
+        const projectCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
 
-        // cordaCheckAndLoad(context); // rescan gradle
-        vscode.window.showInformationMessage("build.gradle was updated. Re-deploy nodes if needed.");
+        await vscode.commands.executeCommand(Commands.NETWORK_STOP); // STOP any running nodes
+        await parseBuildGradle(projectCwd, context); // rescan gradle
+        await vscode.commands.executeCommand(Commands.NETWORK_REFRESH); // refresh network tree
+        
+        // ask to redeploy nodes now?
+        vscode.window.showInformationMessage("build.gradle was updated. Would you like to deploy nodes?", 'Yes', 'No')
+            .then((selection) =>{
+                if (selection === 'Yes') {
+                    vscode.commands.executeCommand(Commands.NETWORK_DEPLOYNODES, true);
+                }
+            });
     })
     context.subscriptions.push(watcher);
 }
