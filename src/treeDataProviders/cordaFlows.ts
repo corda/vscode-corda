@@ -8,8 +8,10 @@ import { Commands, WorkStateKeys } from '../types/CONSTANTS';
 export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	
 	private flowFiles: ClassSig[];
+	private context: vscode.ExtensionContext;
 
 	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
 		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
 		this.flowFiles = projectObjects?.projectClasses.flowClasses as ClassSig[];
 	}
@@ -40,11 +42,10 @@ export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	
 	/**
 	 * - refreshes the tree view
-	 * @param classSig global classSig listing Flows in project
 	 */
-	refresh(classSig: ClassSig): void {
-		if (classSig instanceof Array) { this.flowFiles = classSig }
-		else if (classSig instanceof ClassSig) { this.flowFiles.push(classSig) } 
+	refresh(): void {
+		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = this.context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
+		this.flowFiles = projectObjects?.projectClasses.flowClasses as ClassSig[];
 		this._onDidChangeTreeData.fire();
 	}
 }

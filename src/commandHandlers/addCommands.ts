@@ -1,4 +1,4 @@
-import { Constants, Commands } from '../types/CONSTANTS';
+import { Constants, Commands, WorkStateKeys } from '../types/CONSTANTS';
 import * as vscode from 'vscode';
 import { ClassSig, ObjectSig } from '../types/typeParsing';
 import Axios from 'axios';
@@ -7,13 +7,14 @@ import Axios from 'axios';
  * Creates a new Flow in project
  * @param projectObjects dictionary of Corda types, used for inheritance selection
  */
-export const cordaFlowsAddCallback = (projectObjects) => {
+export const cordaFlowsAddCallback = (context: vscode.ExtensionContext) => {
+    const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
     
     // get a defaultURI
-    const firstFlowURI: string | undefined = (projectObjects.projectClasses.flowClasses as ClassSig[])[0].file?.toString();
+    const firstFlowURI: string | undefined = (projectObjects!.projectClasses.flowClasses as ClassSig[])[0].file?.toString();
     const flowDefaultURI: vscode.Uri = vscode.Uri.parse(firstFlowURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
 
-    const qpickItems = (projectObjects.projectClasses.flowClasses as ClassSig[]).map((sig) => {
+    const qpickItems = (projectObjects!.projectClasses.flowClasses as ClassSig[]).map((sig) => {
             return sig.name
         }).concat(Constants.FLOW_BASE_CLASS);
     const qpickPlaceHolder = 'Choose a parent flow to extend';
@@ -29,14 +30,15 @@ export const cordaFlowsAddCallback = (projectObjects) => {
  * Creates a new Contract in project
  * @param projectObjects 
  */
-export const cordaContractsAddCallback = (projectObjects) => {
+export const cordaContractsAddCallback = (context: vscode.ExtensionContext) => {
+	const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
 
     // get a defaultURI
-    const firstContractURI: string | undefined = (projectObjects.projectClasses.contractClasses as ObjectSig[])[0].file?.toString();
+    const firstContractURI: string | undefined = (projectObjects!.projectClasses.contractClasses as ObjectSig[])[0].file?.toString();
     const contractDefaultURI: vscode.Uri = vscode.Uri.parse(firstContractURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
 	
-    const qpickItems = (projectObjects.projectClasses.contractClasses as ObjectSig[])
-        .concat(projectObjects.projectInterfaces.contractInterfaces)
+    const qpickItems = (projectObjects!.projectClasses.contractClasses as ObjectSig[])
+        .concat(projectObjects!.projectInterfaces.contractInterfaces)
         .map((sig) => {
             return sig.name
         }).concat(Constants.CONTRACT_BASE_INTERFACE);
@@ -53,14 +55,15 @@ export const cordaContractsAddCallback = (projectObjects) => {
  * Creates a new ContractState in project
  * @param projectObjects 
  */
-export const cordaContractStatesAddCallback = (projectObjects) => {
+export const cordaContractStatesAddCallback = (context: vscode.ExtensionContext) => {
+    const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
 
     // get a defaultURI
-    const firstContractStateURI: string | undefined = (projectObjects.projectClasses.contractStateClasses as ObjectSig[])[0].file?.toString();
+    const firstContractStateURI: string | undefined = (projectObjects!.projectClasses.contractStateClasses as ObjectSig[])[0].file?.toString();
     const contractStateDefaultURI: vscode.Uri = vscode.Uri.parse(firstContractStateURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
 
-    const qpickItems = (projectObjects.projectClasses.contractStateClasses as ObjectSig[])
-        .concat(projectObjects.projectInterfaces.contractStateInterfaces)
+    const qpickItems = (projectObjects!.projectClasses.contractStateClasses as ObjectSig[])
+        .concat(projectObjects!.projectInterfaces.contractStateInterfaces)
         .map((sig) => {
             return sig.name
         }).concat(Constants.CONTRACTSTATE_BASE_INTERFACES);
@@ -112,8 +115,6 @@ const addCommandHelper = async (defaultUri, qpickItems, qpickPlaceHolder, inputP
 	var uint8array = new TextEncoder().encode(stateBaseText);
 
 	// write file -> refresh Tree -> open file
-	await vscode.workspace.fs.writeFile(fileUri, uint8array).then(() => {
-		const classToAdd: ClassSig = new ClassSig(fileName!.replace('.java',''), undefined, [stateBase!], undefined, fileUri);
-		vscode.commands.executeCommand(commandSource + '.refresh', classToAdd);
-	}).then(() => vscode.commands.executeCommand(Commands.CORDA_OPEN_FILE, fileUri));
+    await vscode.workspace.fs.writeFile(fileUri, uint8array)
+        .then(() => vscode.commands.executeCommand(Commands.CORDA_OPEN_FILE, fileUri));
 }

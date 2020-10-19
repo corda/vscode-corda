@@ -5,13 +5,15 @@ import * as fs from 'fs';
 import { DefinedCordaNode } from './types/types';
 import { MessageType, WindowMessage } from './logviewer/types';
 import { parseBuildGradle } from './utils/projectUtils';
+import { parseJavaFiles } from './types/typeParsing';
+import { refreshClassViews } from './extension';
 
 /**
  * Watcher for changes to build.gradle files
  * 
- * TODO: should execute refreshes on extension
+ * @param context
  */
-export const getBuildGradleFSWatcher = (context: vscode.ExtensionContext) => {
+export const buildGradleFSWatcher = (context: vscode.ExtensionContext) => {
     const pattern = new vscode.RelativePattern(vscode.workspace.workspaceFolders![0], '**/*.gradle');
     const watcher = vscode.workspace.createFileSystemWatcher(pattern);
     watcher.onDidChange(async (event) => { 
@@ -31,6 +33,26 @@ export const getBuildGradleFSWatcher = (context: vscode.ExtensionContext) => {
             });
     })
     context.subscriptions.push(watcher);
+}
+
+/**
+ * Watcher for changes to .java files - to update workspacestate projectObjects
+ * 
+ * TODO: optimize the parse/refresh sequence
+ * @param context 
+ */
+export const javaClassFSWatcher = (context: vscode.ExtensionContext) => {
+    const pattern = new vscode.RelativePattern(vscode.workspace.workspaceFolders![0], '**/*.java');
+    const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+    watcher.onDidChange(async (event) => {
+        await refreshClassViews(context);
+    });
+    watcher.onDidCreate(async (event) => {
+        await refreshClassViews(context);
+    })
+    watcher.onDidDelete(async (event) => {
+        await refreshClassViews(context);
+    })
 }
 
 /**

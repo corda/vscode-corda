@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ClassSig } from '../types/typeParsing';
-import { Commands } from '../types/CONSTANTS';
+import { Commands, WorkStateKeys } from '../types/CONSTANTS';
 
 /**
  * Contracts provider for generating TreeViews
@@ -8,8 +8,10 @@ import { Commands } from '../types/CONSTANTS';
 export class CordaContractsProvider implements vscode.TreeDataProvider<CordaContract> {
 	
 	private contractFiles: ClassSig[];
+	private context: vscode.ExtensionContext;
 
 	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
 		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
 		this.contractFiles = projectObjects?.projectClasses.contractClasses as ClassSig[];
 	}
@@ -40,11 +42,10 @@ export class CordaContractsProvider implements vscode.TreeDataProvider<CordaCont
 	
 	/**
 	 * - refreshes the tree view
-	 * @param classSig global classSig listing Contracts in project
 	 */
-	refresh(classSig: ClassSig | ClassSig[]): void {
-		if (classSig instanceof Array) { this.contractFiles = classSig }
-		else if (classSig instanceof ClassSig) { this.contractFiles.push(classSig) } 
+	refresh(): void {
+		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = this.context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
+		this.contractFiles = projectObjects?.projectClasses.contractClasses as ClassSig[];
 		this._onDidChangeTreeData.fire();
 	}
 }

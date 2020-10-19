@@ -114,6 +114,7 @@ export abstract class Commands {
     static readonly FLOWS_REFRESH = "cordaFlows.refresh";
     static readonly CONTRACTS_REFRESH = "cordaContracts.refresh";
     static readonly STATES_REFRESH = "cordaStates.refresh";
+    static readonly REFRESH_ALL_CLASS_TREES = 'corda.refreshClassTrees';
     static readonly NETWORK_REFRESH = "corda.localNetwork.refresh";
     static readonly NETWORK_MAP_SHOW = "corda.localNetwork.networkMap";
     static readonly NETWORK_EDIT = "corda.localNetwork.edit";

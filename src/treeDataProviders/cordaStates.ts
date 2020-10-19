@@ -8,10 +8,12 @@ import { Commands, WorkStateKeys } from '../types/CONSTANTS';
 export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> {
 	
 	private contractStateFiles: ClassSig[];
+	private context: vscode.ExtensionContext;
 
 	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
 		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
-		this.contractStateFiles = projectObjects?.projectClasses.contractStateFiles as ClassSig[];
+		this.contractStateFiles = projectObjects?.projectClasses.contractStateClasses as ClassSig[];
 	}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaState | undefined | void> = new vscode.EventEmitter<CordaState | undefined | void>();
@@ -41,11 +43,10 @@ export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> 
 	
 	/**
 	 * - refreshes the tree view
-	 * @param classSig global classSig listing States in project
 	 */
-	refresh(classSig: ClassSig): void {
-		if (classSig instanceof Array) { this.contractStateFiles = classSig }
-		else if (classSig instanceof ClassSig) { this.contractStateFiles.push(classSig) } 
+	refresh(): void {
+		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = this.context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
+		this.contractStateFiles = projectObjects?.projectClasses.contractStateClasses as ClassSig[];
 		this._onDidChangeTreeData.fire();
 	}
 }
