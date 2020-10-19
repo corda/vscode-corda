@@ -1,5 +1,5 @@
 import { Uri, ExtensionContext, workspace } from 'vscode';
-import { Constants } from './CONSTANTS';
+import { Constants, WorkStateKeys } from './CONSTANTS';
 const { 
   parse,
   BaseJavaCstVisitorWithDefaults
@@ -156,7 +156,6 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
  * @param context 
  */
 export const parseJavaFiles = async (context: ExtensionContext) => {
-	
 	var { parse } = require("java-parser");
 
 	const localJavaFiles: Uri[] = await workspace.findFiles('**/*.java');
@@ -170,9 +169,7 @@ export const parseJavaFiles = async (context: ExtensionContext) => {
 		ctVisitor.setWorkingFile(fileUri);
 		ctVisitor.visit(cst);
 	}
-
-	return extractTypes(ctVisitor);	
-
+    await context.workspaceState.update(WorkStateKeys.PROJECT_OBJECTS, extractTypes(ctVisitor));
 }
 
 /**

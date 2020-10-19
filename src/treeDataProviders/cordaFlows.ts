@@ -1,13 +1,18 @@
 import * as vscode from 'vscode';
 import { ClassSig } from '../types/typeParsing';
-import { Commands } from '../types/CONSTANTS';
+import { Commands, WorkStateKeys } from '../types/CONSTANTS';
 
 /**
  * Flows provider for generating TreeViews
  */
 export class CordaFlowsProvider implements vscode.TreeDataProvider<CordaFlow> {
 	
-	constructor(private flowFiles: ClassSig[] = []) {}
+	private flowFiles: ClassSig[];
+
+	constructor(context: vscode.ExtensionContext) {
+		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
+		this.flowFiles = projectObjects?.projectClasses.flowClasses as ClassSig[];
+	}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaFlow | undefined | void> = new vscode.EventEmitter<CordaFlow | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaFlow | undefined | void> = this._onDidChangeTreeData.event;

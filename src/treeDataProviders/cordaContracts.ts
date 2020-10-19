@@ -7,7 +7,12 @@ import { Commands } from '../types/CONSTANTS';
  */
 export class CordaContractsProvider implements vscode.TreeDataProvider<CordaContract> {
 	
-	constructor(private contractFiles: ClassSig[] = []) {}
+	private contractFiles: ClassSig[];
+
+	constructor(context: vscode.ExtensionContext) {
+		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
+		this.contractFiles = projectObjects?.projectClasses.contractClasses as ClassSig[];
+	}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaContract | undefined | void> = new vscode.EventEmitter<CordaContract | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaContract | undefined | void> = this._onDidChangeTreeData.event;

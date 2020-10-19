@@ -19,7 +19,7 @@ import { disposeRunningNodes, localOrCordaNet } from './utils/stateUtils';
 import { Contexts, TreeViews, Commands, GlobalStateKeys } from './types/CONSTANTS';
 
 const fsWatchers: any[] = [];
-var projectObjects: {projectClasses: any, projectInterfaces:any};
+// var projectObjects: {projectClasses: any, projectInterfaces:any};
 
 export const debug = false;
 
@@ -32,6 +32,7 @@ export const debug = false;
  * deployNodesBuildGradle - path to active/deployNodes build.gradle
  * areNodesDeployed (boolean) - are the nodes are currently deployed?
  * isNetworkRunning - is the local Network of THIS project running?
+ * projectObjects - dictionary of current project classes for Flow/Contract/ContractState views/ops
  * 
  * context.globalState entries:
  * 
@@ -82,22 +83,20 @@ export async function activate(context: vscode.ExtensionContext) {
  */
 const cordaExt = async (context: vscode.ExtensionContext) => {
 
-	// scan all project java files and build inventory for treeviews
-	projectObjects = await parseJavaFiles(context); 
+	// scan all project java files and build inventory for treeviews - commit to workspacestate
+	await parseJavaFiles(context); 
 
 	// Initiate watchers
 	watchers.getBuildGradleFSWatcher(context); 
 	fsWatchers.push(watchers.nodesFSWatcher(context));
 	watchers.activateEventListeners(context);
 
-	// server_awake(); // launch client and check server is up
-
 	// Corda TreeDataProviders
 	const cordaOperationsProvider = new CordaOperationsProvider();
 	const cordaDepProvider = new CordaDepProvider();
-	const cordaFlowsProvider = new CordaFlowsProvider(projectObjects!.projectClasses.flowClasses as ClassSig[]);
-	const cordaContractsProvider = new CordaContractsProvider(projectObjects!.projectClasses.contractClasses as ClassSig[]);
-	const cordaStatesProvider = new CordaStatesProvider(projectObjects!.projectClasses.contractStateClasses as ClassSig[]);
+	const cordaFlowsProvider = new CordaFlowsProvider(context);
+	const cordaContractsProvider = new CordaContractsProvider(context);
+	const cordaStatesProvider = new CordaStatesProvider(context);
 	const cordaLocalNetworkProvider = new CordaLocalNetworkProvider(context);
 
 	// Register DataProviders

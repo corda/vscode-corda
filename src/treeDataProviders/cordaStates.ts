@@ -1,13 +1,18 @@
 import * as vscode from 'vscode';
 import { ClassSig } from '../types/typeParsing';
-import { Commands } from '../types/CONSTANTS';
+import { Commands, WorkStateKeys } from '../types/CONSTANTS';
 
 /**
  * States provider for generating TreeViews
  */
 export class CordaStatesProvider implements vscode.TreeDataProvider<CordaState> {
 	
-	constructor(private contractStateFiles: ClassSig[] = []) {}
+	private contractStateFiles: ClassSig[];
+
+	constructor(context: vscode.ExtensionContext) {
+		const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
+		this.contractStateFiles = projectObjects?.projectClasses.contractStateFiles as ClassSig[];
+	}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<CordaState | undefined | void> = new vscode.EventEmitter<CordaState | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<CordaState | undefined | void> = this._onDidChangeTreeData.event;

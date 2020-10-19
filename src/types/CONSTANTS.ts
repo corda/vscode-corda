@@ -65,6 +65,7 @@ export abstract class WorkStateKeys {
     static readonly DEPLOY_NODES_BUILD_GRADLE = 'deployNodesBuildGradle';
     static readonly ARE_NODES_DEPLOYED = 'areNodesDeployed';
     static readonly IS_NETWORK_RUNNING = 'isNetworkRunning';
+    static readonly PROJECT_OBJECTS = 'projectObjects';
 
     static readonly ALL_KEYS = [
         WorkStateKeys.VIEW_PANELS,
@@ -72,7 +73,8 @@ export abstract class WorkStateKeys {
         WorkStateKeys.DEPLOY_NODES_LIST, 
         WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE,
         WorkStateKeys.ARE_NODES_DEPLOYED,
-        WorkStateKeys.IS_NETWORK_RUNNING
+        WorkStateKeys.IS_NETWORK_RUNNING,
+        WorkStateKeys.PROJECT_OBJECTS
     ]
 }
 
