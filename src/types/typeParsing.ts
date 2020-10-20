@@ -79,6 +79,7 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
 
   // Visits all class declarations in CST
   normalClassDeclaration(ctx: any) {
+      this.visit(ctx.classBody); // check class body for embedded classes
       const name = this.visit(ctx.typeIdentifier);
       const superClass = this.visit(ctx.superclass);
       const superInterfaces = this.visit(ctx.superinterfaces);
@@ -87,6 +88,7 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
 
   // Visits all interface declarations in CST
   normalInterfaceDeclaration(ctx: any) {
+      this.visit(ctx.interfaceBody); // check interface body for embedded classes
       const name = this.visit(ctx.typeIdentifier)
       const superInterface = this.visit(ctx.extendsInterfaces);
       if (superInterface != undefined) {
