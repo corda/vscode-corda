@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import { DefinedCordaNode } from './types/types';
 import { MessageType, WindowMessage } from './logviewer/types';
 import { parseBuildGradle } from './utils/projectUtils';
-import { parseJavaFiles } from './types/typeParsing';
 import { refreshClassViews } from './extension';
 
 /**

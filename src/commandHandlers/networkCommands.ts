@@ -46,7 +46,7 @@ export const deployNodesCallback = async (context: vscode.ExtensionContext, forc
         if (!deployNodes) return;
         // set context before initiating the task
         await vscode.commands.executeCommand('setContext', Contexts.ARE_NODES_DEPLOYED_CONTEXT, false);
-        runGradleTaskCallback("deployNodes").then(async () => {
+        runGradleTaskCallback("deployNodes", undefined, context).then(async () => {
             await areNodesDeployed(context); // double check in case of interruption of task
         });
     })

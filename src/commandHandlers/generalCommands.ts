@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Constants, Commands, ViewPanels } from '../types/CONSTANTS';
+import { Constants, Commands, ViewPanels, WorkStateKeys } from '../types/CONSTANTS';
 import Axios from 'axios';
 import * as fs from 'fs';
 import { CordaOperation } from '../treeDataProviders/cordaOperations';
@@ -80,10 +80,26 @@ export const newProjectCallback = async () => {
  * Executing callback for running Gradle task
  * @param task 
  */
-export const runGradleTaskCallback = async (task: string, cordaOp?: CordaOperation) => {
-    const targetTask = (await vscode.tasks.fetchTasks({ type: 'gradle' })).find(
-        ({ name }) => name === task
-    );
+export const runGradleTaskCallback = async (task: string, cordaOp?: CordaOperation, context?: vscode.ExtensionContext) => {
+    const deployNodesBuildGradle:any = context?.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
+
+    const gradleTasks = await vscode.tasks.fetchTasks({ type: 'gradle'});
+    var targetTask:any = undefined;
+    if (deployNodesBuildGradle !== undefined) {
+        targetTask = gradleTasks.find(({name}) => {
+                if (name.includes(':')) { // check for module in name
+                    return (deployNodesBuildGradle.includes(name.split(':')[0]) && // match module for build.gradle
+                    name.includes(task)) // match task name
+                } else {
+                    return name.includes(task);
+                }  
+            }
+        )
+    } else {
+        targetTask = gradleTasks.find(
+            ({name}) => name === task // match task name
+        )
+    }
     
     await new Promise(async (resolve) => {
         const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
