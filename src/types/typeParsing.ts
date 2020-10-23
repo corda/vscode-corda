@@ -183,6 +183,7 @@ const extractTypes = (ctVisitor: ClassTypeVisitor) => {
     const flowBaseClassSig = [new ClassSig(Constants.FLOW_BASE_CLASS[0], undefined, [],undefined, undefined)];
     const contractStateInterfaceSigs = Constants.CONTRACTSTATE_BASE_INTERFACES.map(itr => { return new InterfaceSig(itr, '', undefined); });
     const contractInterfaceSig = Constants.CONTRACT_BASE_INTERFACE.map(itr => { return new InterfaceSig(itr, '', undefined); });
+    const tokensBaseClassSig = [new ClassSig(Constants.TOKENS_BASE_STATES[0], undefined, ['LinearState'], undefined, undefined)];
 
     // ContractState
     const contractStatesData = extractTypesFromBase(contractStateInterfaceSigs, ctVisitor.interfaceSigs,  ctVisitor.classSigs);
@@ -192,8 +193,11 @@ const extractTypes = (ctVisitor: ClassTypeVisitor) => {
 
     // Flows
     const flowsData = extractTypesFromBase(flowBaseClassSig, contractsData.remainingInterfaceSigs, contractsData.remainingClassSigs);
+
+    // Tokens
+    const tokensData = extractTypesFromBase(tokensBaseClassSig, flowsData.remainingInterfaceSigs, flowsData.remainingClassSigs);
     return {
-        projectClasses: {contractStateClasses: contractStatesData.baseTypeClasses, contractClasses: contractsData.baseTypeClasses, flowClasses: flowsData.baseTypeClasses},
+        projectClasses: {contractStateClasses: contractStatesData.baseTypeClasses.concat(tokensData.baseTypeClasses), contractClasses: contractsData.baseTypeClasses, flowClasses: flowsData.baseTypeClasses},
         projectInterfaces:{contractStateInterfaces: contractStatesData.baseTypeInterfaces, contractInterfaces: contractsData.baseTypeInterfaces}
     }
 }

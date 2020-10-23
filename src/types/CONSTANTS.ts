@@ -4,6 +4,7 @@
 export abstract class Constants {
     static readonly CONTRACTSTATE_BASE_INTERFACES = ['ContractState', 'FungibleState', 'LinearState', 'OwnableState', 'QueryableState', 'SchedulableState'];
     static readonly CONTRACT_BASE_INTERFACE = ['Contract'];
+    static readonly TOKENS_BASE_STATES = ['EvolvableTokenType'];
 	static readonly FLOW_BASE_CLASS = ['FlowLogic'];
 	static readonly GITHUB_API = {
         'cordapp-template-java': {
