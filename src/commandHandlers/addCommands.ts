@@ -19,11 +19,11 @@ export const cordaFlowsAddCallback = (context: vscode.ExtensionContext) => {
         }).concat(Constants.FLOW_BASE_CLASS);
     const qpickPlaceHolder = 'Choose a parent flow to extend';
     const inputPlaceHolder = 'Enter the name of the flow';
-    const commandSource = 'cordaFlows';
+    // const commandSource = 'cordaFlows';
     // sourceMap <baseType>:[<templateClassName>,<URL>]
     const sourceMap = {'FlowLogic':['BaseFlow','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseFlow.java']};
 
-    addCommandHelper(flowDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+    addCommandHelper(flowDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, sourceMap, context);
 }
 
 /**
@@ -44,11 +44,11 @@ export const cordaContractsAddCallback = (context: vscode.ExtensionContext) => {
         }).concat(Constants.CONTRACT_BASE_INTERFACE);
     const qpickPlaceHolder = 'Choose a parent contract interface or class to extend';
     const inputPlaceHolder = 'Enter the name of the contract';
-    const commandSource = 'cordaContracts';
+    // const commandSource = 'cordaContracts';
     // sourceMap <baseType>:[<templateClassName>,<URL>]
     const sourceMap = {'Contract':['BaseContract','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContract.java']};
 
-    addCommandHelper(contractDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+    addCommandHelper(contractDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, sourceMap, context);
 }
 
 /**
@@ -69,11 +69,11 @@ export const cordaContractStatesAddCallback = (context: vscode.ExtensionContext)
         }).concat(Constants.CONTRACTSTATE_BASE_INTERFACES);
     const qpickPlaceHolder = 'Choose a parent state interface or class to extend';
     const inputPlaceHolder = 'Enter the name of the state';
-    const commandSource = 'cordaStates';
+    // const commandSource = 'cordaStates';
     // sourceMap <baseType>:[<templateClassName>,<URL>]
     const sourceMap = {'ContractState':['BaseContractState','https://raw.githubusercontent.com/corda/vscode-corda/v0.2.0/resources/BaseContractState.java']};
 
-    addCommandHelper(contractStateDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap);
+    addCommandHelper(contractStateDefaultURI, qpickItems, qpickPlaceHolder, inputPlaceHolder, sourceMap, context);
 }
 
 /**
@@ -84,9 +84,11 @@ export const cordaContractStatesAddCallback = (context: vscode.ExtensionContext)
  * @param commandSource 
  * @param sourceMap 
  */
-const addCommandHelper = async (defaultUri, qpickItems, qpickPlaceHolder, inputPlaceHolder, commandSource, sourceMap) => {
+const addCommandHelper = async (defaultUri, qpickItems, qpickPlaceHolder, inputPlaceHolder, sourceMap, context: vscode.ExtensionContext) => {
 	let path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({defaultUri: defaultUri,canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}, openLabel: 'Save File'});
-	if (path == undefined) return;
+    if (path == undefined) return;
+    
+    const requestType: string = Object.keys(sourceMap)[0]; // FlowLogic, Contract, ContractState
 
 	let stateBase = await vscode.window.showQuickPick(qpickItems,
 	{
@@ -105,11 +107,43 @@ const addCommandHelper = async (defaultUri, qpickItems, qpickPlaceHolder, inputP
 	});
 	if (fileName == undefined) return;
 
-	// check Base / http mapping to fetch correct template
-    let stateBaseText:string = await (await Axios.get(sourceMap[stateBase!][1])).data;
-    stateBaseText = stateBaseText.replace(sourceMap[stateBase][0], fileName) // inject custom ClassName
+    // check Base / http mapping to fetch correct template
+    let stateBaseText:string = await (await Axios.get(sourceMap[requestType][1])).data;
+    const className:string = fileName.includes('.java') ? fileName.split('.')[0] : fileName; // className should NOT include suffix
+    stateBaseText = stateBaseText.replace(sourceMap[requestType][0], className) // inject className
 
-    fileName = fileName.includes('.java') ? fileName : fileName + '.java'; // append .java if needed
+    // parent is CLASS or INTERFACE?
+    const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
+    let classesOfType: ClassSig[];
+    switch (requestType) {
+        case 'FlowLogic':
+            classesOfType = projectObjects!.projectClasses.flowClasses;
+            break;
+        case 'Contract':
+            classesOfType = projectObjects!.projectClasses.contractClasses;
+            break;
+        default:
+            classesOfType = projectObjects!.projectClasses.contractStateClasses;
+            break;
+    }
+    const parentIsClass: boolean = (classesOfType.find((value) => {
+        return value.name === stateBase;
+    }) !== undefined) || requestType === Constants.FLOW_BASE_CLASS[0];
+
+    // swap implements/extends as needed when injecting parent
+    if (parentIsClass) {
+        stateBaseText = stateBaseText.replace('implements', 'extends');
+        if (requestType === 'FlowLogic' && stateBase !== 'FlowLogic') {
+            stateBaseText = stateBaseText.replace('extends ' + requestType + '<Void>', 'extends ' + stateBase);
+        } else {
+            stateBaseText = stateBaseText.replace('extends ' + requestType, 'extends ' + stateBase);
+        }
+    } else {
+        stateBaseText = stateBaseText.replace('extends', 'implements');
+        stateBaseText = stateBaseText.replace('implements ' + requestType, 'implements ' + stateBase);
+    }
+
+    fileName = fileName.includes('.java') ? fileName : fileName + '.java'; // fileName SHOULD include suffix
 
 	const fileUri = vscode.Uri.joinPath(path?.pop()!, fileName!);
 	var uint8array = new TextEncoder().encode(stateBaseText);
