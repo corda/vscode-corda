@@ -67,8 +67,8 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
 
   classDeclaration(ctx: any) {
       this.setCurrentBoundTo(undefined); // reset class level boundTo
-      this.visit(ctx.classModifier); // go to annotation if exist
       const classDetails: {name, superClass, superInterfaces} = this.visit(ctx.normalClassDeclaration);
+      this.visit(ctx.classModifier); // go to annotation if exist, set last
 
       if (classDetails.superClass != undefined || classDetails.superInterfaces != undefined) {
           this.classSigs.push(
