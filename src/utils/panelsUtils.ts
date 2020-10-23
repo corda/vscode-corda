@@ -94,14 +94,14 @@ export const getWebViewPanel = async (view: string, definedNode: DefinedCordaNod
  * 
  * @param context extension context for accessing window
  */
-const createViewPanel = (context, view, title, resourceRoot) => {
+const createViewPanel = (context, view, title:string, resourceRoot) => {
 	return vscode.window.createWebviewPanel( 
 		view, 
 		title,
 		vscode.ViewColumn.One, 
 		{
 			enableScripts: true,
-			retainContextWhenHidden: true,
+			retainContextWhenHidden: (title.includes('Log')) ? true : false,
 			localResourceRoots: [ vscode.Uri.file(path.join(context.extensionPath, resourceRoot)) ]
 		}
 	)
