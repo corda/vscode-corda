@@ -68,6 +68,8 @@ export abstract class WorkStateKeys {
     static readonly IS_NETWORK_RUNNING = 'isNetworkRunning';
     static readonly PROJECT_OBJECTS = 'projectObjects';
 
+    static readonly DEPLOYMENT_DIRTY = 'deploymentDirty';
+
     static readonly ALL_KEYS = [
         WorkStateKeys.VIEW_PANELS,
         WorkStateKeys.PROJECT_IS_CORDA,

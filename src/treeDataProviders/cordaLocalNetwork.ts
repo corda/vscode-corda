@@ -61,7 +61,9 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 	}
 	
 	refresh(): void {
-		this.workspaceRunningNodesList = (this.context.globalState.get(GlobalStateKeys.RUNNING_NODES) as RunningNodesList)[vscode.workspace.name!]?.runningNodes;
+		const runningNodes: RunningNodesList | undefined = this.context.globalState.get(GlobalStateKeys.RUNNING_NODES) as RunningNodesList;
+		const workspaceRunningNodes = !(Object.keys(runningNodes).length === 0 && runningNodes.constructor === Object) ? runningNodes[vscode.workspace.name!].runningNodes : [];
+		this.workspaceRunningNodesList = workspaceRunningNodes;
 		this._onDidChangeTreeData.fire();
 	}
 }

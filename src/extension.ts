@@ -35,6 +35,7 @@ export const debug = false;
  * areNodesDeployed (boolean) - are the nodes are currently deployed?
  * isNetworkRunning - is the local Network of THIS project running?
  * projectObjects - dictionary of current project classes for Flow/Contract/ContractState views/ops
+ * deploymentDirty - (boolean) - persistent; build.gradle definition has changed since last deployment
  * 
  * context.globalState entries:
  * 
@@ -193,7 +194,10 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 			
 			
 		}),
-		vscode.commands.registerCommand(Commands.NETWORK_STOP, () => disposeRunningNodes(context)),
+		vscode.commands.registerCommand(Commands.NETWORK_STOP, async () => {
+			await disposeRunningNodes(context);
+			await vscode.commands.executeCommand(Commands.NETWORK_REFRESH);
+		}),
 
 		// Node actions
 		vscode.commands.registerCommand(Commands.NODE_RUN_FLOW, async (node: DefinedCordaNodeTreeItem) => network.transactionsCallback(node, context)),

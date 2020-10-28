@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import { WorkStateKeys, Commands, Constants } from './types/CONSTANTS';
+import { WorkStateKeys, Commands, Constants, Contexts } from './types/CONSTANTS';
 import { areNodesDeployed, isNetworkRunning } from './utils/networkUtils';
 import * as fs from 'fs';
 import { DefinedCordaNode } from './types/types';
 import { MessageType, WindowMessage } from './logviewer/types';
 import { parseBuildGradle } from './utils/projectUtils';
 import { refreshClassViews } from './extension';
+import { file } from 'find';
 
 /**
  * Watcher for changes to build.gradle files
@@ -21,10 +22,13 @@ export const buildGradleFSWatcher = (context: vscode.ExtensionContext) => {
 
         await vscode.commands.executeCommand(Commands.NETWORK_STOP); // STOP any running nodes
         await parseBuildGradle(projectCwd, context); // rescan gradle
-        await vscode.commands.executeCommand(Commands.NETWORK_REFRESH); // refresh network tree
-        
+
+        if (areNodesDeployed(context)) {
+            await context.workspaceState.update(WorkStateKeys.DEPLOYMENT_DIRTY, true);
+        }
+                
         // ask to redeploy nodes now?
-        vscode.window.showInformationMessage("build.gradle was updated. Would you like to deploy nodes?", 'Yes', 'No')
+        vscode.window.showInformationMessage("build.gradle was updated. You will need to re-deploy before running network again. Deploy now?", 'Yes', 'No')
             .then((selection) =>{
                 if (selection === 'Yes') {
                     vscode.commands.executeCommand(Commands.NETWORK_DEPLOYNODES, true);
@@ -66,16 +70,18 @@ export const nodesFSWatcher = (context: vscode.ExtensionContext) => {
     var watcher = fs.watch(buildPath!, {recursive: true});
     watcher.on('change', async (event, filename) => {
         // console.log('build/nodes changed');
+        const f = filename;
         const runningTasks = vscode.tasks.taskExecutions;
         const deployNodeTaskRunning = runningTasks.some((tE) => {
             return tE.task.name == 'deployNodes'
         })
         
-        if (!deployNodeTaskRunning) {
+        // refresh on our targets
+        if (!deployNodeTaskRunning && filename.includes('build/nodes')) {
             await areNodesDeployed(context);
             await isNetworkRunning(context);
         }       
-    })
+    });
     return watcher;
 }
 

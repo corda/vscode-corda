@@ -16,6 +16,10 @@ export const areNodesDeployed = async (context: vscode.ExtensionContext) => {
     var result = fs.existsSync(nodesPath); // check if nodes directory exists
     const cordaGlob = await vscode.workspace.findFiles('**/corda.jar');
     result = result && (cordaGlob.length > 0); // check if there is an active CordaJar available.
+
+    // check if definedNodes matched deployment
+    result = result && !context.workspaceState.get(WorkStateKeys.DEPLOYMENT_DIRTY);
+
     await context.workspaceState.update(WorkStateKeys.ARE_NODES_DEPLOYED, result);
     vscode.commands.executeCommand('setContext', Contexts.ARE_NODES_DEPLOYED_CONTEXT, result);
     return result
