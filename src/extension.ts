@@ -17,6 +17,8 @@ import * as network from './commandHandlers/networkCommands';
 import { cordaCheckAndLoad, sleep } from './utils/projectUtils';
 import { disposeRunningNodes, localOrCordaNet } from './utils/stateUtils';
 import { Contexts, TreeViews, Commands, GlobalStateKeys, WorkStateKeys } from './types/CONSTANTS';
+import { DefinedCordaNode } from './types/types';
+import { terminalIsOpenForNode } from './utils/terminalUtils';
 
 const fsWatchers: any[] = [];
 // var projectObjects: {projectClasses: any, projectInterfaces:any};
@@ -170,9 +172,15 @@ const cordaExt = async (context: vscode.ExtensionContext) => {
 				title: "Running network",
 				cancellable: true
 			}, async (progress, token) => {
-				token.onCancellationRequested(() => {
+				token.onCancellationRequested(async () => {
 					// cancellation request here
-					vscode.commands.executeCommand(Commands.NETWORK_STOP);
+					await vscode.commands.executeCommand(Commands.NETWORK_STOP);
+					const localDefinedNodes: DefinedCordaNode[] | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
+					if (localDefinedNodes) { // clean up terminals from cancellation token
+						localDefinedNodes.map(value => {
+							terminalIsOpenForNode(value, true);
+						})
+					}
 				});
 
 				progress.report({increment: 0})
