@@ -55,6 +55,7 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       this.classSigs = []; // list of Corda Classes
       this.interfaceSigs = []; // list of Corda Interfaces
       this.currentBoundTo = undefined;
+      this.inValidAnnotation = false; // sentinal for parse tree annotation assignment
       this.validateVisitor();
   }
 
@@ -139,12 +140,18 @@ class ClassTypeVisitor extends BaseJavaCstVisitorWithDefaults {
       switch (annotationValue) {
           case 'BelongsToContract':
           case 'InitiatedBy':
+            this.inValidAnnotation = true;
             this.visit(ctx.elementValue);
+            this.inValidAnnotation = false;
       }
+      return;
   }
 
   fqnOrRefTypePartCommon(ctx: any) {
-      this.setCurrentBoundTo(ctx.Identifier[0].image);
+      if (this.inValidAnnotation) {
+        this.setCurrentBoundTo(ctx.Identifier[0].image);
+      }
+      return;
   }
  }
 
