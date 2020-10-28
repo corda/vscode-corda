@@ -11,8 +11,8 @@ export const cordaFlowsAddCallback = (context: vscode.ExtensionContext) => {
     const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
     
     // get a defaultURI
-    const firstFlowURI: string | undefined = (projectObjects!.projectClasses.flowClasses as ClassSig[])[0].file?.toString();
-    const flowDefaultURI: vscode.Uri = vscode.Uri.parse(firstFlowURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
+    const firstFlowURI: string | undefined = (projectObjects!.projectClasses.flowClasses.length > 0) ? (projectObjects!.projectClasses.flowClasses as ObjectSig[])[0].file?.toString() : undefined;
+    const flowDefaultURI: vscode.Uri = (firstFlowURI !== undefined) ? vscode.Uri.parse(firstFlowURI.match("(.*)(\/.*\.[^.]+$)")![1]!) : vscode.workspace.workspaceFolders![0].uri;
 
     const qpickItems = (projectObjects!.projectClasses.flowClasses as ClassSig[]).map((sig) => {
             return sig.name
@@ -34,9 +34,9 @@ export const cordaContractsAddCallback = (context: vscode.ExtensionContext) => {
 	const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
 
     // get a defaultURI
-    const firstContractURI: string | undefined = (projectObjects!.projectClasses.contractClasses as ObjectSig[])[0].file?.toString();
-    const contractDefaultURI: vscode.Uri = vscode.Uri.parse(firstContractURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
-	
+    const firstContractURI: string | undefined = (projectObjects!.projectClasses.contractClasses.length > 0) ? (projectObjects!.projectClasses.contractClasses as ObjectSig[])[0].file?.toString() : undefined;
+    const contractDefaultURI: vscode.Uri = (firstContractURI !== undefined) ? vscode.Uri.parse(firstContractURI.match("(.*)(\/.*\.[^.]+$)")![1]!) : vscode.workspace.workspaceFolders![0].uri;
+
     const qpickItems = (projectObjects!.projectClasses.contractClasses as ObjectSig[])
         .concat(projectObjects!.projectInterfaces.contractInterfaces)
         .map((sig) => {
@@ -59,8 +59,8 @@ export const cordaContractStatesAddCallback = (context: vscode.ExtensionContext)
     const projectObjects:{projectClasses: any, projectInterfaces:any} | undefined = context.workspaceState.get(WorkStateKeys.PROJECT_OBJECTS);
 
     // get a defaultURI
-    const firstContractStateURI: string | undefined = (projectObjects!.projectClasses.contractStateClasses as ObjectSig[])[0].file?.toString();
-    const contractStateDefaultURI: vscode.Uri = vscode.Uri.parse(firstContractStateURI?.match("(.*)(\/.*\.[^.]+$)")![1]!);
+    const firstContractStateURI: string | undefined = (projectObjects!.projectClasses.contractStateClasses.length > 0) ? (projectObjects!.projectClasses.contractStateClasses as ObjectSig[])[0].file?.toString() : undefined;
+    const contractStateDefaultURI: vscode.Uri = (firstContractStateURI !== undefined) ? vscode.Uri.parse(firstContractStateURI.match("(.*)(\/.*\.[^.]+$)")![1]!) : vscode.workspace.workspaceFolders![0].uri;
 
     const qpickItems = (projectObjects!.projectClasses.contractStateClasses as ObjectSig[])
         .concat(projectObjects!.projectInterfaces.contractStateInterfaces)
