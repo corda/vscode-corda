@@ -36,6 +36,16 @@ export interface ParsedNode {
     jarDir: string
 }
 
+// Login Request to connect via RPC
+// TODO: add CorDapp Dir to LoginRequest
+export interface LoginRequest {
+    hostName: string,
+    port: string,
+    username: string,
+    password: string,
+    cordappDir: string
+}
+
 // An instance of a valid NODE in this project
 export interface DefinedCordaNode {
     loginRequest: LoginRequest,
@@ -49,25 +59,26 @@ export interface DefinedCordaNode {
     nodeDef: ParsedNode
 }
 
-// Login Request to connect via RPC
-// TODO: add CorDapp Dir to LoginRequest
-export interface LoginRequest {
-    hostName: string,
-    port: string,
-    username: string,
-    password: string,
-    cordappDir: string
-}
-
-
-
 // Instance of a node that is currently running its Corda.jar
 // return UUID RPCClientId from login result
 export interface RunningNode {
     idx500: string,
     rpcconnid: string | undefined, // unique ID For routing to proper rpc-connection
     definedNode: DefinedCordaNode,
-    terminal: vscode.Terminal
+    terminal: vscode.Terminal,
+    corDapps: CordappInfo[] | undefined
+}
+
+export interface CordappInfo {
+    type: string,
+    name: string,
+    shortName: string,
+    minimumPlatformVersion: number,
+    targetPlatformVersion: number,
+    version: string,
+    vendor: string,
+    license: string,
+    jarHash: string
 }
 
 // Dictionary of running nodes key'd by WORKSPACE

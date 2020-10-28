@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ParsedNode, DefinedCordaNode, LoginRequest, RunningNode, RunningNodesList } from '../types/types'
-import { WorkStateKeys } from '../types/CONSTANTS'
+import { ParsedNode, DefinedCordaNode, LoginRequest, RunningNode, RunningNodesList, CordappInfo } from '../types/types'
+import { GlobalStateKeys, WorkStateKeys } from '../types/CONSTANTS'
 import { terminalIsOpenForNode } from '../utils/terminalUtils';
 
 export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
@@ -8,7 +8,12 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 	private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | void>();
 	readonly onDidChangeTreeData?: vscode.Event<vscode.TreeItem | undefined | void> = this._onDidChangeTreeData.event;
 
-	constructor(private readonly context: vscode.ExtensionContext) {
+	constructor(
+		private readonly context: vscode.ExtensionContext,
+		private deployNodesList: DefinedCordaNode[] | undefined = undefined,
+		private workspaceRunningNodesList: RunningNode[] | undefined = undefined
+	) {
+		this.deployNodesList = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
 	}
 
 	// check if node is currently running
@@ -20,10 +25,9 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 		return element;
 	}
 	getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]> {
-		let deployNodesList:DefinedCordaNode[] | undefined = this.context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_LIST);
 		if (!element) { // children of TOP level Mock Network
 			let nodeElements: DefinedCordaNodeTreeItem[] = [];
-			deployNodesList?.forEach((node) => {
+			this.deployNodesList?.forEach((node) => {
 				// format to existing structure for display
 				nodeElements.push(new DefinedCordaNodeTreeItem(
 					node.x500.name,
@@ -40,19 +44,24 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
 				new NodeDetail('RPC Port', element.nodeDetails.loginRequest.port)
 			];
 			if (element.isOnline) {
-				items.push(new CorDapps('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed))
+				const currentNodeCorDapps = this.workspaceRunningNodesList?.find(value => {
+					return element.idx500 == value.idx500;
+				})?.corDapps;
+
+				items.push(new CorDapps(currentNodeCorDapps!));
 			}
 			return items;
 		} else if (element instanceof CorDapps) { // details of CorDapps
-			return [
-				new CorDappDetail("Initiator", "simple template flow", vscode.TreeItemCollapsibleState.None), // STATIC placeholder - iterate on ALL apps from CorDapps object
-				new CorDappDetail("TokenIssueFlowInitiator", "issue token", vscode.TreeItemCollapsibleState.None)
-			];
-
+			let items: vscode.TreeItem[] = [];
+			element.cordapps.map(value => {
+				items.push(new CorDappDetail(value));
+			})
+			return items;
 		}
 	}
 	
 	refresh(): void {
+		this.workspaceRunningNodesList = (this.context.globalState.get(GlobalStateKeys.RUNNING_NODES) as RunningNodesList)[vscode.workspace.name!]?.runningNodes;
 		this._onDidChangeTreeData.fire();
 	}
 }
@@ -62,20 +71,25 @@ export class CordaLocalNetworkProvider implements vscode.TreeDataProvider<vscode
  */
 export class CorDappDetail extends vscode.TreeItem {
 	constructor(
-		public readonly label: string,
-		public readonly detail: string,
-		public readonly collapsibleState?: vscode.TreeItemCollapsibleState
+		public readonly detail: CordappInfo,
 	) {
-		super(label, collapsibleState);
-		this.description = detail;
+		super(detail.shortName, vscode.TreeItemCollapsibleState.None);
+		this.description = detail.type + ' | jar: ' + detail.name + ' | v. ' + detail.version;
 		this.iconPath = new vscode.ThemeIcon('package');
+		this.tooltip = 'jarHash: ' + detail.jarHash;
 	}
 }
 
 /**
  * Containing class for parenting CorDapps
  */
-export class CorDapps extends vscode.TreeItem {}
+export class CorDapps extends vscode.TreeItem {
+	constructor(
+		public readonly cordapps: CordappInfo[]
+	) {
+		super('Installed CorDapps', vscode.TreeItemCollapsibleState.Collapsed);
+	}
+}
 
 export class NodeDetail extends vscode.TreeItem {
 	constructor(

@@ -136,7 +136,8 @@ export const runNetworkCallback = async (context: vscode.ExtensionContext, progr
             idx500: node.idx500,
             rpcconnid: undefined,
             definedNode: node,
-            terminal: nodeTerminal
+            terminal: nodeTerminal,
+            corDapps: undefined
         }
 
         // Add to runningNodes
@@ -183,7 +184,11 @@ export const loginToAllNodes = async (clientToken: string, runningNodes: Running
         const loginResponse = await loginToNode(node.definedNode);
         progress.report({ increment: progressFactor, message: "Connecting to " + node.definedNode.x500.name });
         await sleep(500);
-        runningNodes[idx].rpcconnid = loginResponse!.data.data.rpcConnectionId;
+        const currRpcConnid = loginResponse!.data.data.rpcConnectionId;
+        runningNodes[idx].rpcconnid = currRpcConnid;
+        axios.defaults.headers.common['rpcconnid'] = currRpcConnid;
+        const corDappsInstalled = await fetchCordapps(node.definedNode);
+        runningNodes[idx].corDapps = corDappsInstalled;
         idx++;
     }
 
@@ -194,6 +199,14 @@ export const loginToAllNodes = async (clientToken: string, runningNodes: Running
     await context.globalState.update(GlobalStateKeys.RUNNING_NODES, globalRunningNodesList); // Update global runnodes list
 }
 
+const fetchCordapps = async (node: DefinedCordaNode) => {
+    const response = await axios.get(SERVER_BASE_URL + "/dashboard/node-diagnostics");
+    if (response.data.status) {
+        return response.data.data.cordapps;
+    } else {
+        return undefined;
+    }
+}
 
 /**
  * Logs in to a single node with retry
