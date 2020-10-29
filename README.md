@@ -1,6 +1,8 @@
-# vscode-corda README
+# vscode-corda 
 
 The vscode-corda extension provides tools for developing CorDapps on the [Corda](https://corda.net) platform.
+
+[Add to vscode from the marketplace here](https://marketplace.visualstudio.com/items?itemName=R3.vscode-corda)
 
 ## Features
 
