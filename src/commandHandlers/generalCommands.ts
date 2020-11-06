@@ -24,7 +24,7 @@ export const newProjectCallback = async () => {
     if (requestedProject == undefined) return;
 
     // request save directory
-    const path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, filters: {'Java': ['java']}, openLabel: 'Save Project'});
+    const path: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({canSelectFiles: false, canSelectFolders: true, openLabel: 'Save Project'});
     if (path == undefined) return;
     const targetPath = vscode.Uri.joinPath(path[0], requestedProject.label);
     
