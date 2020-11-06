@@ -70,7 +70,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// check for corda deps and parse project
 	if (vscode.workspace.workspaceFolders && (await cordaCheckAndLoad(context))) {
 		vscode.window.setStatusBarMessage("Corda-Project");
-		vscode.commands.executeCommand(Commands.SHOW_CORDA_WELCOME);
 		cordaExt(context);
 	} else {
 		vscode.commands.executeCommand('setContext', Contexts.PROJECT_IS_CORDA_CONTEXT, false);

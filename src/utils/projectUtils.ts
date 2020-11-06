@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { fileSync } from 'find';
 import { v4 as uuidv4 } from 'uuid';
-import { GlobalStateKeys, WorkStateKeys, Contexts, Constants, DebugConst } from '../types/CONSTANTS';
+import { GlobalStateKeys, WorkStateKeys, Contexts, Constants, DebugConst, Commands } from '../types/CONSTANTS';
 import { CordaNodesConfig, CordaTaskConfig, ParsedNode, DefinedCordaNode, LoginRequest, CordaNodeConfig } from '../types/types'
 import { areNodesDeployed } from '../utils/networkUtils';
 import { launchClient } from '../commandHandlers/networkCommands';
@@ -34,6 +34,9 @@ export const cordaCheckAndLoad = async (context: vscode.ExtensionContext) => {
     // EXIT IF NOT a Corda Project
     if (!(await setIsProjectCorda(projectGradle, context))) { return false } 
     
+    // Show Corda Welcome
+    vscode.commands.executeCommand(Commands.SHOW_CORDA_WELCOME);
+
     // Check JDK 1.8 Installed and home/runconfig set in settings.json
     const currentRedHatJava: string = vscode.extensions.getExtension('redhat.java')!.packageJSON.version;
     if (
@@ -110,7 +113,11 @@ const isJDK18Available = async (context: vscode.ExtensionContext) => {
         }
     }
     if (jdk18Home == undefined) {
-        vscode.window.showErrorMessage('No JDK 1.8 home set in settings.json');
+        vscode.window.showErrorMessage('No JDK 1.8 home set in settings.json. Click help and see Initial Setup for instructions', 'Help').then((value) => {
+            if (value === 'Help') {
+                vscode.commands.executeCommand(Commands.SHOW_CORDA_WELCOME);
+            }
+        });
         return false;
     } else {
         // check that jdk18Home is actually pointing to a jdk18
