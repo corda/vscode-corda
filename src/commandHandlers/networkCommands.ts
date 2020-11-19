@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { panelStart } from '../utils/panelsUtils';
 import { runGradleTaskCallback, openFileCallback } from './generalCommands';
 import { WorkStateKeys, GlobalStateKeys, RUN_CORDA_CMD, Commands, SERVER_BASE_URL, SERVER_JAR, Contexts } from '../types/CONSTANTS';
@@ -94,7 +95,7 @@ export const logviewerCallback = async (node: DefinedCordaNodeTreeItem, context:
  */
 export const editDeployNodesCallback = (context: vscode.ExtensionContext) => {
     const buildGradleFile: string | undefined = context.workspaceState.get(WorkStateKeys.DEPLOY_NODES_BUILD_GRADLE);
-	openFileCallback(vscode.Uri.parse(buildGradleFile!));
+	openFileCallback(vscode.Uri.parse("file:" + buildGradleFile, true));
 	vscode.window.showInformationMessage("Configure your network in the deployNodes task.");
 	// TODO: set the cursor on the deployNodes Task
 }
