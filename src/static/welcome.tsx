@@ -137,11 +137,11 @@ export const getWelcomeContent = (context: vscode.ExtensionContext, resourceRoot
                 <b>Windows:</b>
               </p>
               <div style="font-size:9pt">
-              <pre><code>"java.import.gradle.java.home": "C:\\Program Files\\Java\\jdk1.8.0_261",
+              <pre><code>"java.import.gradle.java.home": "C:\\\\Program Files\\\\Java\\\\jdk1.8.0_261",
 "java.configuration.runtimes": [
 {
     "name": "JavaSE-1.8",
-    "path": "C:\\Program Files\\Java\\jdk1.8.0_261"
+    "path": "C:\\\\Program Files\\\\Java\\\\jdk1.8.0_261"
 }
 ],
                 </code>
