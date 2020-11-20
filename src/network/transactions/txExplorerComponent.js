@@ -1,5 +1,7 @@
 import { Button, FormControl, Grid, InputLabel, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, FormHelperText } from '@material-ui/core';
 import Modal from '@material-ui/core/Modal';
+import CancelPresentationRoundedIcon from '@material-ui/icons/CancelPresentationRounded';
+import IconButton from '@material-ui/core/IconButton';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ForwardIcon from '@material-ui/icons/Forward';
@@ -9,6 +11,12 @@ import * as ActionType from '../common/actions';
 import '../common/styles/Transaction.css';
 import { ThemeProvider } from '@material-ui/core';
 import { theme } from './theme';
+
+const modalHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: 0
+};
 
 class TransactionExplorer extends Component{
     state = {
@@ -301,38 +309,6 @@ class TransactionExplorer extends Component{
         );
     }
 
-    // updateCmplxListParam(param, flag, idx){
-    //     if(flag){
-    //         let obj = JSON.parse(JSON.stringify(param.paramValue[0]));
-    //         param.paramValue.push(obj);
-
-    //         let keyVal = [];
-    //         if(!(this.state.paramList[param.paramName] === undefined || this.state.paramList[param.paramName] === null)){
-    //             keyVal[param.paramName] = this.state.paramList[param.paramName];
-    //         }else{
-    //             keyVal[param.paramName] = [];
-    //         }
-    //         if(keyVal[param.paramName].length === 0){
-    //             obj.key = 0;
-    //         }else{
-    //             obj.key = keyVal[param.paramName][keyVal[param.paramName].length -1].key + 1;
-    //         }
-    //         keyVal[param.paramName].push(obj);
-    //         this.setState({
-    //             paramList: keyVal
-    //         });
-    //     }else{
-    //         param.paramValue.splice(idx+1, 1);
-    //         this.state.paramList[param.paramName].splice(idx, 1);
-    //         let keyVal = [];
-    //         keyVal[param.paramName] = this.state.paramList[param.paramName];
-    //         this.setState({
-    //             paramList: keyVal
-    //         });
-    //     }
-    // }
-
-
     updateListParam(param, val, flag, idx) {
         if(flag){
             if(param.paramValue === undefined || param.paramValue === null)
@@ -390,7 +366,12 @@ class TransactionExplorer extends Component{
                         style={{overflow:"scroll"}}
                         >
                         <div className="paper">
-                            <h3 id="simple-modal-title">Please Select a Flow to Execute</h3>
+                            <div style={modalHeaderStyle}>
+                                <h3 id="simple-modal-title">Please Select a Flow to Execute</h3>
+                                <IconButton aria-label="cancel" onClick={this.handleClose}>
+                                    <CancelPresentationRoundedIcon />
+                                </IconButton>
+                            </div>
                             <div style={{color: "red"}}>{this.props.registeredFlows.length === 0? 'No Flows Found! Make sure you have the cordapp directory set in the Settings Tab':null}</div>
                             <div>
                             <div style={{width: "70%", float:"left"}}>
